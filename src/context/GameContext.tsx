@@ -195,18 +195,19 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return merged;
         });
 
-        // Add notifications for newly detected FitGirl games
-        const fitgirlGames = remoteGames.filter(g => g.id.startsWith('fg-'));
-        if (fitgirlGames.length > 0) {
+        // Add notifications for newly detected FitGirl & DODI games
+        const automatedGames = remoteGames.filter(g => g.id.startsWith('fg-') || g.id.startsWith('dodi-'));
+        if (automatedGames.length > 0) {
           setNotifications(prev => {
             const existingNotifIds = new Set(prev.map(n => n.gameId));
             const newNotifs: SiteNotification[] = [];
-            for (const g of fitgirlGames) {
+            for (const g of automatedGames) {
               if (!existingNotifIds.has(g.id)) {
+                const isDodi = g.repackInfo?.repacker?.includes('DODI') || g.id.startsWith('dodi-');
                 newNotifs.push({
-                  id: `notif-fg-${g.id}`,
-                  title: '⚡ Novo Repack FitGirl (Auto-Bot)',
-                  message: `${g.title} (${g.repackInfo.repackSize}) indexado e publicado direto do Feed oficial!`,
+                  id: `notif-bot-${g.id}`,
+                  title: isDodi ? '🔥 Novo Repack DODI (Dual Torrent)' : '⚡ Novo Repack FitGirl (Auto-Bot)',
+                  message: `${g.title} (${g.repackInfo.repackSize}) indexado com torrents de alta velocidade!`,
                   gameId: g.id,
                   type: 'new_game',
                   timestamp: 'Recentemente',

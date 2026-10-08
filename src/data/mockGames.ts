@@ -1,7 +1,9 @@
 import { Game } from '../types';
 import { ZUKO_TAPOCHEK_PRESETS } from './zukoTapochekPresets';
+import { DODI_PRESET_GAMES } from './dodiPresets';
 
 export const INITIAL_GAMES: Game[] = [
+  ...DODI_PRESET_GAMES,
   ...ZUKO_TAPOCHEK_PRESETS,
   {
     id: 'bloodborne-complete',

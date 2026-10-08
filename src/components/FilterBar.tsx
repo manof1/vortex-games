@@ -18,12 +18,12 @@ const GENRES = [
 
 const CATEGORIES = [
   { id: 'Todos', label: 'Todos os Jogos' },
-  { id: 'FitGirl', label: '🤖 FitGirl Auto-Sync' },
+  { id: 'FitGirl', label: '🌸 FitGirl Repacks' },
+  { id: 'DODI', label: '⚡ DODI Repacks' },
   { id: 'Lançamentos', label: '🔥 Lançamentos' },
   { id: 'Mais Populares', label: '⭐ Mais Populares' },
   { id: 'AAA', label: '💎 Superproduções (AAA)' },
-  { id: 'Repacks Leves', label: '⚡ Repacks Leves' },
-  { id: 'Indiezinhos', label: '🎮 Indie Clássicos' }
+  { id: 'Repacks Leves', label: '⚡ Repacks Leves' }
 ];
 
 export const FilterBar: React.FC = () => {

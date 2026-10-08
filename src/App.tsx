@@ -48,6 +48,7 @@ const MainContent: React.FC = () => {
         // Category filter
         if (filters.category !== 'Todos') {
           if (filters.category === 'FitGirl' && !game.repackInfo.repacker.toLowerCase().includes('fitgirl') && !game.id.startsWith('fg-')) return false;
+          if (filters.category === 'DODI' && !game.repackInfo.repacker.toLowerCase().includes('dodi') && !game.id.startsWith('dodi-')) return false;
           if (filters.category === 'Lançamentos' && !game.categories.includes('Lançamentos') && game.releaseYear < 2024) return false;
           if (filters.category === 'Mais Populares' && !game.isTrending && game.rating < 4.8) return false;
           if (filters.category === 'AAA' && !game.categories.includes('AAA')) return false;
