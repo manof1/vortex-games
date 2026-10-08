@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { 
   X, 
+  ArrowLeft,
   User, 
   Bookmark, 
   Download, 
@@ -114,16 +115,32 @@ export const UserMenuModal: React.FC<UserMenuModalProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-md flex justify-center items-start p-2 sm:p-4 md:p-6 animate-fadeIn">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5 animate-fadeIn">
+      {/* Traditional Site Header & Return Bar */}
+      <div className="flex items-center justify-between pb-3 border-b border-slate-800/80">
+        <button
+          onClick={onClose}
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs sm:text-sm font-bold text-slate-200 hover:text-white transition-all shadow-sm group cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4 text-cyan-400 group-hover:-translate-x-1 transition-transform" />
+          <span>Voltar ao Catálogo de Jogos</span>
+        </button>
+
+        <div className="hidden sm:flex items-center gap-2 text-xs text-slate-400">
+          <button onClick={onClose} className="hover:text-cyan-400 transition-colors">Início</button>
+          <span>/</span>
+          <span className="text-cyan-400 font-semibold">Conta & Perfil do Jogador</span>
+        </div>
+      </div>
+
       <div 
-        className="relative w-full max-w-4xl my-4 sm:my-8 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[580px]"
-        onClick={e => e.stopPropagation()}
+        className="relative w-full rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[580px]"
       >
         {/* Close Button Mobile / Desktop */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-20 p-2 rounded-xl bg-slate-800/80 hover:bg-rose-600 text-slate-400 hover:text-white transition-all shadow-md"
-          title="Fechar Menu"
+          className="absolute top-4 right-4 z-20 p-2 rounded-xl bg-slate-800/80 hover:bg-rose-600 text-slate-400 hover:text-white transition-all shadow-md cursor-pointer"
+          title="Fechar e Voltar ao Catálogo"
         >
           <X className="w-5 h-5" />
         </button>

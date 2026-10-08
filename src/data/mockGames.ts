@@ -162,15 +162,15 @@ export const INITIAL_GAMES: Game[] = [
       },
       {
         id: 'dl-cp-2',
-        type: 'torrent',
+        type: 'direct',
         format: 'torrent',
         platform: 'PC',
-        label: 'Arquivo .torrent Direto (Tapochek Tracker)',
-        url: 'https://tapochek.net',
+        label: 'Mirror Direto: Qiwi & DataNodes (Download Rápido)',
+        url: 'magnet:?xt=urn:btih:3fa9128456123984712093847102938471029384&dn=Cyberpunk.2077.v2.13-Phantom.Liberty-DirectMirror&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce',
         seeders: 2890,
         leechers: 310,
         size: '56.4 GB',
-        hostName: 'Tapochek.net'
+        hostName: 'DataNodes Server'
       }
     ],
     systemRequirements: {
@@ -502,15 +502,15 @@ export const INITIAL_GAMES: Game[] = [
       },
       {
         id: 'dl-gow-2',
-        type: 'torrent',
+        type: 'direct',
         format: 'torrent',
         platform: 'PC',
-        label: 'Download .torrent Direto (Tapochek Tracker)',
-        url: 'https://tapochek.net',
+        label: 'Mirror Direto: MultiUpload & Qiwi (Servidor Rápido)',
+        url: 'magnet:?xt=urn:btih:3438812093847102938471029384710293847102&dn=God.of.War.Ragnarok.DirectMirror&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce',
         seeders: 3100,
         leechers: 420,
         size: '102.5 GB',
-        hostName: 'Tapochek.net'
+        hostName: 'MultiUpload Server'
       },
       {
         id: 'dl-gow-patch-ptbr',

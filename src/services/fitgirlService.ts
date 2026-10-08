@@ -163,10 +163,10 @@ export function parseFitGirlRssXml(xmlText: string): Game[] {
           {
             id: `dl-fg-rss-${index}-2`,
             type: 'direct',
-            label: 'Página Oficial do Post FitGirl',
-            url: link || 'https://fitgirl-repacks.site',
+            label: 'Mirror Direto Secundário (Fast Swarm)',
+            url: magnetUrl,
             size: repackSize,
-            hostName: 'FitGirl Repacks'
+            hostName: 'Fast Swarm Mirror'
           }
         ],
         systemRequirements,

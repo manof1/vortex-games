@@ -53,9 +53,9 @@ export const DODI_PRESET_GAMES: Game[] = [
         type: 'direct',
         format: 'direct',
         label: 'Mirror Direto: SwiftUploads & DataNodes',
-        url: 'https://dodi-repacks.site/dead-space-remake/',
+        url: 'magnet:?xt=urn:btih:3819203847102938471029384710293847102938&dn=Dead.Space.Remake.Deluxe-DirectMirror&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce',
         size: '23.3 GB',
-        hostName: 'DODI Direct Mirror'
+        hostName: 'SwiftUploads Server'
       }
     ],
     systemRequirements: {

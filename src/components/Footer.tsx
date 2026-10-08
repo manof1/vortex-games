@@ -1,9 +1,9 @@
 import React from 'react';
-import { Gamepad2, ShieldAlert, Heart, HardDrive, Sparkles } from 'lucide-react';
+import { Gamepad2, ShieldAlert, Heart, HardDrive, Sparkles, CheckCircle2, ShieldCheck, Cpu } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 
 export const Footer: React.FC = () => {
-  const { setFilters, setIsAdminOpen, setIsSupabaseGuideOpen } = useGame();
+  const { setFilters } = useGame();
 
   return (
     <footer className="w-full mt-20 border-t border-slate-800/80 bg-slate-950/80 backdrop-blur-md text-slate-400 text-xs">
@@ -96,29 +96,24 @@ export const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Administration & Technical */}
+          {/* Resources & Status */}
           <div className="space-y-2">
-            <h4 className="text-xs font-bold text-white uppercase tracking-wider">Administração & Stack</h4>
+            <h4 className="text-xs font-bold text-white uppercase tracking-wider">Recursos & Status</h4>
             <ul className="space-y-1.5 text-xs">
-              <li>
-                <button 
-                  onClick={() => setIsAdminOpen(true)}
-                  className="hover:text-cyan-400 transition-colors flex items-center gap-1 text-cyan-300 font-semibold"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Painel Administrativo</span>
-                </button>
+              <li className="flex items-center gap-1.5 text-emerald-400 font-medium">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Trackers P2P: 100% Online</span>
+              </li>
+              <li className="flex items-center gap-1.5 text-slate-300">
+                <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Hashes Verificados SHA-256</span>
+              </li>
+              <li className="flex items-center gap-1.5 text-slate-300">
+                <Cpu className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Instaladores Limpos & Testados</span>
               </li>
               <li>
-                <button 
-                  onClick={() => setIsSupabaseGuideOpen(true)}
-                  className="hover:text-indigo-400 transition-colors"
-                >
-                  Migração Vercel + Supabase
-                </button>
-              </li>
-              <li>
-                <span className="text-emerald-400 font-medium">Status dos Trackers: 100% Online</span>
+                <span className="text-[11px] text-slate-500">Dual-Sources FitGirl & DODI Integrados</span>
               </li>
             </ul>
           </div>

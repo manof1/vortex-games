@@ -21,6 +21,7 @@ export const Header: React.FC = () => {
     setFilters, 
     library, 
     notifications, 
+    setActiveGame,
     setIsLibraryOpen, 
     setIsAdminOpen, 
     setIsNotificationsOpen,
@@ -37,12 +38,18 @@ export const Header: React.FC = () => {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setActiveGame(null);
+    setIsLibraryOpen(false);
+    setIsUserMenuOpen(false);
     setFilters(prev => ({ ...prev, search: localSearch }));
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setLocalSearch(val);
+    setActiveGame(null);
+    setIsLibraryOpen(false);
+    setIsUserMenuOpen(false);
     setFilters(prev => ({ ...prev, search: val }));
   };
 
@@ -55,8 +62,10 @@ export const Header: React.FC = () => {
           <div className="flex items-center gap-3">
             <div 
               onClick={() => {
-                setFilters(prev => ({ ...prev, search: '', genre: 'Todos', category: 'Todos' }));
+                setActiveGame(null);
                 setIsLibraryOpen(false);
+                setIsUserMenuOpen(false);
+                setFilters(prev => ({ ...prev, search: '', genre: 'Todos', category: 'Todos' }));
               }}
               className="flex items-center gap-3 cursor-pointer group"
             >
@@ -112,20 +121,24 @@ export const Header: React.FC = () => {
             {/* Quick Links Navigation */}
             <button
               onClick={() => {
-                setFilters(prev => ({ ...prev, search: '', genre: 'Todos', category: 'Todos' }));
+                setActiveGame(null);
                 setIsLibraryOpen(false);
+                setIsUserMenuOpen(false);
+                setFilters(prev => ({ ...prev, search: '', genre: 'Todos', category: 'Todos' }));
               }}
-              className="hidden lg:flex items-center px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900 transition-all"
+              className="hidden lg:flex items-center px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900 transition-all cursor-pointer"
             >
               Catálogo
             </button>
 
             <button
               onClick={() => {
-                setFilters(prev => ({ ...prev, category: 'Lançamentos' }));
+                setActiveGame(null);
                 setIsLibraryOpen(false);
+                setIsUserMenuOpen(false);
+                setFilters(prev => ({ ...prev, search: '', category: 'Lançamentos' }));
               }}
-              className="hidden lg:flex items-center px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900 transition-all"
+              className="hidden lg:flex items-center px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900 transition-all cursor-pointer"
             >
               Lançamentos
             </button>
@@ -134,7 +147,7 @@ export const Header: React.FC = () => {
             <div className="relative">
               <button
                 onClick={() => setIsNotificationsOpen(true)}
-                className="relative p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-cyan-400 hover:border-slate-700 transition-all"
+                className="relative p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-cyan-400 hover:border-slate-700 transition-all cursor-pointer"
                 title="Notificações e Novos Jogos"
               >
                 <Bell className="w-5 h-5" />
@@ -148,8 +161,12 @@ export const Header: React.FC = () => {
 
             {/* Minha Biblioteca */}
             <button
-              onClick={() => setIsLibraryOpen(true)}
-              className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 hover:text-white hover:border-cyan-500/50 transition-all group"
+              onClick={() => {
+                setActiveGame(null);
+                setIsUserMenuOpen(false);
+                setIsLibraryOpen(true);
+              }}
+              className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 hover:text-white hover:border-cyan-500/50 transition-all group cursor-pointer"
               title="Minha Biblioteca de Jogos"
             >
               <Bookmark className="w-4 h-4 text-cyan-400 group-hover:scale-110 transition-transform" />
@@ -161,7 +178,11 @@ export const Header: React.FC = () => {
 
             {/* Menu de Acesso do Usuário (Baixar, Avaliar, Perfil e Interagir) */}
             <button
-              onClick={() => setIsUserMenuOpen(true)}
+              onClick={() => {
+                setActiveGame(null);
+                setIsLibraryOpen(false);
+                setIsUserMenuOpen(true);
+              }}
               className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700/80 hover:border-cyan-400 hover:bg-slate-800/80 text-slate-100 transition-all group shadow-sm cursor-pointer"
               title="Menu do Usuário: Baixar, Avaliar Jogos e Perfil"
             >
