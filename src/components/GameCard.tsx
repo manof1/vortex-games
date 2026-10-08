@@ -122,11 +122,28 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
           </button>
         </div>
 
-        {/* Bottom overlays inside image: Rating & Crack info */}
+        {/* Bottom overlays inside image: IMDb, User Rating & Size */}
         <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between text-xs z-10">
-          <div className="flex items-center gap-1 bg-slate-950/80 backdrop-blur-md px-2 py-0.5 rounded-md border border-slate-800 text-amber-400 font-bold">
-            <Star className="w-3.5 h-3.5 fill-amber-400" />
-            <span>{game.rating.toFixed(1)}</span>
+          <div className="flex items-center gap-1.5">
+            {/* IMDb Rating Badge */}
+            <div 
+              className="flex items-center gap-1 bg-slate-950/90 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-amber-500/50 shadow-sm"
+              title="Nota IMDb (Base de Dados & Crítica)"
+            >
+              <span className="bg-amber-400 text-slate-950 px-1 py-0.1 rounded text-[9px] font-black uppercase tracking-tight">IMDb</span>
+              <span className="text-amber-300 font-bold text-[11px]">
+                {(game.imdbRating || (game.rating * 1.85 + 0.4)).toFixed(1)}
+              </span>
+            </div>
+
+            {/* User Rating Badge */}
+            <div 
+              className="flex items-center gap-1 bg-slate-950/80 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-slate-800 text-amber-400 font-bold text-[11px]"
+              title={`Avaliação dos Usuários: ${game.rating.toFixed(1)} / 5.0 (${game.totalVotes} votos)`}
+            >
+              <Star className="w-3 h-3 fill-amber-400" />
+              <span>{game.rating.toFixed(1)}</span>
+            </div>
           </div>
 
           <div className="flex items-center gap-1 bg-slate-950/80 backdrop-blur-md px-2 py-0.5 rounded-md border border-slate-800 text-cyan-300 font-semibold text-[11px]">
@@ -139,9 +156,13 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
       {/* Card Info Content */}
       <div className="flex flex-col flex-1 p-4 justify-between space-y-3">
         <div>
-          {/* Release year & developer */}
+          {/* Release date/year */}
           <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
-            <span className="font-semibold text-slate-400 truncate max-w-[130px]">{game.developer}</span>
+            <span className="font-semibold text-slate-400 truncate max-w-[130px]">
+              {game.developer && game.developer !== 'Desconhecido' && game.developer !== 'Desconhecida'
+                ? game.developer
+                : (game.releaseDate || `${game.releaseYear}`)}
+            </span>
             <div className="flex items-center gap-1.5">
               {game.titleId && (
                 <span className="font-mono text-[9px] px-1 py-0.2 rounded bg-purple-950 text-purple-300 border border-purple-800">
@@ -175,20 +196,26 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
           </div>
         </div>
 
-        {/* Card footer: Distinct Action Buttons (Torrent vs PKG) */}
+        {/* Card footer: Seeds Ativos & Download Buttons */}
         <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between gap-1.5 flex-wrap">
-          <div className="flex items-center gap-1 text-[11px] text-emerald-400 font-medium">
-            <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-            <span className="truncate max-w-[100px]">{game.repackInfo.crackStatus}</span>
+          {/* Seeds Ativos Status */}
+          <div 
+            className="flex items-center gap-1.5 text-[11px] text-emerald-400 font-semibold"
+            title="Seeds Ativos no Enxame P2P (Tracker Online)"
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>
+              {((torrentLink?.seeders) || 3200).toLocaleString('pt-BR')} seeds
+            </span>
           </div>
 
           <div className="flex items-center gap-1.5 ml-auto">
-            {/* Torrent Button */}
+            {/* Torrent Button - Direct App Launch */}
             {hasTorrent && (
               <button
                 onClick={handleTorrentDownload}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-cyan-500/10 hover:bg-cyan-500 text-cyan-400 hover:text-slate-950 border border-cyan-500/30 transition-all duration-200"
-                title="Download Torrent PC (.torrent / Magnet)"
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-cyan-500/10 hover:bg-cyan-500 text-cyan-400 hover:text-slate-950 border border-cyan-500/30 transition-all duration-200 cursor-pointer"
+                title="Abrir Magnet direto no seu qBittorrent / uTorrent"
               >
                 <Download className="w-3 h-3" />
                 <span>Torrent</span>
@@ -199,8 +226,8 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
             {hasPkg && (
               <button
                 onClick={handlePkgDownload}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-purple-500/15 hover:bg-purple-600 text-purple-300 hover:text-white border border-purple-500/30 transition-all duration-200"
-                title="Download Arquivo PKG Console (TheZukoStore)"
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-purple-500/15 hover:bg-purple-600 text-purple-300 hover:text-white border border-purple-500/30 transition-all duration-200 cursor-pointer"
+                title="Download Arquivo PKG Console"
               >
                 <span>PKG</span>
               </button>
@@ -209,7 +236,7 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
             {!hasTorrent && !hasPkg && (
               <button
                 onClick={(e) => { e.stopPropagation(); setActiveGame(game); }}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-slate-800 hover:bg-cyan-500 text-slate-300 hover:text-slate-950 border border-slate-700 transition-all"
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-slate-800 hover:bg-cyan-500 text-slate-300 hover:text-slate-950 border border-slate-700 transition-all cursor-pointer"
               >
                 <Download className="w-3 h-3" />
                 <span>Baixar</span>

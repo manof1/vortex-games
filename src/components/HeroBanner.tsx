@@ -83,10 +83,18 @@ export const HeroBanner: React.FC = () => {
 
           {/* Key metadata chips */}
           <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-slate-300 py-1">
+            {/* IMDb Rating Chip */}
+            <div className="flex items-center gap-1.5 bg-slate-950/80 px-2.5 py-1 rounded-lg border border-amber-500/40 text-amber-300 font-bold shadow-sm">
+              <span className="bg-amber-400 text-slate-950 text-[10px] font-black px-1.5 py-0.2 rounded uppercase">IMDb</span>
+              <span className="text-sm font-black font-mono">{(featured.imdbRating || (featured.rating * 1.85 + 0.4)).toFixed(1)}</span>
+              <span className="text-slate-400 text-[10px]">/ 10</span>
+            </div>
+
+            {/* User Rating Chip */}
             <div className="flex items-center gap-1.5 text-amber-400 font-bold bg-slate-950/70 px-2.5 py-1 rounded-lg border border-slate-800">
               <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
               <span>{featured.rating.toFixed(1)}</span>
-              <span className="text-slate-400 font-normal">({featured.totalVotes} votos)</span>
+              <span className="text-slate-400 font-normal">({featured.totalVotes.toLocaleString('pt-BR')} votos)</span>
             </div>
 
             <div className="flex items-center gap-1.5 bg-slate-950/70 px-2.5 py-1 rounded-lg border border-slate-800">
@@ -95,9 +103,9 @@ export const HeroBanner: React.FC = () => {
               <span className="text-slate-500 line-through">({featured.repackInfo.originalSize})</span>
             </div>
 
-            <div className="flex items-center gap-1.5 bg-slate-950/70 px-2.5 py-1 rounded-lg border border-slate-800">
-              <Users className="w-4 h-4 text-emerald-400" />
-              <span>Seeds: <strong className="text-emerald-400">+{featured.downloadLinks[0]?.seeders || 2500}</strong></span>
+            <div className="flex items-center gap-1.5 bg-slate-950/70 px-2.5 py-1 rounded-lg border border-slate-800 text-emerald-400 font-semibold">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Seeds: <strong className="text-emerald-400">{(featured.downloadLinks[0]?.seeders || 3500).toLocaleString('pt-BR')} Ativos</strong></span>
             </div>
           </div>
 

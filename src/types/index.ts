@@ -80,8 +80,9 @@ export interface Game {
   repackInfo: RepackInfo;
   downloadLinks: DownloadLink[];
   systemRequirements: SystemRequirements;
-  rating: number; // 0 to 5
+  rating: number; // 0 to 5 (avaliação dos usuários)
   totalVotes: number;
+  imdbRating?: number; // 0 to 10 (nota IMDb / Metacritic)
   screenshots: string[];
   trailerYoutubeId?: string;
   tags: string[];

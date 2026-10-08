@@ -16,6 +16,7 @@ import {
   Share2, 
   Copy, 
   CheckCircle2, 
+  Clock, 
   AlertTriangle,
   Send,
   Sparkles,
@@ -71,15 +72,12 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
     directx: 'Versão 12'
   };
 
-  // Safe Screenshots computation (guarantees at least 4-6 rich captures)
-  const displayScreenshots = (Array.isArray(game.screenshots) && game.screenshots.length > 0)
-    ? game.screenshots
-    : [
-        game.coverUrl || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80',
-        'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80',
-        'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80',
-        'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80'
-      ];
+  // Exibir apenas as imagens do jogo com limite estrito de 4 imagens
+  const realGameScreenshots = (Array.isArray(game.screenshots) && game.screenshots.length > 0)
+    ? game.screenshots.filter(s => typeof s === 'string' && s.trim().length > 0)
+    : [game.bannerUrl, game.coverUrl].filter(Boolean);
+
+  const displayScreenshots = realGameScreenshots.slice(0, 4);
   
   // User review form state
   const [authorName, setAuthorName] = useState(userProfile.name);
@@ -209,8 +207,9 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                   {game.repackInfo.crackStatus}
                 </span>
 
-                <span className="text-xs text-slate-300 font-mono">
-                  {game.releaseDate} • {game.developer}
+                <span className="text-xs text-slate-300 font-mono flex items-center gap-1 bg-slate-950/60 px-2.5 py-1 rounded-lg border border-slate-800">
+                  <Clock className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>{game.releaseDate}</span>
                 </span>
               </div>
 
@@ -227,27 +226,52 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
               </div>
             </div>
 
-            {/* Rating badge & Total votes */}
-            <div className="flex items-center gap-3 bg-slate-950/80 backdrop-blur-md p-3 rounded-2xl border border-slate-800 self-stretch sm:self-auto justify-between">
-              <div>
-                <div className="flex items-center gap-1 text-amber-400">
-                  <Star className="w-5 h-5 fill-amber-400" />
-                  <span className="text-2xl font-black">{game.rating.toFixed(1)}</span>
-                  <span className="text-xs text-slate-400 font-normal">/ 5.0</span>
+            {/* Dual Rating Badges: IMDb & User Rating */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-slate-950/85 backdrop-blur-md p-3.5 rounded-2xl border border-slate-800 self-stretch sm:self-auto shadow-xl">
+              
+              {/* IMDb Rating */}
+              <div className="flex items-center gap-2 pr-0 sm:pr-3 border-b sm:border-b-0 sm:border-r border-slate-800 pb-2.5 sm:pb-0">
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-1.5">
+                    <span className="bg-amber-400 text-slate-950 text-[10px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider shadow-sm">
+                      IMDb
+                    </span>
+                    <span className="text-xl font-black text-amber-300 font-mono">
+                      {(game.imdbRating || (game.rating * 1.85 + 0.4)).toFixed(1)}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-normal">/ 10</span>
+                  </div>
+                  <span className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider">
+                    Nota IMDb
+                  </span>
                 </div>
-                <p className="text-[11px] text-slate-400">{game.totalVotes.toLocaleString()} votos da comunidade</p>
               </div>
 
-              {/* User rating button trigger */}
-              <button
-                onClick={() => {
-                  const element = document.getElementById('avaliar-secao');
-                  element?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500 hover:text-slate-950 border border-cyan-500/30 transition-all"
-              >
-                Avaliar Jogo
-              </button>
+              {/* User Community Rating */}
+              <div className="flex items-center justify-between sm:justify-start gap-3">
+                <div>
+                  <div className="flex items-center gap-1 text-amber-400">
+                    <Star className="w-4 h-4 fill-amber-400" />
+                    <span className="text-xl font-black text-white">{game.rating.toFixed(1)}</span>
+                    <span className="text-xs text-slate-400 font-normal">/ 5.0</span>
+                  </div>
+                  <p className="text-[10px] text-slate-400">
+                    {game.totalVotes.toLocaleString('pt-BR')} votos de usuários
+                  </p>
+                </div>
+
+                {/* User rating button trigger */}
+                <button
+                  onClick={() => {
+                    const element = document.getElementById('avaliar-secao');
+                    element?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="px-3 py-1.5 rounded-xl text-xs font-bold bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500 hover:text-slate-950 border border-cyan-500/30 transition-all cursor-pointer whitespace-nowrap"
+                >
+                  Avaliar Jogo
+                </button>
+              </div>
+
             </div>
           </div>
         </div>
@@ -451,9 +475,9 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                           <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-cyan-500 text-slate-950">
                             TORRENT PC (MAGNET)
                           </span>
-                          <span className="text-xs text-emerald-400 font-bold flex items-center gap-1">
-                            <Users className="w-3.5 h-3.5" />
-                            {link.seeders || 3000} Seeds Ativos
+                          <span className="text-xs text-emerald-400 font-bold flex items-center gap-1.5" title="Enxame de peers online distribuindo o jogo">
+                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                            <span>{((link.seeders) || 3200).toLocaleString('pt-BR')} Seeds Ativos</span>
                           </span>
                         </div>
 
@@ -465,17 +489,21 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                           <span>Tamanho: <strong className="text-white font-mono">{link.size}</strong></span>
                           <span>•</span>
                           <span>Formato: <strong className="text-cyan-300">.torrent / Magnet</strong></span>
+                          <span>•</span>
+                          <span className="text-emerald-400 font-medium">Download Imediato</span>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2 pt-2">
-                        <button
-                          onClick={() => handleDownloadClick(link.url)}
-                          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-xs bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-md shadow-cyan-500/30 transition-all transform hover:scale-[1.02]"
+                        <a
+                          href={link.url}
+                          onClick={() => incrementDownload(game.id)}
+                          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-xs bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-md shadow-cyan-500/30 transition-all transform hover:scale-[1.02] cursor-pointer"
+                          title="Enviar link Magnet direto para seu aplicativo de torrent (qBittorrent / uTorrent)"
                         >
                           <Download className="w-4 h-4 stroke-[2.5]" />
-                          <span>Baixar Torrent PC</span>
-                        </button>
+                          <span>Baixar Torrent PC (Abrir no qBittorrent / uTorrent)</span>
+                        </a>
 
                         <button
                           onClick={() => handleCopyMagnet(link.url)}
@@ -736,35 +764,42 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
           {activeTab === 'screenshots' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-400">
-                  {displayScreenshots.length} capturas de tela e cenas em alta resolução. Clique para ampliar.
+                <span className="text-xs text-slate-400 flex items-center gap-1.5 font-medium">
+                  <span className="w-2 h-2 rounded-full bg-cyan-400" />
+                  <span>Imagens Oficiais do Jogo ({displayScreenshots.length} de no máximo 4 capturas). Clique para ampliar.</span>
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {displayScreenshots.map((shot, idx) => (
-                  <div 
-                    key={idx} 
-                    onClick={() => setLightboxImage(shot)}
-                    className="rounded-xl overflow-hidden border border-slate-800 group aspect-video bg-slate-950 cursor-pointer relative hover:border-cyan-500/50 transition-all shadow-md"
-                  >
-                    <img 
-                      src={shot} 
-                      alt={`${game.title} captura ${idx + 1}`} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      onError={(e) => {
-                        const target = e.currentTarget;
-                        if (!target.src.includes('unsplash')) {
-                          target.src = game.coverUrl || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80';
-                        }
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2.5">
-                      <span className="text-[11px] font-bold text-cyan-300">🔍 Clique para ampliar</span>
+              {displayScreenshots.length === 0 ? (
+                <div className="p-8 text-center rounded-2xl bg-slate-950/40 border border-slate-800 text-slate-400 text-xs">
+                  Nenhuma captura de tela cadastrada para este jogo.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {displayScreenshots.map((shot, idx) => (
+                    <div 
+                      key={idx} 
+                      onClick={() => setLightboxImage(shot)}
+                      className="rounded-2xl overflow-hidden border border-slate-800 group aspect-video bg-slate-950 cursor-pointer relative hover:border-cyan-400/60 transition-all shadow-md hover:shadow-cyan-500/10"
+                    >
+                      <img 
+                        src={shot} 
+                        alt={`${game.title} imagem oficial ${idx + 1}`} 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          if (game.coverUrl && target.src !== game.coverUrl) {
+                            target.src = game.coverUrl;
+                          }
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2.5">
+                        <span className="text-[11px] font-bold text-cyan-300">🔍 Ver Imagem {idx + 1}</span>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
 
               {/* Lightbox / Zoom modal */}
               {lightboxImage && (

@@ -89,6 +89,7 @@ export const INITIAL_GAMES: Game[] = [
     },
     rating: 5.0,
     totalVotes: 4950,
+    imdbRating: 9.7,
     screenshots: [
       'https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80'
@@ -193,6 +194,7 @@ export const INITIAL_GAMES: Game[] = [
     },
     rating: 4.9,
     totalVotes: 1420,
+    imdbRating: 9.3,
     screenshots: [
       'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80',
