@@ -52,7 +52,8 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
   };
 
   // Check available formats
-  const hasTorrent = game.hasPcTorrent || game.downloadLinks.some(l => l.type === 'magnet' || l.type === 'torrent' || l.format === 'torrent');
+  const torrentLink = game.downloadLinks?.find(l => l.type === 'magnet' || l.type === 'torrent' || l.format === 'torrent');
+  const hasTorrent = game.hasPcTorrent || !!torrentLink;
   const hasPkg = game.hasPkgFormat || game.downloadLinks.some(l => l.type === 'pkg' || l.format === 'pkg');
 
   // Badge color based on repacker

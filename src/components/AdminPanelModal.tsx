@@ -28,7 +28,9 @@ import {
   Gamepad2,
   Disc,
   Volume2,
-  FileArchive
+  FileArchive,
+  Upload,
+  AlertTriangle
 } from 'lucide-react';
 import { Game, IgdbSearchResult } from '../types';
 import { useGame } from '../context/GameContext';

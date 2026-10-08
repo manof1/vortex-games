@@ -161,7 +161,7 @@ const MainContent: React.FC = () => {
                     setActiveGame(null);
                     setIsLibraryOpen(false);
                     setIsUserMenuOpen(false);
-                    setFilters({ search: '', genre: 'Todos', category: 'Todos', repacker: 'Todos', sortBy: 'trending' });
+                    setFilters(prev => ({ ...prev, search: '', genre: 'Todos', category: 'Todos', repacker: 'Todos', sortBy: 'popular' }));
                   }}
                   className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-cyan-500 text-slate-950 hover:bg-cyan-400 transition-all cursor-pointer"
                 >

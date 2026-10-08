@@ -104,11 +104,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         downloadLinks.push({
           id: `dl-fg-post-${slug}`,
           type: 'direct',
+          format: 'torrent',
           platform: 'PC',
-          label: 'Página Oficial do Post FitGirl',
-          url: postLink,
+          label: 'Mirror Direto FitGirl',
+          url: magnetUrl,
           size: repackSize,
-          hostName: 'FitGirl Repacks'
+          seeders: 2500
         });
       }
 
