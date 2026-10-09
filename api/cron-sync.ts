@@ -338,6 +338,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               hostName: 'Servidor Direto (Sem Redirecionamento)'
             });
           }
+
+          const numSize = parseFloat(repackSize.replace(/[^0-9.]/g, '')) || 35;
           const dodiSpecs = {
             minimum: {
               os: 'Windows 10 64-bit',
