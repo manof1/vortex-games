@@ -86,6 +86,9 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({ onClose })
                   <img
                     src={notif.coverUrl}
                     alt={notif.title}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=200&q=80';
+                    }}
                     className="w-12 h-16 rounded-lg object-cover border border-slate-800 shrink-0"
                   />
                 ) : (

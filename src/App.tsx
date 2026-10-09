@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { GameProvider, useGame } from './context/GameContext';
 import { Header } from './components/Header';
 import { HeroBanner } from './components/HeroBanner';
+import { RecentReleasesRow } from './components/RecentReleasesRow';
 import { FilterBar } from './components/FilterBar';
 import { GameCard } from './components/GameCard';
 import { GameDetailModal } from './components/GameDetailModal';
@@ -44,7 +45,7 @@ const MainContent: React.FC = () => {
         if (filters.category !== 'Todos') {
           if (filters.category === 'FitGirl' && !game.repackInfo.repacker.toLowerCase().includes('fitgirl') && !game.id.startsWith('fg-')) return false;
           if (filters.category === 'DODI' && !game.repackInfo.repacker.toLowerCase().includes('dodi') && !game.id.startsWith('dodi-')) return false;
-          if (filters.category === 'Lançamentos' && !game.categories.includes('Lançamentos') && game.releaseYear < 2024) return false;
+          if (filters.category === 'Lançamentos' && !game.categories.includes('Lançamentos') && game.releaseYear < 2024 && !game.id.startsWith('fg-') && !game.id.startsWith('dodi-')) return false;
           if (filters.category === 'Mais Populares' && !game.isTrending && game.rating < 4.8) return false;
           if (filters.category === 'AAA' && !game.categories.includes('AAA')) return false;
           if (filters.category === 'Repacks Leves' && parseFloat(game.repackInfo.repackSize) > 20) return false;
@@ -98,7 +99,7 @@ const MainContent: React.FC = () => {
       });
   }, [games, filters]);
 
-  const isBrowsingAll = !filters.search && filters.genre === 'Todos' && filters.category === 'Todos';
+  const showHero = !filters.search && (filters.category === 'Todos' || filters.category === 'Lançamentos');
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-cyan-500 selection:text-slate-950">
@@ -115,8 +116,22 @@ const MainContent: React.FC = () => {
           <UserMenuModal onClose={() => setIsUserMenuOpen(false)} />
         ) : (
           <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-            {/* Hero Spotlight (Shown when no specific search is active) */}
-            {isBrowsingAll && <HeroBanner />}
+            {/* Hero Spotlight (Shown on Homepage & Lançamentos) */}
+            {showHero && <HeroBanner />}
+
+            {/* Quick Access Row for Fresh Bot Releases on Capa */}
+            {!filters.search && filters.category === 'Todos' && (
+              <RecentReleasesRow 
+                onViewAll={() => {
+                  setFilters(prev => ({ ...prev, category: 'Lançamentos', sortBy: 'latest' }));
+                  const el = document.getElementById('catalogo-section');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }} 
+              />
+            )}
+
+            {/* Anchor for smooth scrolling */}
+            <div id="catalogo-section" className="scroll-mt-24" />
 
             {/* Advanced Filter Bar */}
             <FilterBar />

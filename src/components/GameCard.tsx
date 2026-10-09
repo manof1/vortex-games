@@ -74,6 +74,9 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
         <img
           src={game.coverUrl}
           alt={game.title}
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80';
+          }}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
         />
@@ -86,7 +89,13 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
           <div className="flex items-center gap-1 flex-wrap">
             {game.id.startsWith('fg-') && (
               <span className="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase bg-pink-500 text-slate-950 border border-pink-400 shadow-sm flex items-center gap-0.5 animate-pulse">
-                <span>🤖</span> AUTO-SYNC
+                <span>🤖</span> FITGIRL BOT
+              </span>
+            )}
+
+            {game.id.startsWith('dodi-') && (
+              <span className="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase bg-emerald-500 text-slate-950 border border-emerald-400 shadow-sm flex items-center gap-0.5">
+                <span>⚡</span> DODI DUAL
               </span>
             )}
 

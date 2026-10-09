@@ -1,8 +1,10 @@
 import { Game } from '../types';
-import { ZUKO_TAPOCHEK_PRESETS } from './zukoTapochekPresets';
+import { SUPABASE_SYNCED_GAMES } from './supabasePresets';
 import { DODI_PRESET_GAMES } from './dodiPresets';
+import { ZUKO_TAPOCHEK_PRESETS } from './zukoTapochekPresets';
 
 export const INITIAL_GAMES: Game[] = [
+  ...SUPABASE_SYNCED_GAMES,
   ...DODI_PRESET_GAMES,
   ...ZUKO_TAPOCHEK_PRESETS,
   {

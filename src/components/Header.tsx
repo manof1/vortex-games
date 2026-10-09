@@ -124,9 +124,20 @@ export const Header: React.FC = () => {
                 setActiveGame(null);
                 setIsLibraryOpen(false);
                 setIsUserMenuOpen(false);
-                setFilters(prev => ({ ...prev, search: '', genre: 'Todos', category: 'Todos' }));
+                setFilters(prev => ({ 
+                  ...prev, 
+                  search: '', 
+                  genre: 'Todos', 
+                  category: 'Todos',
+                  repacker: 'Todos',
+                  sortBy: 'latest' 
+                }));
+                const el = document.getElementById('catalogo-section');
+                if (el) {
+                  el.scrollIntoView({ behavior: 'smooth' });
+                }
               }}
-              className="hidden lg:flex items-center px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900 transition-all cursor-pointer"
+              className="flex items-center px-3 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-900 border border-transparent hover:border-slate-800 transition-all cursor-pointer"
             >
               Catálogo
             </button>
@@ -136,11 +147,21 @@ export const Header: React.FC = () => {
                 setActiveGame(null);
                 setIsLibraryOpen(false);
                 setIsUserMenuOpen(false);
-                setFilters(prev => ({ ...prev, search: '', category: 'Lançamentos' }));
+                setFilters(prev => ({ 
+                  ...prev, 
+                  search: '', 
+                  category: 'Lançamentos',
+                  sortBy: 'latest' 
+                }));
+                const el = document.getElementById('catalogo-section');
+                if (el) {
+                  el.scrollIntoView({ behavior: 'smooth' });
+                }
               }}
-              className="hidden lg:flex items-center px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900 transition-all cursor-pointer"
+              className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold text-cyan-400 hover:text-white bg-cyan-950/40 hover:bg-cyan-900/50 border border-cyan-800/50 transition-all cursor-pointer"
             >
-              Lançamentos
+              <span>🔥</span>
+              <span>Lançamentos</span>
             </button>
 
             {/* Notification Center */}

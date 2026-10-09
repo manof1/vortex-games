@@ -85,7 +85,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const saved = localStorage.getItem('vortex_games');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const savedIds = new Set(parsed.map((g: Game) => g.id));
+          const missingPresets = INITIAL_GAMES.filter(g => !savedIds.has(g.id));
+          return [...missingPresets, ...parsed];
+        }
       } catch (e) {
         console.error('Failed to parse saved games', e);
       }
