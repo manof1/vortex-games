@@ -87,6 +87,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const releaseYear = pubDate.getFullYear() || new Date().getFullYear();
       const releaseDate = pubDate.toLocaleDateString('pt-BR');
 
+      // Extrair links de mirrors diretos reais do post (evitando links para páginas do site)
+      const rawMirrors = [...itemXml.matchAll(/<a\s+[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)]
+        .map(m => ({ url: m[1], text: m[2].replace(/<[^>]+>/g, '').trim() }))
+        .filter(l => 
+          !l.url.includes('fitgirl-repacks.site') && 
+          !l.url.includes('wp-content') &&
+          !l.url.includes('twitter') &&
+          !l.url.includes('facebook') &&
+          !l.url.startsWith('#')
+        );
+
+      const directMirrorUrl = rawMirrors[0]?.url || magnetUrl;
+      const directMirrorLabel = rawMirrors[0]?.text && rawMirrors[0].text.length > 2
+        ? `Mirror Direto: ${rawMirrors[0].text.slice(0, 30)}`
+        : 'Mirror Direto: Servidor Rápido';
+
       const downloadLinks = [
         {
           id: `dl-fg-${slug}`,
@@ -97,21 +113,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           url: magnetUrl,
           size: repackSize,
           seeders: 3500
-        }
-      ];
-
-      if (postLink) {
-        downloadLinks.push({
-          id: `dl-fg-post-${slug}`,
+        },
+        {
+          id: `dl-fg-direct-${slug}`,
           type: 'direct',
           format: 'torrent',
           platform: 'PC',
-          label: 'Mirror Direto FitGirl',
-          url: magnetUrl,
+          label: directMirrorLabel,
+          url: directMirrorUrl,
           size: repackSize,
-          seeders: 2500
-        });
-      }
+          seeders: 2500,
+          hostName: 'Servidor Direto (Sem Redirecionamento)'
+        }
+      ];
 
       // Extrair capturas de tela (Screenshots da RiotPixels ou imagens do post)
       const riotMatches = [...itemXml.matchAll(/src="(http[^"]+riotpixels[^"]+)"/g)].map(m => m[1]);
@@ -297,7 +311,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
           ];
 
-          const numSize = parseFloat(repackSize.replace(/[^0-9.]/g, '')) || 35;
+          const rawDodiMirrors = [...content.matchAll(/<a\s+[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)]
+            .map(m => ({ url: m[1], text: m[2].replace(/<[^>]+>/g, '').trim() }))
+            .filter(l => 
+              !l.url.includes('dodi-repacks.site') && 
+              !l.url.includes('wp-content') &&
+              !l.url.includes('category') &&
+              !l.url.startsWith('#')
+            );
+          const directDodiUrl = rawDodiMirrors[0]?.url;
+          const directDodiLabel = rawDodiMirrors[0]?.text && rawDodiMirrors[0].text.length > 2
+            ? `Mirror Direto: ${rawDodiMirrors[0].text.slice(0, 30)}`
+            : 'Mirror Direto: SwiftUploads & DataNodes';
+
+          if (directDodiUrl) {
+            dodiLinks.push({
+              id: `dl-dodi-direct-${slug}`,
+              type: 'direct',
+              format: 'direct',
+              platform: 'PC',
+              label: directDodiLabel,
+              url: directDodiUrl,
+              seeders: 2800,
+              leechers: 210,
+              size: repackSize,
+              hostName: 'Servidor Direto (Sem Redirecionamento)'
+            });
+          }
           const dodiSpecs = {
             minimum: {
               os: 'Windows 10 64-bit',

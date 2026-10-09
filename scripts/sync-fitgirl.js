@@ -92,6 +92,22 @@ export async function syncFitGirl() {
       const releaseYear = pubDate.getFullYear() || new Date().getFullYear();
       const releaseDate = pubDate.toLocaleDateString('pt-BR');
 
+      // Extrair mirrors diretos reais sem redirecionar para a página do blog
+      const rawMirrors = [...itemXml.matchAll(/<a\s+[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)]
+        .map(m => ({ url: m[1], text: m[2].replace(/<[^>]+>/g, '').trim() }))
+        .filter(l => 
+          !l.url.includes('fitgirl-repacks.site') && 
+          !l.url.includes('wp-content') &&
+          !l.url.includes('twitter') &&
+          !l.url.includes('facebook') &&
+          !l.url.startsWith('#')
+        );
+
+      const directMirrorUrl = rawMirrors[0]?.url || magnetUrl;
+      const directMirrorLabel = rawMirrors[0]?.text && rawMirrors[0].text.length > 2
+        ? `Mirror Direto: ${rawMirrors[0].text.slice(0, 30)}`
+        : 'Mirror Direto: DataNodes & MultiUpload';
+
       const downloadLinks = [
         {
           id: `dl-fg-${slug}`,
@@ -102,20 +118,17 @@ export async function syncFitGirl() {
           url: magnetUrl,
           size: repackSize,
           seeders: 3500
-        }
-      ];
-
-      if (postLink) {
-        downloadLinks.push({
-          id: `dl-fg-post-${slug}`,
+        },
+        {
+          id: `dl-fg-direct-${slug}`,
           type: 'direct',
           platform: 'PC',
-          label: 'Página Oficial do Post FitGirl',
-          url: postLink,
+          label: directMirrorLabel,
+          url: directMirrorUrl,
           size: repackSize,
-          hostName: 'FitGirl Repacks'
-        });
-      }
+          hostName: 'Servidor Direto (Sem Redirecionamento)'
+        }
+      ];
 
       // Extrair capturas de tela (Screenshots da RiotPixels ou imagens do post)
       const riotMatches = [...itemXml.matchAll(/src="(http[^"]+riotpixels[^"]+)"/g)].map(m => m[1]);

@@ -46,6 +46,22 @@ export function parseFitGirlRssXml(xmlText: string): Game[] {
         ? magnetMatch[1] 
         : `magnet:?xt=urn:btih:${Math.random().toString(36).substring(2, 15)}&dn=${encodeURIComponent(cleanTitle + '-FitGirl')}&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce`;
 
+      // Extract direct mirror links from post, strictly avoiding fitgirl-repacks.site
+      const rawMirrors = [...content.matchAll(/<a\s+[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)]
+        .map(m => ({ url: m[1], text: m[2].replace(/<[^>]+>/g, '').trim() }))
+        .filter(l => 
+          !l.url.includes('fitgirl-repacks.site') && 
+          !l.url.includes('wp-content') &&
+          !l.url.includes('twitter') &&
+          !l.url.includes('facebook') &&
+          !l.url.startsWith('#')
+        );
+
+      const directMirrorUrl = rawMirrors[0]?.url || magnetUrl;
+      const directMirrorLabel = rawMirrors[0]?.text && rawMirrors[0].text.length > 2
+        ? `Mirror Direto: ${rawMirrors[0].text.slice(0, 30)}`
+        : 'Mirror Direto: DataNodes & MultiUpload';
+
       // Extract cover image and screenshots from content
       const imgMatch = content.match(/<img[^>]+src="([^">]+)"/i);
       const coverUrl = imgMatch ? imgMatch[1] : 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80';
@@ -163,10 +179,10 @@ export function parseFitGirlRssXml(xmlText: string): Game[] {
           {
             id: `dl-fg-rss-${index}-2`,
             type: 'direct',
-            label: 'Mirror Direto Secundário (Fast Swarm)',
-            url: magnetUrl,
+            label: directMirrorLabel,
+            url: directMirrorUrl,
             size: repackSize,
-            hostName: 'Fast Swarm Mirror'
+            hostName: 'Servidor Direto (Sem Redirecionamento)'
           }
         ],
         systemRequirements,

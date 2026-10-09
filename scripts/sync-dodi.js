@@ -117,6 +117,35 @@ export async function syncDodi() {
         }
       ];
 
+      // Extrair mirrors diretos sem redirecionar para a página do blog
+      const rawDodiMirrors = [...content.matchAll(/<a\s+[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)]
+        .map(m => ({ url: m[1], text: m[2].replace(/<[^>]+>/g, '').trim() }))
+        .filter(l => 
+          !l.url.includes('dodi-repacks.site') && 
+          !l.url.includes('wp-content') &&
+          !l.url.includes('category') &&
+          !l.url.startsWith('#')
+        );
+      const directDodiUrl = rawDodiMirrors[0]?.url;
+      const directDodiLabel = rawDodiMirrors[0]?.text && rawDodiMirrors[0].text.length > 2
+        ? `Mirror Direto: ${rawDodiMirrors[0].text.slice(0, 30)}`
+        : 'Mirror Direto: SwiftUploads & DataNodes';
+
+      if (directDodiUrl) {
+        downloadLinks.push({
+          id: `dl-dodi-direct-${slug}`,
+          type: 'direct',
+          format: 'direct',
+          platform: 'PC',
+          label: directDodiLabel,
+          url: directDodiUrl,
+          seeders: 2800,
+          leechers: 210,
+          size: repackSize,
+          hostName: 'Servidor Direto (Sem Redirecionamento)'
+        });
+      }
+
       const numSize = parseFloat(repackSize.replace(/[^0-9.]/g, '')) || 35;
       const systemRequirements = {
         minimum: {

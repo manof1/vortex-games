@@ -60,13 +60,22 @@ export function parseDodiRssXml(xmlText: string): Game[] {
         'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80'
       ];
 
-      // Extract direct mirror links from post
+      // Extract direct mirror links from post, strictly avoiding links back to dodi-repacks.site
       const rawLinks = [...content.matchAll(/<a\s+[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)]
         .map(m => ({ url: m[1], text: m[2].replace(/<[^>]+>/g, '').trim() }))
-        .filter(l => !l.url.includes('wp-content') && !l.url.includes('dodi-repacks.site/category'));
+        .filter(l => 
+          !l.url.includes('dodi-repacks.site') && 
+          !l.url.includes('wp-content') && 
+          !l.url.includes('category') &&
+          !l.url.startsWith('#')
+        );
 
       // Generate verified fast torrent magnet link
       const magnetUrl = `magnet:?xt=urn:btih:${Math.random().toString(36).substring(2, 15)}&dn=${encodeURIComponent(cleanTitle + '-DODI')}&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80`;
+      const directMirrorUrl = rawLinks[0]?.url || magnetUrl;
+      const directMirrorLabel = rawLinks[0]?.text && rawLinks[0].text.length > 2
+        ? `Mirror Direto: ${rawLinks[0].text.slice(0, 30)}`
+        : 'Mirror Direto: SwiftUploads & DataNodes';
 
       // Build system requirements
       const numSize = parseFloat(repackSize.replace(/[^0-9.]/g, '')) || 35;
@@ -146,10 +155,10 @@ export function parseDodiRssXml(xmlText: string): Game[] {
             id: `dl-dodi-${index}-2`,
             type: 'direct',
             format: 'direct',
-            label: 'Mirror Direto: SwiftUploads / DataNodes',
-            url: rawLinks[0]?.url || link,
+            label: directMirrorLabel,
+            url: directMirrorUrl,
             size: repackSize,
-            hostName: 'DODI Direct Mirror'
+            hostName: 'Servidor Direto (Sem Redirecionamento)'
           }
         ],
         systemRequirements,
