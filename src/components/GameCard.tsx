@@ -103,12 +103,16 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
               {game.repackInfo.repacker}
             </span>
 
-            {/* PT-BR Audio Badge */}
-            {(game.hasPtBrAudio || game.languages?.some(l => l.includes('Dublado') || l.includes('Dublagem'))) && (
-              <span className="px-1.5 py-0.5 rounded-md text-[10px] font-black uppercase bg-emerald-500/90 text-slate-950 border border-emerald-400 shadow-sm flex items-center gap-0.5">
+            {/* PT-BR Language Badge (Dublado vs Legendado) */}
+            {game.hasPtBrAudio ? (
+              <span className="px-1.5 py-0.5 rounded-md text-[10px] font-black uppercase bg-emerald-500 text-slate-950 border border-emerald-400 shadow-sm flex items-center gap-0.5" title="Dublagem e Áudio em Português do Brasil">
                 <span>🇧🇷</span> DUBLADO
               </span>
-            )}
+            ) : (game.hasPtBrSubs || game.languages?.some(l => l.toLowerCase().includes('português'))) ? (
+              <span className="px-1.5 py-0.5 rounded-md text-[10px] font-black uppercase bg-cyan-950 text-cyan-300 border border-cyan-700/80 shadow-sm flex items-center gap-0.5" title="Legendas e Menus em Português do Brasil">
+                <span>🇧🇷</span> LEGENDADO
+              </span>
+            ) : null}
 
             {/* PKG Badge */}
             {game.hasPkgFormat && (
@@ -138,22 +142,33 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
             {/* IMDb Rating Badge */}
             <div 
               className="flex items-center gap-1 bg-slate-950/90 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-amber-500/50 shadow-sm"
-              title="Nota IMDb (Base de Dados & Crítica)"
+              title="Nota IMDb (Crítica & Base de Dados Externa)"
             >
               <span className="bg-amber-400 text-slate-950 px-1 py-0.1 rounded text-[9px] font-black uppercase tracking-tight">IMDb</span>
               <span className="text-amber-300 font-bold text-[11px]">
-                {(game.imdbRating || (game.rating * 1.85 + 0.4)).toFixed(1)}
+                {(game.imdbRating || 8.8).toFixed(1)}
               </span>
             </div>
 
-            {/* User Rating Badge */}
-            <div 
-              className="flex items-center gap-1 bg-slate-950/80 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-slate-800 text-amber-400 font-bold text-[11px]"
-              title={`Avaliação dos Usuários: ${game.rating.toFixed(1)} / 5.0 (${game.totalVotes} votos)`}
-            >
-              <Star className="w-3 h-3 fill-amber-400" />
-              <span>{game.rating.toFixed(1)}</span>
-            </div>
+            {/* User Rating Badge - Apenas Votos Reais */}
+            {game.totalVotes > 0 ? (
+              <div 
+                className="flex items-center gap-1 bg-slate-950/80 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-slate-800 text-amber-400 font-bold text-[11px]"
+                title={`Avaliação dos Usuários: ${game.rating.toFixed(1)} / 5.0 (${game.totalVotes} ${game.totalVotes === 1 ? 'voto real' : 'votos reais'})`}
+              >
+                <Star className="w-3 h-3 fill-amber-400" />
+                <span>{game.rating.toFixed(1)}</span>
+                <span className="text-slate-400 text-[10px]">({game.totalVotes})</span>
+              </div>
+            ) : (
+              <div 
+                className="flex items-center gap-1 bg-slate-950/80 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-slate-800 text-slate-400 text-[10px] font-medium"
+                title="Sem avaliações de usuários ainda. Seja o primeiro a votar!"
+              >
+                <Star className="w-3 h-3 text-slate-600" />
+                <span>Sem notas</span>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-1 bg-slate-950/80 backdrop-blur-md px-2 py-0.5 rounded-md border border-slate-800 text-cyan-300 font-semibold text-[11px]">

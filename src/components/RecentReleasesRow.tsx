@@ -107,14 +107,20 @@ export const RecentReleasesRow: React.FC<RecentReleasesRowProps> = ({ onViewAll 
                     </span>
                   </div>
 
-                  {/* PT-BR indicator if available */}
-                  {(game.hasPtBrAudio || game.hasPtBrSubs || game.languages?.some(l => l.includes('Português'))) && (
+                  {/* PT-BR indicator: Dublado vs Legendado */}
+                  {game.hasPtBrAudio ? (
                     <div className="absolute bottom-1.5 left-2">
-                      <span className="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase bg-emerald-500/90 text-slate-950 shadow-sm flex items-center gap-0.5">
-                        <span>🇧🇷</span> PT-BR
+                      <span className="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase bg-emerald-500 text-slate-950 shadow-sm flex items-center gap-0.5">
+                        <span>🇧🇷</span> DUBLADO
                       </span>
                     </div>
-                  )}
+                  ) : (game.hasPtBrSubs || game.languages?.some(l => l.toLowerCase().includes('português'))) ? (
+                    <div className="absolute bottom-1.5 left-2">
+                      <span className="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase bg-cyan-950 text-cyan-300 border border-cyan-800 shadow-sm flex items-center gap-0.5">
+                        <span>🇧🇷</span> LEGENDADO
+                      </span>
+                    </div>
+                  ) : null}
                 </div>
 
                 {/* Title and metadata */}

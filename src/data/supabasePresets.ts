@@ -33,7 +33,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "sourceOrigin": "Scene",
     "hasPkgFormat": false,
     "hasPcTorrent": true,
-    "hasPtBrAudio": true,
+    "hasPtBrAudio": false,
     "hasPtBrSubs": true,
     "downloadLinks": [
       {
@@ -91,9 +91,12 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
       "Dual Source",
       "PC Game"
     ],
-    "languages": [],
-    "rating": 4.9,
-    "totalVotes": 380,
+    "languages": [
+      "Português (Brasil) Legendado",
+      "Inglês (Áudio Original)"
+    ],
+    "rating": 0,
+    "totalVotes": 0,
     "downloadsCount": 14500,
     "viewsCount": 38000,
     "isFeatured": true,
@@ -132,7 +135,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "sourceOrigin": "Scene",
     "hasPkgFormat": false,
     "hasPcTorrent": true,
-    "hasPtBrAudio": true,
+    "hasPtBrAudio": false,
     "hasPtBrSubs": true,
     "downloadLinks": [
       {
@@ -190,9 +193,12 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
       "Dual Source",
       "PC Game"
     ],
-    "languages": [],
-    "rating": 4.9,
-    "totalVotes": 380,
+    "languages": [
+      "Português (Brasil) Legendado",
+      "Inglês (Áudio Original)"
+    ],
+    "rating": 0,
+    "totalVotes": 0,
     "downloadsCount": 14500,
     "viewsCount": 38000,
     "isFeatured": true,
@@ -231,7 +237,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "sourceOrigin": "Scene",
     "hasPkgFormat": false,
     "hasPcTorrent": true,
-    "hasPtBrAudio": true,
+    "hasPtBrAudio": false,
     "hasPtBrSubs": true,
     "downloadLinks": [
       {
@@ -289,9 +295,12 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
       "Dual Source",
       "PC Game"
     ],
-    "languages": [],
-    "rating": 4.9,
-    "totalVotes": 380,
+    "languages": [
+      "Português (Brasil) Legendado",
+      "Inglês (Áudio Original)"
+    ],
+    "rating": 0,
+    "totalVotes": 0,
     "downloadsCount": 14500,
     "viewsCount": 38000,
     "isFeatured": true,
@@ -330,7 +339,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "sourceOrigin": "Scene",
     "hasPkgFormat": false,
     "hasPcTorrent": true,
-    "hasPtBrAudio": true,
+    "hasPtBrAudio": false,
     "hasPtBrSubs": true,
     "downloadLinks": [
       {
@@ -388,9 +397,12 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
       "Dual Source",
       "PC Game"
     ],
-    "languages": [],
-    "rating": 4.9,
-    "totalVotes": 380,
+    "languages": [
+      "Português (Brasil) Legendado",
+      "Inglês (Áudio Original)"
+    ],
+    "rating": 0,
+    "totalVotes": 0,
     "downloadsCount": 14500,
     "viewsCount": 38000,
     "isFeatured": true,
@@ -429,7 +441,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "sourceOrigin": "Scene",
     "hasPkgFormat": false,
     "hasPcTorrent": true,
-    "hasPtBrAudio": true,
+    "hasPtBrAudio": false,
     "hasPtBrSubs": true,
     "downloadLinks": [
       {
@@ -487,9 +499,12 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
       "Dual Source",
       "PC Game"
     ],
-    "languages": [],
-    "rating": 4.9,
-    "totalVotes": 380,
+    "languages": [
+      "Português (Brasil) Legendado",
+      "Inglês (Áudio Original)"
+    ],
+    "rating": 0,
+    "totalVotes": 0,
     "downloadsCount": 14500,
     "viewsCount": 38000,
     "isFeatured": true,
@@ -528,7 +543,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "sourceOrigin": "Scene",
     "hasPkgFormat": false,
     "hasPcTorrent": true,
-    "hasPtBrAudio": true,
+    "hasPtBrAudio": false,
     "hasPtBrSubs": true,
     "downloadLinks": [
       {
@@ -586,9 +601,12 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
       "Dual Source",
       "PC Game"
     ],
-    "languages": [],
-    "rating": 4.9,
-    "totalVotes": 380,
+    "languages": [
+      "Português (Brasil) Legendado",
+      "Inglês (Áudio Original)"
+    ],
+    "rating": 0,
+    "totalVotes": 0,
     "downloadsCount": 14500,
     "viewsCount": 38000,
     "isFeatured": true,
@@ -685,9 +703,12 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
       "Dual Source",
       "PC Game"
     ],
-    "languages": [],
-    "rating": 4.9,
-    "totalVotes": 380,
+    "languages": [
+      "Português (Brasil) Dublado & Legendado",
+      "Inglês"
+    ],
+    "rating": 0,
+    "totalVotes": 0,
     "downloadsCount": 14500,
     "viewsCount": 38000,
     "isFeatured": true,
@@ -784,9 +805,12 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
       "Dual Source",
       "PC Game"
     ],
-    "languages": [],
-    "rating": 4.9,
-    "totalVotes": 380,
+    "languages": [
+      "Português (Brasil) Dublado & Legendado",
+      "Inglês"
+    ],
+    "rating": 0,
+    "totalVotes": 0,
     "downloadsCount": 14500,
     "viewsCount": 38000,
     "isFeatured": true,
@@ -825,7 +849,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "sourceOrigin": "Scene",
     "hasPkgFormat": false,
     "hasPcTorrent": true,
-    "hasPtBrAudio": true,
+    "hasPtBrAudio": false,
     "hasPtBrSubs": true,
     "downloadLinks": [
       {
@@ -883,9 +907,12 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
       "Dual Source",
       "PC Game"
     ],
-    "languages": [],
-    "rating": 4.9,
-    "totalVotes": 380,
+    "languages": [
+      "Português (Brasil) Legendado",
+      "Inglês (Áudio Original)"
+    ],
+    "rating": 0,
+    "totalVotes": 0,
     "downloadsCount": 14500,
     "viewsCount": 38000,
     "isFeatured": true,
@@ -924,7 +951,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "sourceOrigin": "Scene",
     "hasPkgFormat": false,
     "hasPcTorrent": true,
-    "hasPtBrAudio": true,
+    "hasPtBrAudio": false,
     "hasPtBrSubs": true,
     "downloadLinks": [
       {
@@ -982,9 +1009,12 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
       "Dual Source",
       "PC Game"
     ],
-    "languages": [],
-    "rating": 4.9,
-    "totalVotes": 380,
+    "languages": [
+      "Português (Brasil) Legendado",
+      "Inglês (Áudio Original)"
+    ],
+    "rating": 0,
+    "totalVotes": 0,
     "downloadsCount": 14500,
     "viewsCount": 38000,
     "isFeatured": true,
@@ -1024,7 +1054,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "hasPkgFormat": false,
     "hasPcTorrent": true,
     "hasPtBrAudio": false,
-    "hasPtBrSubs": false,
+    "hasPtBrSubs": true,
     "downloadLinks": [
       {
         "id": "dl-fg-retrospace-deluxe-edition-build-6499-bonus-artbook",
@@ -1071,9 +1101,12 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
       "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80"
     ],
     "tags": [],
-    "languages": [],
-    "rating": 4.9,
-    "totalVotes": 120,
+    "languages": [
+      "Português (Brasil) Legendado",
+      "Inglês (Áudio Original)"
+    ],
+    "rating": 0,
+    "totalVotes": 0,
     "downloadsCount": 2400,
     "viewsCount": 5100,
     "isFeatured": true,
@@ -1113,7 +1146,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "hasPkgFormat": false,
     "hasPcTorrent": true,
     "hasPtBrAudio": false,
-    "hasPtBrSubs": false,
+    "hasPtBrSubs": true,
     "downloadLinks": [
       {
         "id": "dl-fg-dinobones-tidy-up-the-museum",
@@ -1162,9 +1195,12 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
       "https://s01.riotpixels.net/data/8e/b8/8eb8b8ee-53c5-4c04-86cd-657be71642a0.jpg"
     ],
     "tags": [],
-    "languages": [],
-    "rating": 4.9,
-    "totalVotes": 120,
+    "languages": [
+      "Português (Brasil) Legendado",
+      "Inglês (Áudio Original)"
+    ],
+    "rating": 0,
+    "totalVotes": 0,
     "downloadsCount": 2400,
     "viewsCount": 5100,
     "isFeatured": true,
@@ -1204,7 +1240,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "hasPkgFormat": false,
     "hasPcTorrent": true,
     "hasPtBrAudio": false,
-    "hasPtBrSubs": false,
+    "hasPtBrSubs": true,
     "downloadLinks": [
       {
         "id": "dl-fg-false-hero",
@@ -1253,9 +1289,12 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
       "https://s01.riotpixels.net/data/80/08/800861cd-ecf9-4554-bb68-773ef4eb0bdd.jpg"
     ],
     "tags": [],
-    "languages": [],
-    "rating": 4.9,
-    "totalVotes": 120,
+    "languages": [
+      "Português (Brasil) Legendado",
+      "Inglês (Áudio Original)"
+    ],
+    "rating": 0,
+    "totalVotes": 0,
     "downloadsCount": 2400,
     "viewsCount": 5100,
     "isFeatured": true,
@@ -1295,7 +1334,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "hasPkgFormat": false,
     "hasPcTorrent": true,
     "hasPtBrAudio": false,
-    "hasPtBrSubs": false,
+    "hasPtBrSubs": true,
     "downloadLinks": [
       {
         "id": "dl-fg-land-of-glarefall",
@@ -1344,9 +1383,12 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
       "https://s01.riotpixels.net/data/8a/98/8a98217a-348a-40f2-9587-4a7d53cc9568.jpg"
     ],
     "tags": [],
-    "languages": [],
-    "rating": 4.9,
-    "totalVotes": 120,
+    "languages": [
+      "Português (Brasil) Legendado",
+      "Inglês (Áudio Original)"
+    ],
+    "rating": 0,
+    "totalVotes": 0,
     "downloadsCount": 2400,
     "viewsCount": 5100,
     "isFeatured": true,
@@ -1385,8 +1427,8 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "sourceOrigin": "Multi-Tracker",
     "hasPkgFormat": false,
     "hasPcTorrent": true,
-    "hasPtBrAudio": false,
-    "hasPtBrSubs": false,
+    "hasPtBrAudio": true,
+    "hasPtBrSubs": true,
     "downloadLinks": [
       {
         "id": "dl-fg-gears-of-war-e-day",
@@ -1435,9 +1477,12 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
       "https://s01.riotpixels.net/data/0b/0a/0b0a4e4e-5d5c-4379-8b6f-9bfad371b64f.jpg"
     ],
     "tags": [],
-    "languages": [],
-    "rating": 4.9,
-    "totalVotes": 120,
+    "languages": [
+      "Português (Brasil) Dublado & Legendado",
+      "Inglês"
+    ],
+    "rating": 0,
+    "totalVotes": 0,
     "downloadsCount": 2400,
     "viewsCount": 5100,
     "isFeatured": true,
@@ -1477,7 +1522,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "hasPkgFormat": false,
     "hasPcTorrent": true,
     "hasPtBrAudio": false,
-    "hasPtBrSubs": false,
+    "hasPtBrSubs": true,
     "downloadLinks": [
       {
         "id": "dl-fg-mxgp-26-fox-holeshot-edition-2-dlcs",
@@ -1526,9 +1571,12 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
       "https://s01.riotpixels.net/data/cd/bc/cdbce2e8-15b1-4160-9515-d589a8285868.jpg"
     ],
     "tags": [],
-    "languages": [],
-    "rating": 4.9,
-    "totalVotes": 120,
+    "languages": [
+      "Português (Brasil) Legendado",
+      "Inglês (Áudio Original)"
+    ],
+    "rating": 0,
+    "totalVotes": 0,
     "downloadsCount": 2400,
     "viewsCount": 5100,
     "isFeatured": true,
@@ -1630,9 +1678,12 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
       "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80"
     ],
     "tags": [],
-    "languages": [],
-    "rating": 5,
-    "totalVotes": 6120,
+    "languages": [
+      "Português (Brasil) Dublado & Legendado",
+      "Inglês"
+    ],
+    "rating": 0,
+    "totalVotes": 0,
     "downloadsCount": 165000,
     "viewsCount": 4800,
     "isFeatured": true,

@@ -76,8 +76,8 @@ export const DODI_PRESET_GAMES: Game[] = [
         directx: 'Versão 12'
       }
     },
-    rating: 4.9,
-    totalVotes: 3200,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       'https://i4.imageban.ru/out/2026/01/12/0fa685ed65d9ff80f4e3859e8bc0dc22.jpg',
       'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1200&q=80',
@@ -164,8 +164,8 @@ export const DODI_PRESET_GAMES: Game[] = [
         directx: 'Versão 12'
       }
     },
-    rating: 4.9,
-    totalVotes: 4890,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       'https://i4.imageban.ru/out/2026/05/15/e7f68d534d8a0735438d055921cb845d.jpg',
       'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80',

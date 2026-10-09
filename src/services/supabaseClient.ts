@@ -78,8 +78,12 @@ export async function fetchGamesFromSupabase(): Promise<Game[] | null> {
       sourceOrigin: item.source_origin || item.sourceOrigin || 'Multi-Tracker',
       hasPkgFormat: item.has_pkg_format ?? item.hasPkgFormat ?? false,
       hasPcTorrent: item.has_pc_torrent ?? item.hasPcTorrent ?? true,
-      hasPtBrAudio: item.has_pt_br_audio ?? item.hasPtBrAudio ?? false,
-      hasPtBrSubs: item.has_pt_br_subs ?? item.hasPtBrSubs ?? false,
+      hasPtBrAudio: (() => {
+        const titleLower = (item.title || '').toLowerCase();
+        const trulyDubbedList = ['god of war', 'the last of us', 'cyberpunk', 'ghost of tsushima', 'uncharted', 'horizon', 'forza', 'gears of war'];
+        return trulyDubbedList.some(d => titleLower.includes(d));
+      })(),
+      hasPtBrSubs: true,
       downloadLinks: item.download_links || item.downloadLinks || [],
       systemRequirements: (item.system_requirements?.minimum?.processor) ? item.system_requirements : (item.systemRequirements?.minimum?.processor) ? item.systemRequirements : {
         minimum: { 
@@ -109,8 +113,8 @@ export async function fetchGamesFromSupabase(): Promise<Game[] | null> {
       languages: item.languages || [],
       dlcIncluded: item.dlc_included || item.dlcIncluded || [],
       trailerYoutubeId: item.trailer_youtube_id || item.trailerYoutubeId,
-      rating: Number(item.rating || 5.0),
-      totalVotes: Number(item.total_votes || item.totalVotes || 1),
+      rating: Number(item.rating || 0),
+      totalVotes: Number(item.total_votes || item.totalVotes || 0),
       downloadsCount: Number(item.downloads_count || item.downloadsCount || 0),
       viewsCount: Number(item.views_count || item.viewsCount || 0),
       isFeatured: item.is_featured ?? item.isFeatured ?? false,

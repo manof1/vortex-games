@@ -41,6 +41,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
     addComment, 
     likeComment, 
     rateGame, 
+    getUserVote,
     isInLibrary, 
     addToLibrary, 
     removeFromLibrary, 
@@ -119,10 +120,20 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
     }
   };
 
+  const [submittedVoteNotice, setSubmittedVoteNotice] = useState(false);
+
+  const handleQuickStarClick = (score: number) => {
+    setUserScore(score);
+    rateGame(game.id, score);
+    setSubmittedVoteNotice(true);
+    setTimeout(() => setSubmittedVoteNotice(false), 3000);
+  };
+
   const handleSubmitComment = (e: React.FormEvent) => {
     e.preventDefault();
     if (!reviewContent.trim()) return;
 
+    rateGame(game.id, userScore);
     addComment(game.id, authorName || 'Jogador Gamer', reviewContent.trim(), userScore);
     setReviewContent('');
     setSubmittedComment(true);
@@ -180,12 +191,16 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                   {game.repackInfo.repacker}
                 </span>
 
-                {/* PT-BR Audio Badge */}
-                {(game.hasPtBrAudio || game.languages?.some(l => l.includes('Dublado') || l.includes('Dublagem'))) && (
-                  <span className="px-2.5 py-0.5 rounded-md text-xs font-black uppercase bg-emerald-500 text-slate-950 border border-emerald-400 flex items-center gap-1 shadow-sm">
-                    <span>🇧🇷</span> DUBLADO PT-BR
+                {/* PT-BR Audio & Subtitle Badges */}
+                {game.hasPtBrAudio ? (
+                  <span className="px-2.5 py-0.5 rounded-md text-xs font-black uppercase bg-emerald-500 text-slate-950 border border-emerald-400 flex items-center gap-1 shadow-sm" title="Jogo com Dublagem e Vozes em Português do Brasil">
+                    <span>🇧🇷</span> DUBLADO & LEGENDADO PT-BR
                   </span>
-                )}
+                ) : (game.hasPtBrSubs || game.languages?.some(l => l.toLowerCase().includes('português'))) ? (
+                  <span className="px-2.5 py-0.5 rounded-md text-xs font-black uppercase bg-cyan-950 text-cyan-300 border border-cyan-700/80 flex items-center gap-1 shadow-sm" title="Jogo com Menus e Legendas Oficiais em Português do Brasil">
+                    <span>🇧🇷</span> LEGENDADO PT-BR
+                  </span>
+                ) : null}
 
                 {/* PKG Badge */}
                 {game.hasPkgFormat && (
@@ -226,7 +241,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
               </div>
             </div>
 
-            {/* Dual Rating Badges: IMDb & User Rating */}
+            {/* Dual Rating Badges: IMDb & User Rating (Votos Reais) */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-slate-950/85 backdrop-blur-md p-3.5 rounded-2xl border border-slate-800 self-stretch sm:self-auto shadow-xl">
               
               {/* IMDb Rating */}
@@ -237,39 +252,60 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                       IMDb
                     </span>
                     <span className="text-xl font-black text-amber-300 font-mono">
-                      {(game.imdbRating || (game.rating * 1.85 + 0.4)).toFixed(1)}
+                      {(game.imdbRating || 8.8).toFixed(1)}
                     </span>
                     <span className="text-[10px] text-slate-400 font-normal">/ 10</span>
                   </div>
                   <span className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider">
-                    Nota IMDb
+                    Crítica Externa
                   </span>
                 </div>
               </div>
 
-              {/* User Community Rating */}
+              {/* User Community Rating - Baseado 100% em Votos Reais */}
               <div className="flex items-center justify-between sm:justify-start gap-3">
                 <div>
-                  <div className="flex items-center gap-1 text-amber-400">
-                    <Star className="w-4 h-4 fill-amber-400" />
-                    <span className="text-xl font-black text-white">{game.rating.toFixed(1)}</span>
-                    <span className="text-xs text-slate-400 font-normal">/ 5.0</span>
-                  </div>
-                  <p className="text-[10px] text-slate-400">
-                    {game.totalVotes.toLocaleString('pt-BR')} votos de usuários
-                  </p>
+                  {game.totalVotes > 0 ? (
+                    <>
+                      <div className="flex items-center gap-1 text-amber-400">
+                        <Star className="w-4 h-4 fill-amber-400" />
+                        <span className="text-xl font-black text-white">{game.rating.toFixed(1)}</span>
+                        <span className="text-xs text-slate-400 font-normal">/ 5.0</span>
+                      </div>
+                      <p className="text-[10px] text-slate-400">
+                        {game.totalVotes} {game.totalVotes === 1 ? 'voto real' : 'votos reais'} da comunidade
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-1 text-slate-400">
+                        <Star className="w-4 h-4 text-slate-600" />
+                        <span className="text-sm font-bold text-slate-300">Sem avaliações</span>
+                      </div>
+                      <p className="text-[10px] text-cyan-400 font-semibold">
+                        Nenhum voto ainda
+                      </p>
+                    </>
+                  )}
                 </div>
 
                 {/* User rating button trigger */}
-                <button
-                  onClick={() => {
-                    const element = document.getElementById('avaliar-secao');
-                    element?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  className="px-3 py-1.5 rounded-xl text-xs font-bold bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500 hover:text-slate-950 border border-cyan-500/30 transition-all cursor-pointer whitespace-nowrap"
-                >
-                  Avaliar Jogo
-                </button>
+                {getUserVote(game.id) ? (
+                  <div className="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/10 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                    <span>Seu voto: {getUserVote(game.id)}.0</span>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      const element = document.getElementById('avaliar-secao');
+                      element?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="px-3 py-1.5 rounded-xl text-xs font-bold bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500 hover:text-slate-950 border border-cyan-500/30 transition-all cursor-pointer whitespace-nowrap"
+                  >
+                    Votar no Jogo
+                  </button>
+                )}
               </div>
 
             </div>
@@ -878,11 +914,11 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                       <button
                         type="button"
                         key={star}
-                        onClick={() => setUserScore(star)}
+                        onClick={() => handleQuickStarClick(star)}
                         onMouseEnter={() => setHoverScore(star)}
                         onMouseLeave={() => setHoverScore(0)}
-                        className="p-1 hover:scale-125 transition-transform"
-                        title={`${star} Estrelas`}
+                        className="p-1 hover:scale-125 transition-transform cursor-pointer"
+                        title={`Votar com ${star} Estrelas`}
                       >
                         <Star 
                           className={`w-5 h-5 ${
@@ -895,6 +931,11 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                     ))}
                   </div>
                   <span className="text-xs font-bold text-amber-400 ml-1">{userScore}.0</span>
+                  {submittedVoteNotice && (
+                    <span className="text-[11px] font-bold text-emerald-400 animate-pulse ml-2">
+                      ✓ Voto registrado!
+                    </span>
+                  )}
                 </div>
 
               </div>

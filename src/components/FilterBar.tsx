@@ -136,7 +136,7 @@ export const FilterBar: React.FC = () => {
             }`}
           >
             <span>🇧🇷</span>
-            <span>Dublado / PT-BR</span>
+            <span>PT-BR (Dublado & Legendado)</span>
           </button>
 
           {/* Format selector (Torrent vs PKG) */}

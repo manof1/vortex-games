@@ -89,8 +89,8 @@ export const INITIAL_GAMES: Game[] = [
         directx: 'Vulkan 1.3'
       }
     },
-    rating: 5.0,
-    totalVotes: 4950,
+    rating: 0,
+    totalVotes: 0,
     imdbRating: 9.7,
     screenshots: [
       'https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?auto=format&fit=crop&w=1200&q=80',
@@ -103,7 +103,7 @@ export const INITIAL_GAMES: Game[] = [
     createdAt: '2024-03-01T12:00:00Z',
     isFeatured: true,
     isTrending: true,
-    hasPtBrAudio: true,
+    hasPtBrAudio: false,
     hasPtBrSubs: true,
     hasPkgFormat: true,
     hasPcTorrent: true,
@@ -194,8 +194,8 @@ export const INITIAL_GAMES: Game[] = [
         directx: 'Versão 12 Ultimate'
       }
     },
-    rating: 4.9,
-    totalVotes: 1420,
+    rating: 0,
+    totalVotes: 0,
     imdbRating: 9.3,
     screenshots: [
       'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80',
@@ -287,8 +287,8 @@ export const INITIAL_GAMES: Game[] = [
         directx: 'Versão 12'
       }
     },
-    rating: 5.0,
-    totalVotes: 2180,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80'
@@ -363,8 +363,8 @@ export const INITIAL_GAMES: Game[] = [
         directx: 'Versão 12'
       }
     },
-    rating: 4.8,
-    totalVotes: 1950,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       'https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=1200&q=80'
@@ -438,8 +438,8 @@ export const INITIAL_GAMES: Game[] = [
         directx: 'Versão 11'
       }
     },
-    rating: 5.0,
-    totalVotes: 3200,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       'https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80'
@@ -547,8 +547,8 @@ export const INITIAL_GAMES: Game[] = [
         directx: 'Versão 12'
       }
     },
-    rating: 4.9,
-    totalVotes: 1820,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       'https://images.unsplash.com/photo-1551103782-8ab07afd45c1?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80'
@@ -629,8 +629,8 @@ export const INITIAL_GAMES: Game[] = [
         directx: 'Versão 12'
       }
     },
-    rating: 5.0,
-    totalVotes: 4890,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1200&q=80'
@@ -705,8 +705,8 @@ export const INITIAL_GAMES: Game[] = [
         directx: 'Versão 12'
       }
     },
-    rating: 4.9,
-    totalVotes: 1640,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80'
@@ -772,8 +772,8 @@ export const INITIAL_GAMES: Game[] = [
         directx: 'Versão 12'
       }
     },
-    rating: 4.8,
-    totalVotes: 1320,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       'https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80'
@@ -847,8 +847,8 @@ export const INITIAL_GAMES: Game[] = [
         directx: 'Versão 11'
       }
     },
-    rating: 5.0,
-    totalVotes: 3500,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80'

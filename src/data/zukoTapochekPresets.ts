@@ -83,8 +83,8 @@ export const ZUKO_TAPOCHEK_PRESETS: Game[] = [
         directx: 'Versão 12'
       }
     },
-    rating: 5.0,
-    totalVotes: 6120,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80'
@@ -188,8 +188,8 @@ export const ZUKO_TAPOCHEK_PRESETS: Game[] = [
         directx: 'Versão 12'
       }
     },
-    rating: 4.9,
-    totalVotes: 3840,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       'https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=1200&q=80'
@@ -293,8 +293,8 @@ export const ZUKO_TAPOCHEK_PRESETS: Game[] = [
         directx: 'Versão 12'
       }
     },
-    rating: 4.9,
-    totalVotes: 2950,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80'
@@ -398,8 +398,8 @@ export const ZUKO_TAPOCHEK_PRESETS: Game[] = [
         directx: 'Versão 12'
       }
     },
-    rating: 4.8,
-    totalVotes: 2190,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1200&q=80'

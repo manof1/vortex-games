@@ -86,6 +86,8 @@ const MainContent: React.FC = () => {
           case 'popular':
             return b.viewsCount - a.viewsCount;
           case 'rating':
+            if (b.totalVotes > 0 && a.totalVotes === 0) return 1;
+            if (a.totalVotes > 0 && b.totalVotes === 0) return -1;
             return b.rating - a.rating;
           case 'downloads':
             return b.downloadsCount - a.downloadsCount;

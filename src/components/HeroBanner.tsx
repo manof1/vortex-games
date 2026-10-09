@@ -134,12 +134,16 @@ export const HeroBanner: React.FC = () => {
               <Sparkles className="w-3 h-3" /> {current.repackInfo.repacker}
             </span>
 
-            {/* PT-BR badge */}
-            {(current.hasPtBrAudio || current.hasPtBrSubs || current.languages?.some(l => l.includes('Português'))) && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500 text-slate-950 border border-emerald-400 shadow-sm">
+            {/* PT-BR badge: Dublado vs Legendado */}
+            {current.hasPtBrAudio ? (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500 text-slate-950 border border-emerald-400 shadow-sm" title="Jogo com Dublagem e Áudio em Português do Brasil">
                 <span>🇧🇷</span> Dublado PT-BR
               </span>
-            )}
+            ) : (current.hasPtBrSubs || current.languages?.some(l => l.toLowerCase().includes('português'))) ? (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-cyan-950 text-cyan-300 border border-cyan-700/80 shadow-sm" title="Jogo com Legendas e Menus em Português do Brasil">
+                <span>🇧🇷</span> Legendado PT-BR
+              </span>
+            ) : null}
 
             {/* PKG badge */}
             {current.hasPkgFormat && (
@@ -166,18 +170,28 @@ export const HeroBanner: React.FC = () => {
           {/* Metadata chips */}
           <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-slate-300 py-1">
             {/* IMDb / Rating */}
-            <div className="flex items-center gap-1.5 bg-slate-950/80 px-2.5 py-1 rounded-lg border border-amber-500/40 text-amber-300 font-bold shadow-sm">
+            <div className="flex items-center gap-1.5 bg-slate-950/80 px-2.5 py-1 rounded-lg border border-amber-500/40 text-amber-300 font-bold shadow-sm" title="Nota IMDb (Crítica & Base de Dados Externa)">
               <span className="bg-amber-400 text-slate-950 text-[10px] font-black px-1.5 py-0.2 rounded uppercase">IMDb</span>
-              <span className="text-sm font-black font-mono">{(current.imdbRating || (current.rating * 1.85 + 0.4)).toFixed(1)}</span>
+              <span className="text-sm font-black font-mono">{(current.imdbRating || 8.8).toFixed(1)}</span>
               <span className="text-slate-400 text-[10px]">/ 10</span>
             </div>
 
-            {/* User Rating */}
-            <div className="flex items-center gap-1.5 text-amber-400 font-bold bg-slate-950/70 px-2.5 py-1 rounded-lg border border-slate-800">
-              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-              <span>{current.rating.toFixed(1)}</span>
-              <span className="text-slate-400 font-normal">({(current.totalVotes || 450).toLocaleString('pt-BR')} votos)</span>
-            </div>
+            {/* User Rating - Apenas Votos Reais */}
+            {current.totalVotes > 0 ? (
+              <div className="flex items-center gap-1.5 text-amber-400 font-bold bg-slate-950/70 px-2.5 py-1 rounded-lg border border-slate-800">
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                <span>{current.rating.toFixed(1)}</span>
+                <span className="text-slate-400 font-normal">
+                  ({current.totalVotes} {current.totalVotes === 1 ? 'voto real' : 'votos reais'})
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 text-slate-400 bg-slate-950/70 px-2.5 py-1 rounded-lg border border-slate-800 text-xs">
+                <Star className="w-3.5 h-3.5 text-slate-600" />
+                <span>Sem avaliações ainda</span>
+                <span className="text-cyan-400 text-[11px] font-bold">(Seja o 1º a votar!)</span>
+              </div>
+            )}
 
             {/* Repack Size */}
             <div className="flex items-center gap-1.5 bg-slate-950/70 px-2.5 py-1 rounded-lg border border-slate-800">

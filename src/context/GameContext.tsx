@@ -44,6 +44,7 @@ interface GameContextType {
   updateGame: (game: Game) => void;
   deleteGame: (gameId: string) => void;
   rateGame: (gameId: string, score: number) => void;
+  getUserVote: (gameId: string) => number | null;
   addComment: (gameId: string, authorName: string, content: string, rating?: number) => void;
   likeComment: (commentId: string) => void;
   deleteComment: (commentId: string) => void;
@@ -82,6 +83,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Games state
   const [games, setGames] = useState<Game[]>(() => {
+    let baseList = INITIAL_GAMES;
     const saved = localStorage.getItem('vortex_games');
     if (saved) {
       try {
@@ -89,13 +91,28 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (Array.isArray(parsed) && parsed.length > 0) {
           const savedIds = new Set(parsed.map((g: Game) => g.id));
           const missingPresets = INITIAL_GAMES.filter(g => !savedIds.has(g.id));
-          return [...missingPresets, ...parsed];
+          baseList = [...missingPresets, ...parsed];
         }
       } catch (e) {
         console.error('Failed to parse saved games', e);
       }
     }
-    return INITIAL_GAMES;
+
+    // Sanitize real votes: only keep votes that real users submitted via vortex_user_votes
+    let userVotesMap: Record<string, number> = {};
+    try {
+      userVotesMap = JSON.parse(localStorage.getItem('vortex_user_votes') || '{}');
+    } catch {
+      userVotesMap = {};
+    }
+
+    return baseList.map(g => {
+      const realVote = userVotesMap[g.id];
+      if (realVote) {
+        return { ...g, rating: realVote, totalVotes: 1 };
+      }
+      return { ...g, rating: 0, totalVotes: 0 };
+    });
   });
 
   // Comments state
@@ -193,10 +210,22 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     fetchGamesFromSupabase().then(remoteGames => {
       if (isMounted && remoteGames && remoteGames.length > 0) {
         setGames(prev => {
-          const remoteIds = new Set(remoteGames.map(g => g.id));
-          // Merge: remote games first (the 6 FitGirl games from Supabase),
-          // followed by any preset games that aren't already in Supabase
-          const merged = [...remoteGames, ...prev.filter(g => !remoteIds.has(g.id))];
+          let userVotesMap: Record<string, number> = {};
+          try {
+            userVotesMap = JSON.parse(localStorage.getItem('vortex_user_votes') || '{}');
+          } catch {
+            userVotesMap = {};
+          }
+          const sanitizedRemote = remoteGames.map(g => {
+            const realVote = userVotesMap[g.id];
+            if (realVote) {
+              return { ...g, rating: realVote, totalVotes: 1 };
+            }
+            return { ...g, rating: 0, totalVotes: 0 };
+          });
+
+          const remoteIds = new Set(sanitizedRemote.map(g => g.id));
+          const merged = [...sanitizedRemote, ...prev.filter(g => !remoteIds.has(g.id))];
           return merged;
         });
 
@@ -429,13 +458,50 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
   };
 
+  const getUserVote = (gameId: string): number | null => {
+    try {
+      const votesMap = JSON.parse(localStorage.getItem('vortex_user_votes') || '{}');
+      return votesMap[gameId] || null;
+    } catch {
+      return null;
+    }
+  };
+
   const rateGame = (gameId: string, score: number) => {
+    let currentVotesMap: Record<string, number> = {};
+    try {
+      currentVotesMap = JSON.parse(localStorage.getItem('vortex_user_votes') || '{}');
+    } catch {
+      currentVotesMap = {};
+    }
+    const previousScore = currentVotesMap[gameId];
+    currentVotesMap[gameId] = score;
+    localStorage.setItem('vortex_user_votes', JSON.stringify(currentVotesMap));
+
     setGames(prev =>
       prev.map(g => {
         if (g.id === gameId) {
-          const newVotes = g.totalVotes + 1;
-          const newRating = Number(((g.rating * g.totalVotes + score) / newVotes).toFixed(1));
-          return { ...g, rating: newRating, totalVotes: newVotes };
+          const currentVotes = g.totalVotes || 0;
+          const currentRating = g.rating || 0;
+          let newVotes = currentVotes;
+          let newRating = currentRating;
+
+          if (previousScore) {
+            // User updating their vote
+            const totalSum = currentRating * currentVotes - previousScore + score;
+            newRating = Number((totalSum / (newVotes || 1)).toFixed(1));
+          } else {
+            // First real vote
+            newVotes = currentVotes + 1;
+            const totalSum = currentRating * currentVotes + score;
+            newRating = Number((totalSum / newVotes).toFixed(1));
+          }
+
+          const updated = { ...g, rating: newRating, totalVotes: newVotes };
+          if (activeGame?.id === gameId) {
+            setActiveGame(updated);
+          }
+          return updated;
         }
         return g;
       })
@@ -598,6 +664,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateGame,
         deleteGame,
         rateGame,
+        getUserVote,
         addComment,
         likeComment,
         deleteComment,
