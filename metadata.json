@@ -1,0 +1,6 @@
+{
+  "name": "VortexGames - Portal de Torrents & Biblioteca Gamer",
+  "description": "Portal completo de download de jogos via torrent com avaliações da comunidade, busca avançada por gêneros, painel administrativo, integração com IGDB e biblioteca personalizada.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
