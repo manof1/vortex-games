@@ -2,57 +2,45 @@ import React, { useState } from 'react';
 import { 
   X, 
   Lock, 
-  Unlock, 
-  Sparkles, 
   CheckCircle2, 
   UserPlus, 
   LogIn, 
   ShieldCheck, 
   Download, 
   Gamepad2, 
-  Zap,
+  Zap, 
   ArrowRight,
-  Cloud,
-  Smartphone,
-  Laptop,
-  KeyRound,
-  RefreshCw
+  CloudCheck
 } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { signUpUserWithSupabase, signInUserWithSupabase } from '../services/supabaseClient';
 
 interface AuthModalProps {
   onClose: () => void;
-  initialMode?: 'register' | 'login' | 'cloud_sync';
+  initialMode?: 'register' | 'login';
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialMode = 'register' }) => {
+export const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialMode = 'login' }) => {
   const { 
     login, 
     register, 
-    cloudSyncCode, 
-    syncToCloud, 
-    restoreFromCloudCode 
+    syncToCloud 
   } = useGame();
 
-  const [mode, setMode] = useState<'register' | 'login' | 'cloud_sync'>(initialMode);
+  const [mode, setMode] = useState<'register' | 'login'>(initialMode);
   
   // Register fields
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [useCloudBackup, setUseCloudBackup] = useState(true);
   
   // Login fields
   const [loginIdentifier, setLoginIdentifier] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
-  // Cloud Sync fields
-  const [syncCodeInput, setSyncCodeInput] = useState('');
-  const [isSyncing, setIsSyncing] = useState(false);
-
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,25 +50,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialMode = 're
       return;
     }
 
+    setIsLoading(true);
+    // Registro local com sincronização automática
     const success = register(name.trim(), email.trim(), password);
     if (success) {
-      if (useCloudBackup) {
-        // Tenta salvar também no Supabase Auth se houver email e senha
-        if (email.trim() && password.trim().length >= 6) {
-          try {
-            await signUpUserWithSupabase(email.trim(), password.trim(), name.trim());
-          } catch (e) {
-            // gracioso
-          }
+      if (email.trim() && password.trim().length >= 6) {
+        try {
+          await signUpUserWithSupabase(email.trim(), password.trim(), name.trim());
+        } catch {
+          // gracioso
         }
-        await syncToCloud();
       }
-
-      setSuccessMessage('🎉 Conta criada com sucesso! Downloads liberados e sincronizados com a nuvem.');
+      await syncToCloud();
+      setIsLoading(false);
+      setSuccessMessage('🎉 Conta criada com sucesso! Downloads liberados e sincronizados para acessar em qualquer aparelho.');
       setTimeout(() => {
         onClose();
-      }, 1300);
+      }, 1200);
     } else {
+      setIsLoading(false);
       setErrorMessage('Erro ao criar conta. Tente novamente.');
     }
   };
@@ -93,64 +81,45 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialMode = 're
       return;
     }
 
-    // Tenta primeiro no login local/cache
+    setIsLoading(true);
+    // 1. Tenta login com verificação em nuvem
     const success = login(loginIdentifier.trim(), loginPassword);
     if (success) {
-      // Se houver conexão com Supabase, tenta logar lá em background
       if (loginIdentifier.includes('@') && loginPassword) {
         signInUserWithSupabase(loginIdentifier.trim(), loginPassword).catch(() => {});
       }
-      setSuccessMessage('✓ Login realizado! Downloads desbloqueados.');
+      setIsLoading(false);
+      setSuccessMessage('✓ Conectado! Seus favoritos e downloads foram sincronizados.');
       setTimeout(() => {
         onClose();
       }, 1000);
     } else {
-      // Se não encontrou no local, tenta via Supabase Auth
+      // 2. Se for o primeiro acesso neste aparelho (ex: celular), autentica com Supabase
       if (loginIdentifier.includes('@') && loginPassword) {
         const supaRes = await signInUserWithSupabase(loginIdentifier.trim(), loginPassword);
         if (supaRes.success && supaRes.user) {
           register(supaRes.user.user_metadata?.display_name || loginIdentifier.split('@')[0], loginIdentifier.trim(), loginPassword);
-          setSuccessMessage('✓ Login em Nuvem Supabase autenticado!');
+          setIsLoading(false);
+          setSuccessMessage('✓ Conectado com sucesso via Nuvem!');
           setTimeout(() => {
             onClose();
           }, 1000);
           return;
         }
       }
-      setErrorMessage('Usuário ou e-mail inválido. Se você criou a conta em outro aparelho, use a aba "Nuvem (Celular)".');
-    }
-  };
-
-  const handleCloudSyncSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMessage('');
-    if (!syncCodeInput.trim()) {
-      setErrorMessage('Por favor, digite seu código de sincronização (ex: VX-1234-BR).');
-      return;
-    }
-
-    setIsSyncing(true);
-    const res = await restoreFromCloudCode(syncCodeInput.trim());
-    setIsSyncing(false);
-
-    if (res.success) {
-      setSuccessMessage('⚡ ' + res.message);
-      setTimeout(() => {
-        onClose();
-      }, 1200);
-    } else {
-      setErrorMessage(res.message);
+      setIsLoading(false);
+      setErrorMessage('Usuário ou senha inválidos. Verifique os dados ou crie uma conta gratuita.');
     }
   };
 
   const handleQuickDemoRegister = async () => {
-    const randomNick = `GamerVortex_${Math.floor(100 + Math.random() * 900)}`;
+    const randomNick = `Gamer_${Math.floor(100 + Math.random() * 900)}`;
     register(randomNick, `${randomNick.toLowerCase()}@vortex.gg`, 'demo123');
     await syncToCloud();
-    setSuccessMessage('⚡ Conta rápida criada e sincronizada! Todos os links liberados!');
+    setSuccessMessage('⚡ Conta rápida criada! Downloads liberados em todos os aparelhos.');
     setTimeout(() => {
       onClose();
-    }, 1200);
+    }, 1100);
   };
 
   return (
@@ -163,7 +132,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialMode = 're
         onClick={e => e.stopPropagation()}
       >
         {/* Top Accent Gradient */}
-        <div className="h-2 w-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600" />
+        <div className="h-2 w-full bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600" />
 
         {/* Close Button */}
         <button
@@ -181,10 +150,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialMode = 're
               <Lock className="w-7 h-7" />
             </div>
             <h3 className="text-2xl font-black font-display text-slate-900 dark:text-white">
-              Área Exclusiva para Membros
+              Área de Membros Vortex Games
             </h3>
             <p className="text-xs text-slate-600 dark:text-slate-400 max-w-sm mx-auto">
-              Cadastre-se grátis para liberar todos os downloads torrents, magnets e arquivos PKG em alta velocidade.
+              Entre com sua conta no computador ou celular para liberar downloads imediatos e manter seus favoritos sempre sincronizados.
             </p>
           </div>
 
@@ -203,49 +172,36 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialMode = 're
               <span>Dublado e Legendado PT-BR</span>
             </div>
             <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 flex items-center gap-2">
-              <Cloud className="w-4 h-4 text-sky-500 shrink-0" />
-              <span>Sincronização PC & Celular</span>
+              <ShieldCheck className="w-4 h-4 text-sky-500 shrink-0" />
+              <span>Salva no Celular & PC</span>
             </div>
           </div>
 
-          {/* Mode Switcher Tabs */}
-          <div className="flex p-1 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 gap-1">
-            <button
-              type="button"
-              onClick={() => { setMode('register'); setErrorMessage(''); }}
-              className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                mode === 'register'
-                  ? 'bg-cyan-500 text-slate-950 shadow-md font-black'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <UserPlus className="w-3.5 h-3.5" />
-              <span>Criar Conta</span>
-            </button>
+          {/* Mode Switcher Tabs (Simples: Entrar / Criar Conta) */}
+          <div className="flex p-1 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
             <button
               type="button"
               onClick={() => { setMode('login'); setErrorMessage(''); }}
-              className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                 mode === 'login'
                   ? 'bg-cyan-500 text-slate-950 shadow-md font-black'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <LogIn className="w-3.5 h-3.5" />
-              <span>Entrar</span>
+              <span>Entrar na Conta</span>
             </button>
             <button
               type="button"
-              onClick={() => { setMode('cloud_sync'); setErrorMessage(''); }}
-              className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                mode === 'cloud_sync'
-                  ? 'bg-indigo-600 text-white shadow-md font-black'
+              onClick={() => { setMode('register'); setErrorMessage(''); }}
+              className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                mode === 'register'
+                  ? 'bg-cyan-500 text-slate-950 shadow-md font-black'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
-              title="Entrar no celular com os mesmos favoritos e dados do PC"
             >
-              <Cloud className="w-3.5 h-3.5 text-cyan-300" />
-              <span>Nuvem</span>
+              <UserPlus className="w-3.5 h-3.5" />
+              <span>Criar Conta Gratuita</span>
             </button>
           </div>
 
@@ -264,7 +220,53 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialMode = 're
             </div>
           )}
 
-          {/* TAB 1: REGISTRATION FORM */}
+          {/* FORMULÁRIO 1: LOGIN SIMPLES */}
+          {mode === 'login' && (
+            <form onSubmit={handleLoginSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Seu E-mail ou Nome de Usuário *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={loginIdentifier}
+                  onChange={e => setLoginIdentifier(e.target.value)}
+                  placeholder="Ex: seunome ou seuemail@exemplo.com"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Sua Senha *
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={loginPassword}
+                  onChange={e => setLoginPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-black text-sm bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-lg shadow-cyan-500/25 transition-all transform hover:scale-[1.01] cursor-pointer disabled:opacity-60"
+              >
+                <span>{isLoading ? 'Conectando...' : 'Entrar e Liberar Downloads'}</span>
+                <LogIn className="w-4 h-4 stroke-[2.5]" />
+              </button>
+
+              <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 text-center">
+                💡 Basta usar este mesmo e-mail e senha no seu celular para abrir sua biblioteca.
+              </div>
+            </form>
+          )}
+
+          {/* FORMULÁRIO 2: CADASTRO RÁPIDO */}
           {mode === 'register' && (
             <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
               <div>
@@ -276,17 +278,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialMode = 're
                   required
                   value={name}
                   onChange={e => setName(e.target.value)}
-                  placeholder="Ex: HunterGamer, Lucas_BR, Valkyrie"
+                  placeholder="Ex: HunterGamer, Lucas_BR, Pedro"
                   className="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  E-mail (para login em nuvem)
+                  E-mail *
                 </label>
                 <input
                   type="email"
+                  required
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="seuemail@exemplo.com"
@@ -296,10 +299,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialMode = 're
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Senha
+                  Criar Senha *
                 </label>
                 <input
                   type="password"
+                  required
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••"
@@ -307,120 +311,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialMode = 're
                 />
               </div>
 
-              <div className="flex items-center gap-2 pt-1">
-                <input
-                  type="checkbox"
-                  id="cloudBackupCheck"
-                  checked={useCloudBackup}
-                  onChange={e => setUseCloudBackup(e.target.checked)}
-                  className="rounded text-cyan-500 focus:ring-cyan-500 cursor-pointer"
-                />
-                <label htmlFor="cloudBackupCheck" className="text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
-                  Sincronizar conta na nuvem (permite acessar no celular)
-                </label>
-              </div>
-
               <button
                 type="submit"
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-black text-sm bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-lg shadow-cyan-500/25 transition-all transform hover:scale-[1.01] cursor-pointer"
+                disabled={isLoading}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-black text-sm bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-lg shadow-cyan-500/25 transition-all transform hover:scale-[1.01] cursor-pointer disabled:opacity-60"
               >
-                <span>Concluir Cadastro & Liberar Downloads</span>
+                <span>{isLoading ? 'Cadastrando...' : 'Criar Conta & Liberar Acesso'}</span>
                 <ArrowRight className="w-4 h-4 stroke-[2.5]" />
               </button>
 
-              <div className="pt-2 text-center">
+              <div className="pt-1 text-center">
                 <button
                   type="button"
                   onClick={handleQuickDemoRegister}
                   className="text-xs font-semibold text-cyan-600 dark:text-cyan-400 hover:underline cursor-pointer"
                 >
-                  ⚡ Criar Conta Instantânea com 1 Clique (Teste Rápido)
+                  ⚡ Criar Conta Rápida de Teste com 1 Clique
                 </button>
-              </div>
-            </form>
-          )}
-
-          {/* TAB 2: LOGIN FORM */}
-          {mode === 'login' && (
-            <form onSubmit={handleLoginSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Nome de Usuário ou E-mail
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={loginIdentifier}
-                  onChange={e => setLoginIdentifier(e.target.value)}
-                  placeholder="Nome de usuário ou seuemail@exemplo.com"
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Senha
-                </label>
-                <input
-                  type="password"
-                  value={loginPassword}
-                  onChange={e => setLoginPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-black text-sm bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-lg shadow-cyan-500/25 transition-all transform hover:scale-[1.01] cursor-pointer"
-              >
-                <span>Entrar na Minha Conta</span>
-                <LogIn className="w-4 h-4 stroke-[2.5]" />
-              </button>
-            </form>
-          )}
-
-          {/* TAB 3: CLOUD SYNC (MULTI-DISPOSITIVO PC ⇄ CELULAR) */}
-          {mode === 'cloud_sync' && (
-            <form onSubmit={handleCloudSyncSubmit} className="space-y-4">
-              <div className="p-3.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-xs space-y-2">
-                <div className="flex items-center gap-2 font-bold text-indigo-400">
-                  <Smartphone className="w-4 h-4" />
-                  <span>Acessando pelo celular ou outro navegador?</span>
-                </div>
-                <p className="text-slate-300">
-                  Digite seu <strong>Código de Sincronização em Nuvem</strong> gerado no seu computador para transferir automaticamente seus favoritos, downloads e avaliações.
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Código de Sincronização em Nuvem *
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    required
-                    value={syncCodeInput}
-                    onChange={e => setSyncCodeInput(e.target.value.toUpperCase())}
-                    placeholder="Ex: VX-4820-BR"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 font-mono font-bold text-sm text-slate-900 dark:text-white placeholder-slate-400 uppercase tracking-widest focus:outline-none focus:border-indigo-500"
-                  />
-                  <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-3 pointer-events-none" />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={isSyncing}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-black text-sm bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-500 hover:from-indigo-400 hover:to-cyan-400 text-white shadow-lg shadow-indigo-500/25 transition-all transform hover:scale-[1.01] cursor-pointer disabled:opacity-60"
-              >
-                <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
-                <span>{isSyncing ? 'Conectando à Nuvem...' : 'Restaurar Dados & Entrar'}</span>
-              </button>
-
-              <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400">
-                💡 Onde acho meu código? No computador, clique no seu Perfil no canto superior direito e vá na aba <strong>"Nuvem & Celular"</strong>.
               </div>
             </form>
           )}

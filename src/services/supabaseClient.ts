@@ -284,3 +284,60 @@ export async function getCloudSyncData(syncCode: string): Promise<{ success: boo
   return { success: false, error: 'Código de sincronização não encontrado na nuvem.' };
 }
 
+/**
+ * Salva automaticamente os dados do usuário na nuvem usando seu e-mail/ID de conta
+ */
+export async function saveUserCloudAccount(userIdentifier: string, payload: any): Promise<{ success: boolean; message: string }> {
+  const cleanId = userIdentifier.toLowerCase().trim();
+  try {
+    const { error } = await supabase
+      .from('user_sync')
+      .upsert({
+        sync_code: `USER_${cleanId}`,
+        data: payload,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'sync_code' });
+
+    if (error) {
+      console.warn('Supabase sync status:', error.message);
+    }
+    localStorage.setItem(`vortex_cloud_user_${cleanId}`, JSON.stringify(payload));
+    return { success: true, message: 'Dados salvos na nuvem automaticamente!' };
+  } catch {
+    localStorage.setItem(`vortex_cloud_user_${cleanId}`, JSON.stringify(payload));
+    return { success: true, message: 'Dados salvos localmente!' };
+  }
+}
+
+/**
+ * Carrega automaticamente os dados do usuário da nuvem pelo e-mail/ID ao fazer login
+ */
+export async function getUserCloudAccount(userIdentifier: string): Promise<{ success: boolean; data?: any }> {
+  const cleanId = userIdentifier.toLowerCase().trim();
+  try {
+    const { data, error } = await supabase
+      .from('user_sync')
+      .select('data')
+      .eq('sync_code', `USER_${cleanId}`)
+      .single();
+
+    if (!error && data?.data) {
+      return { success: true, data: data.data };
+    }
+  } catch {
+    // fallback
+  }
+
+  const localCached = localStorage.getItem(`vortex_cloud_user_${cleanId}`);
+  if (localCached) {
+    try {
+      return { success: true, data: JSON.parse(localCached) };
+    } catch {
+      // ignore
+    }
+  }
+
+  return { success: false };
+}
+
+

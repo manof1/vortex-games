@@ -11,6 +11,7 @@ import { NotificationModal } from './components/NotificationModal';
 import { UserMenuModal } from './components/UserMenuModal';
 import { AuthModal } from './components/AuthModal';
 import { GameRequestModal } from './components/GameRequestModal';
+import { SidebarBanners } from './components/SidebarBanners';
 import { Footer } from './components/Footer';
 import { SearchX, Sparkles, Flame } from 'lucide-react';
 
@@ -121,6 +122,9 @@ const MainContent: React.FC = () => {
     <div className="min-h-screen bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-100 flex flex-col selection:bg-cyan-500 selection:text-slate-950 transition-colors duration-200">
       {/* Header - Tradicional & Sempre Visível */}
       <Header />
+
+      {/* Banners Laterais Discretos Adsterra (160x600 - Sem Pop-up) */}
+      <SidebarBanners />
 
       {/* Main Content Area */}
       <main className="flex-1 w-full">
