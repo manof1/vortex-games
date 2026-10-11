@@ -1,5 +1,5 @@
 import React from 'react';
-import { Filter, SlidersHorizontal, ArrowUpDown, X, Tag } from 'lucide-react';
+import { Filter, SlidersHorizontal, ArrowUpDown, X, Tag, Calendar } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 
 const GENRES = [
@@ -49,7 +49,9 @@ export const FilterBar: React.FC = () => {
     filters.genre !== 'Todos' || 
     filters.category !== 'Todos' || 
     filters.repacker !== 'Todos' || 
-    filters.search !== '';
+    filters.search !== '' ||
+    (filters.yearRange && filters.yearRange !== 'all') ||
+    filters.onlyPtBr;
 
   const clearFilters = () => {
     setFilters(prev => ({
@@ -58,6 +60,8 @@ export const FilterBar: React.FC = () => {
       category: 'Todos',
       repacker: 'Todos',
       search: '',
+      yearRange: 'all',
+      onlyPtBr: false,
       sortBy: 'latest'
     }));
   };
@@ -150,6 +154,23 @@ export const FilterBar: React.FC = () => {
               <option value="all" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Todos os Formatos</option>
               <option value="torrent" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">💻 Torrent PC (.torrent)</option>
               <option value="pkg" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">🎮 Arquivo PKG (PlayStation)</option>
+            </select>
+          </div>
+
+          {/* Year Range selector */}
+          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-950/60 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-800">
+            <Calendar className="w-3.5 h-3.5 text-cyan-500 dark:text-cyan-400" />
+            <span className="text-slate-500 dark:text-slate-400 font-medium">Faixa de Ano:</span>
+            <select
+              value={filters.yearRange || 'all'}
+              onChange={e => setFilters(prev => ({ ...prev, yearRange: e.target.value as any }))}
+              className="bg-transparent text-slate-800 dark:text-slate-200 font-semibold focus:outline-none cursor-pointer"
+            >
+              <option value="all" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Todos os Anos</option>
+              <option value="2024-2026" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">🚀 2024–2026 (Nova Geração)</option>
+              <option value="2020-2023" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">⚡ 2020–2023 (Geração Recente)</option>
+              <option value="2015-2019" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">🎮 2015–2019 (Consagrados)</option>
+              <option value="retro" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">🕹️ Clássicos & Retrô (Até 2014)</option>
             </select>
           </div>
 

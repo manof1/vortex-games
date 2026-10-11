@@ -10,6 +10,7 @@ import { UserLibraryView } from './components/UserLibraryView';
 import { NotificationModal } from './components/NotificationModal';
 import { UserMenuModal } from './components/UserMenuModal';
 import { AuthModal } from './components/AuthModal';
+import { GameRequestModal } from './components/GameRequestModal';
 import { Footer } from './components/Footer';
 import { SearchX, Sparkles, Flame } from 'lucide-react';
 
@@ -27,7 +28,9 @@ const MainContent: React.FC = () => {
     isUserMenuOpen, 
     setIsUserMenuOpen,
     isAuthModalOpen,
-    setIsAuthModalOpen
+    setIsAuthModalOpen,
+    isGameRequestOpen,
+    setIsGameRequestOpen
   } = useGame();
 
   // Filter & sort games
@@ -78,6 +81,14 @@ const MainContent: React.FC = () => {
           const matchOrigin = game.sourceOrigin?.toLowerCase().includes(filters.repacker.toLowerCase());
           const matchTags = game.tags.some(t => t.toLowerCase().includes(filters.repacker.toLowerCase()));
           if (!matchRepacker && !matchOrigin && !matchTags) return false;
+        }
+
+        // Year Range filter (Faixa de Ano)
+        if (filters.yearRange && filters.yearRange !== 'all') {
+          if (filters.yearRange === '2024-2026' && (game.releaseYear < 2024 || game.releaseYear > 2026)) return false;
+          if (filters.yearRange === '2020-2023' && (game.releaseYear < 2020 || game.releaseYear > 2023)) return false;
+          if (filters.yearRange === '2015-2019' && (game.releaseYear < 2015 || game.releaseYear > 2019)) return false;
+          if (filters.yearRange === 'retro' && game.releaseYear >= 2015) return false;
         }
 
         return true;
@@ -212,6 +223,12 @@ const MainContent: React.FC = () => {
       {isAuthModalOpen && (
         <AuthModal onClose={() => setIsAuthModalOpen(false)} />
       )}
+
+      {/* Pedir um Jogo Modal (Comunidade) */}
+      <GameRequestModal 
+        isOpen={isGameRequestOpen} 
+        onClose={() => setIsGameRequestOpen(false)} 
+      />
     </div>
   );
 };

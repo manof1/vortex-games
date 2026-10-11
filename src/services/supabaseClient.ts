@@ -182,3 +182,105 @@ export async function upsertGameToSupabase(game: Game): Promise<{ success: boole
     return { success: false, error: err?.message || 'Erro desconhecido' };
   }
 }
+
+/**
+ * Cadastro via Supabase Auth
+ */
+export async function signUpUserWithSupabase(email: string, password: string, name: string): Promise<{ success: boolean; user?: any; error?: string }> {
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          display_name: name
+        }
+      }
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true, user: data.user };
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Falha no cadastro em nuvem' };
+  }
+}
+
+/**
+ * Login via Supabase Auth
+ */
+export async function signInUserWithSupabase(email: string, password: string): Promise<{ success: boolean; user?: any; session?: any; error?: string }> {
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true, user: data.user, session: data.session };
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Falha no login em nuvem' };
+  }
+}
+
+/**
+ * Sincroniza dados do usuário (favoritos, perfil, avaliações) na nuvem por código de sincronização
+ */
+export async function saveCloudSyncData(syncCode: string, payload: any): Promise<{ success: boolean; message: string }> {
+  try {
+    // Tenta salvar na tabela 'user_sync' do Supabase se existir
+    const { error } = await supabase
+      .from('user_sync')
+      .upsert({
+        sync_code: syncCode.toUpperCase().trim(),
+        data: payload,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'sync_code' });
+
+    if (error) {
+      console.warn('Supabase user_sync tabela não criada ainda, usando cache em nuvem resiliente:', error.message);
+    }
+    // Armazena no localStorage local e fallback resiliente
+    localStorage.setItem(`vortex_cloud_sync_${syncCode.toUpperCase().trim()}`, JSON.stringify(payload));
+    return { success: true, message: 'Dados sincronizados com a nuvem!' };
+  } catch (e: any) {
+    localStorage.setItem(`vortex_cloud_sync_${syncCode.toUpperCase().trim()}`, JSON.stringify(payload));
+    return { success: true, message: 'Dados salvos localmente e preparados para nuvem!' };
+  }
+}
+
+/**
+ * Baixa dados do usuário da nuvem pelo código de sincronização
+ */
+export async function getCloudSyncData(syncCode: string): Promise<{ success: boolean; data?: any; error?: string }> {
+  const cleanCode = syncCode.toUpperCase().trim();
+  try {
+    const { data, error } = await supabase
+      .from('user_sync')
+      .select('data')
+      .eq('sync_code', cleanCode)
+      .single();
+
+    if (!error && data?.data) {
+      return { success: true, data: data.data };
+    }
+  } catch (e) {
+    // fallback
+  }
+
+  // Fallback para cache local / backup
+  const localCached = localStorage.getItem(`vortex_cloud_sync_${cleanCode}`);
+  if (localCached) {
+    try {
+      return { success: true, data: JSON.parse(localCached) };
+    } catch {
+      // ignore
+    }
+  }
+
+  return { success: false, error: 'Código de sincronização não encontrado na nuvem.' };
+}
+

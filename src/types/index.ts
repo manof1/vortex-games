@@ -157,6 +157,21 @@ export interface FilterState {
   minRating: number;
   onlyPtBr?: boolean; // Exibir apenas jogos dublados ou legendados em PT-BR
   formatFilter?: 'all' | 'torrent' | 'pkg'; // Filtrar por formato específico (Torrent PC vs PKG Console)
+  yearRange?: 'all' | '2024-2026' | '2020-2023' | '2015-2019' | 'retro'; // Filtro por Faixa de Ano
+}
+
+export interface GameRequest {
+  id: string;
+  gameTitle: string;
+  platform: 'PC' | 'PS4' | 'PS5' | 'Emulador' | 'Qualquer';
+  formatPreference: 'Torrent PC' | 'PKG Console' | 'Dublado PT-BR' | 'Qualquer';
+  requestedBy: string;
+  userEmail?: string;
+  notes?: string;
+  status: 'analise' | 'buscando' | 'testando_seeds' | 'adicionado';
+  votesCount: number;
+  hasVoted?: boolean;
+  createdAt: string;
 }
 
 export interface IgdbSearchResult {
@@ -173,3 +188,4 @@ export interface IgdbSearchResult {
   screenshots: string[];
   rating: number;
 }
+

@@ -19,7 +19,13 @@ import {
   LogOut,
   Sliders,
   ShieldCheck,
-  Gamepad2
+  Gamepad2,
+  Cloud,
+  Smartphone,
+  Laptop,
+  KeyRound,
+  Copy,
+  RefreshCw
 } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { LibraryStatus, UserProfile } from '../types';
@@ -43,10 +49,17 @@ export const UserMenuModal: React.FC<UserMenuModalProps> = ({ onClose }) => {
     setIsAdminOpen,
     isLoggedIn,
     logout,
-    setIsAuthModalOpen
+    setIsAuthModalOpen,
+    cloudSyncCode,
+    syncToCloud,
+    restoreFromCloudCode
   } = useGame();
 
-  const [activeTab, setActiveTab] = useState<'profile' | 'downloads' | 'library' | 'reviews' | 'settings'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'downloads' | 'library' | 'reviews' | 'settings' | 'cloud'>('profile');
+  const [copiedSyncCode, setCopiedSyncCode] = useState(false);
+  const [syncStatusMsg, setSyncStatusMsg] = useState('');
+  const [inputSyncCode, setInputSyncCode] = useState('');
+  const [isSyncing, setIsSyncing] = useState(false);
   const [isEditingBio, setIsEditingBio] = useState(false);
   const [nameInput, setNameInput] = useState(userProfile.name);
   const [tagInput, setTagInput] = useState(userProfile.tag);
@@ -251,6 +264,23 @@ export const UserMenuModal: React.FC<UserMenuModalProps> = ({ onClose }) => {
               >
                 <Settings className="w-4 h-4" />
                 <span>Preferências de Jogos</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('cloud')}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all text-left ${
+                  activeTab === 'cloud'
+                    ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-md shadow-indigo-600/30'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Cloud className="w-4 h-4 text-cyan-400" />
+                  <span>Nuvem & Celular</span>
+                </div>
+                <span className="text-[9px] px-1.5 py-0.2 rounded font-mono bg-indigo-950 text-indigo-300 border border-indigo-700">
+                  Sync
+                </span>
               </button>
             </nav>
           </div>
@@ -823,6 +853,136 @@ export const UserMenuModal: React.FC<UserMenuModalProps> = ({ onClose }) => {
                       Fazer Login / Cadastrar
                     </button>
                   )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB: CLOUD SYNC & MULTI-DEVICE */}
+          {activeTab === 'cloud' && (
+            <div className="space-y-6">
+              <div className="pb-3 border-b border-slate-800 flex items-center justify-between flex-wrap gap-2">
+                <div>
+                  <h3 className="text-base font-bold text-white font-display flex items-center gap-2">
+                    <Cloud className="w-5 h-5 text-indigo-400" />
+                    Sincronização em Nuvem (Multi-Dispositivo)
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    Mantenha seus jogos salvos, biblioteca e avaliações sincronizados entre seu PC e celular
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-bold">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>Supabase Cloud Ativo</span>
+                </div>
+              </div>
+
+              {/* Status message */}
+              {syncStatusMsg && (
+                <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center gap-2 animate-fadeIn">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>{syncStatusMsg}</span>
+                </div>
+              )}
+
+              {/* Current Device Sync Code */}
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-indigo-950/40 via-slate-900 to-slate-950 border border-indigo-500/40 space-y-3">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div>
+                    <span className="text-[11px] font-black uppercase text-indigo-400 tracking-wider">
+                      Seu Código de Sincronização em Nuvem
+                    </span>
+                    <p className="text-xs text-slate-300">
+                      Use este código no seu celular ou em outro computador para carregar todos os seus dados
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(cloudSyncCode);
+                      setCopiedSyncCode(true);
+                      setTimeout(() => setCopiedSyncCode(false), 2500);
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md transition-all cursor-pointer"
+                  >
+                    {copiedSyncCode ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copiedSyncCode ? 'Copiado!' : 'Copiar Código'}</span>
+                  </button>
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 text-center">
+                  <span className="font-mono text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400 tracking-widest">
+                    {cloudSyncCode}
+                  </span>
+                </div>
+
+                <div className="pt-1 flex items-center justify-between flex-wrap gap-2">
+                  <span className="text-[11px] text-slate-400">
+                    Inclui: {library.length} jogos salvos, perfil de {userProfile.name} e votos.
+                  </span>
+
+                  <button
+                    type="button"
+                    disabled={isSyncing}
+                    onClick={async () => {
+                      setIsSyncing(true);
+                      const res = await syncToCloud();
+                      setIsSyncing(false);
+                      setSyncStatusMsg(res.message);
+                      setTimeout(() => setSyncStatusMsg(''), 4000);
+                    }}
+                    className="flex items-center gap-1.5 text-xs font-bold text-cyan-400 hover:text-cyan-300 hover:underline cursor-pointer disabled:opacity-60"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+                    <span>{isSyncing ? 'Enviando...' : 'Atualizar Nuvem Agora'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Step by step mobile guide */}
+              <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-2.5">
+                <h4 className="text-xs font-bold text-white flex items-center gap-2">
+                  <Smartphone className="w-4 h-4 text-cyan-400" />
+                  Como sincronizar no celular (Passo a Passo Rápido)
+                </h4>
+                <ol className="text-xs text-slate-300 space-y-1.5 list-decimal pl-4">
+                  <li>Abra o site <strong>Vortex Games</strong> no navegador do seu celular.</li>
+                  <li>Clique no botão <strong>"Entrar / Cadastrar"</strong> no topo da página.</li>
+                  <li>Selecione a aba <strong>"Nuvem"</strong>.</li>
+                  <li>Digite o código <strong className="text-cyan-400 font-mono">{cloudSyncCode}</strong> e toque em Restaurar Dados!</li>
+                </ol>
+              </div>
+
+              {/* Restore from another code */}
+              <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-3">
+                <h4 className="text-xs font-bold text-white flex items-center gap-2">
+                  <Laptop className="w-4 h-4 text-purple-400" />
+                  Restaurar dados de outro dispositivo
+                </h4>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={inputSyncCode}
+                    onChange={e => setInputSyncCode(e.target.value.toUpperCase())}
+                    placeholder="Digite o código (ex: VX-9999-BR)"
+                    className="flex-1 px-4 py-2 rounded-xl bg-slate-900 border border-slate-700 font-mono text-xs text-white uppercase tracking-wider focus:outline-none focus:border-cyan-500"
+                  />
+                  <button
+                    type="button"
+                    disabled={isSyncing}
+                    onClick={async () => {
+                      if (!inputSyncCode.trim()) return;
+                      setIsSyncing(true);
+                      const res = await restoreFromCloudCode(inputSyncCode.trim());
+                      setIsSyncing(false);
+                      setSyncStatusMsg(res.message);
+                      setTimeout(() => setSyncStatusMsg(''), 4000);
+                    }}
+                    className="px-4 py-2 rounded-xl text-xs font-bold bg-cyan-500 hover:bg-cyan-400 text-slate-950 transition-all cursor-pointer disabled:opacity-60"
+                  >
+                    Restaurar
+                  </button>
                 </div>
               </div>
             </div>

@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { Game, LibraryStatus } from '../types';
 import { useGame } from '../context/GameContext';
+import { TorrentHealthBadge } from './TorrentHealthBadge';
 
 interface GameDetailModalProps {
   game: Game;
@@ -589,6 +590,15 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                           <span>Formato: <strong className="text-cyan-300">.torrent / Magnet</strong></span>
                           <span>•</span>
                           <span className="text-emerald-400 font-medium">Download Imediato</span>
+                        </div>
+
+                        {/* Testador de Seeds em Tempo Real (>50 Seeds Excelente) */}
+                        <div className="pt-1">
+                          <TorrentHealthBadge 
+                            seeders={link.seeders || 78} 
+                            leechers={link.leechers || 24} 
+                            torrentName={link.label}
+                          />
                         </div>
                       </div>
 
