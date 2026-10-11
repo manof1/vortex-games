@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { GameProvider, useGame } from './context/GameContext';
 import { Header } from './components/Header';
 import { HeroBanner } from './components/HeroBanner';
@@ -33,6 +33,15 @@ const MainContent: React.FC = () => {
     isGameRequestOpen,
     setIsGameRequestOpen
   } = useGame();
+
+  // Scroll to top whenever a game is opened
+  useEffect(() => {
+    if (activeGame) {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }
+  }, [activeGame]);
 
   // Filter & sort games
   const filteredGames = useMemo(() => {

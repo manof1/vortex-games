@@ -84,7 +84,10 @@ export const RecentReleasesRow: React.FC<RecentReleasesRowProps> = ({ onViewAll 
           return (
             <div
               key={game.id}
-              onClick={() => setActiveGame(game)}
+              onClick={() => {
+                window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                setActiveGame(game);
+              }}
               className="group shrink-0 w-44 sm:w-48 bg-white dark:bg-slate-900/70 hover:bg-slate-50 dark:hover:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-cyan-500/50 rounded-2xl p-2.5 transition-all duration-200 cursor-pointer flex flex-col justify-between shadow-md hover:shadow-cyan-950/20"
             >
               <div className="space-y-2">

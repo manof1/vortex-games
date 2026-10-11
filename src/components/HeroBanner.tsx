@@ -230,7 +230,10 @@ export const HeroBanner: React.FC = () => {
             </button>
 
             <button
-              onClick={() => setActiveGame(current)}
+              onClick={() => {
+                window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                setActiveGame(current);
+              }}
               className="flex items-center gap-2 px-4 sm:px-5 py-3 rounded-xl font-bold text-xs sm:text-sm bg-slate-900/90 hover:bg-slate-800 text-slate-200 border border-slate-700/80 hover:border-slate-500 transition-all cursor-pointer"
             >
               <span>Ver Detalhes & Requisitos</span>

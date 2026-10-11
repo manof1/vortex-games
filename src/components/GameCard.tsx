@@ -82,7 +82,10 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
 
   return (
     <div
-      onClick={() => setActiveGame(game)}
+      onClick={() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        setActiveGame(game);
+      }}
       className="group relative flex flex-col rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 hover:border-cyan-500/50 hover:shadow-xl dark:hover:shadow-cyan-950/30 transition-all duration-300 overflow-hidden cursor-pointer"
     >
       {/* Poster Image Container */}

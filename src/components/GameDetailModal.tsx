@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   ArrowLeft,
@@ -38,6 +38,13 @@ interface GameDetailModalProps {
 }
 
 export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose }) => {
+  // Always scroll to the top of the page when a game is opened
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [game?.id]);
+
   const { 
     comments, 
     addComment, 
