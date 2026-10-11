@@ -9,13 +9,14 @@ import {
   Flame,
   ChevronLeft,
   ChevronRight,
-  Bot
+  Bot,
+  Lock
 } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { Game } from '../types';
 
 export const HeroBanner: React.FC = () => {
-  const { games, setActiveGame, incrementDownload } = useGame();
+  const { games, setActiveGame, incrementDownload, isLoggedIn, setIsAuthModalOpen } = useGame();
 
   // Pick top 6 spotlight releases (prioritizing new automated releases and trending games)
   const spotlightGames = useMemo(() => {
@@ -71,6 +72,10 @@ export const HeroBanner: React.FC = () => {
 
   const handleQuickMagnet = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isLoggedIn) {
+      setIsAuthModalOpen(true);
+      return;
+    }
     const magnetLink = current.downloadLinks.find(l => l.type === 'magnet' || l.type === 'torrent');
     if (magnetLink) {
       incrementDownload(current.id);
@@ -214,9 +219,14 @@ export const HeroBanner: React.FC = () => {
             <button
               onClick={handleQuickMagnet}
               className="flex items-center gap-2 px-5 sm:px-6 py-3 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 transform hover:-translate-y-0.5 transition-all cursor-pointer"
+              title={isLoggedIn ? 'Baixar Torrent' : '🔒 Exclusivo para membros cadastrados'}
             >
-              <Download className="w-4 h-4 sm:w-5 sm:h-5 text-slate-950 stroke-[2.5]" />
-              <span>Baixar Torrent (Magnet)</span>
+              {isLoggedIn ? (
+                <Download className="w-4 h-4 sm:w-5 sm:h-5 text-slate-950 stroke-[2.5]" />
+              ) : (
+                <Lock className="w-4 h-4 sm:w-5 sm:h-5 text-slate-950 stroke-[2.5]" />
+              )}
+              <span>{isLoggedIn ? 'Baixar Torrent (Magnet)' : 'Baixar Torrent (Membros)'}</span>
             </button>
 
             <button

@@ -6,7 +6,7 @@ export const Footer: React.FC = () => {
   const { setFilters } = useGame();
 
   return (
-    <footer className="w-full mt-20 border-t border-slate-800/80 bg-slate-950/80 backdrop-blur-md text-slate-400 text-xs">
+    <footer className="w-full mt-20 border-t border-slate-200 dark:border-slate-800/80 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md text-slate-600 dark:text-slate-400 text-xs transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -17,18 +17,18 @@ export const Footer: React.FC = () => {
               <div className="w-8 h-8 rounded-lg bg-cyan-500 flex items-center justify-center text-slate-950">
                 <Gamepad2 className="w-5 h-5" />
               </div>
-              <span className="text-lg font-black text-white font-display">
-                VORTEX<span className="text-cyan-400">GAMES</span>
+              <span className="text-lg font-black text-slate-900 dark:text-white font-display">
+                VORTEX<span className="text-cyan-500">GAMES</span>
               </span>
             </div>
-            <p className="text-slate-400 text-xs leading-relaxed">
+            <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
               O portal definitivo de arquivamento e indexação torrent de jogos para PC com repacks rápidos, avaliações da comunidade e integração IGDB.
             </p>
           </div>
 
           {/* Quick categories */}
           <div className="space-y-2">
-            <h4 className="text-xs font-bold text-white uppercase tracking-wider">Categorias</h4>
+            <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Categorias</h4>
             <ul className="space-y-1.5 text-xs">
               <li>
                 <button 

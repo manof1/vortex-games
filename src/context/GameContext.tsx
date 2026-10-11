@@ -9,7 +9,7 @@ import {
   DEFAULT_SYNC_CONFIG, 
   checkForNewFitGirlReleases 
 } from '../services/autoSyncService';
-import { fetchGamesFromSupabase } from '../services/supabaseClient';
+import { fetchGamesFromSupabase, saveCloudSyncData, getCloudSyncData } from '../services/supabaseClient';
 
 interface GameContextType {
   games: Game[];
@@ -30,8 +30,22 @@ interface GameContextType {
   setIsSupabaseGuideOpen: (open: boolean) => void;
   isUserMenuOpen: boolean;
   setIsUserMenuOpen: (open: boolean) => void;
+  isGameRequestOpen: boolean;
+  setIsGameRequestOpen: (open: boolean) => void;
   userProfile: UserProfile;
   updateUserProfile: (profile: Partial<UserProfile>) => void;
+  // Member authentication system
+  isLoggedIn: boolean;
+  isAuthModalOpen: boolean;
+  setIsAuthModalOpen: (open: boolean) => void;
+  login: (usernameOrEmail: string, password?: string) => boolean;
+  register: (name: string, email: string, password?: string) => boolean;
+  logout: () => void;
+  requireAuth: () => boolean;
+  // Multi-Device Cloud Sync
+  cloudSyncCode: string;
+  syncToCloud: () => Promise<{ success: boolean; syncCode: string; message: string }>;
+  restoreFromCloudCode: (code: string) => Promise<{ success: boolean; message: string }>;
   theme: 'dark' | 'light';
   toggleTheme: () => void;
   // Auto-Sync
@@ -70,7 +84,8 @@ const DEFAULT_FILTERS: FilterState = {
   sortBy: 'latest',
   minRating: 0,
   onlyPtBr: false,
-  formatFilter: 'all'
+  formatFilter: 'all',
+  yearRange: 'all'
 };
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -358,6 +373,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isSupabaseGuideOpen, setIsSupabaseGuideOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
+    return localStorage.getItem('vortex_is_logged_in') === 'true';
+  });
 
   // User Profile State
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
@@ -388,6 +407,143 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('vortex_user_profile', JSON.stringify(updated));
       return updated;
     });
+  };
+
+  const login = (usernameOrEmail: string, _password?: string) => {
+    const clean = usernameOrEmail.trim();
+    if (!clean) return false;
+    
+    const savedUsersRaw = localStorage.getItem('vortex_registered_accounts');
+    let accounts: any[] = [];
+    if (savedUsersRaw) {
+      try { accounts = JSON.parse(savedUsersRaw); } catch {}
+    }
+    const found = accounts.find((a: any) => 
+      a.email?.toLowerCase() === clean.toLowerCase() || 
+      a.name?.toLowerCase() === clean.toLowerCase()
+    );
+
+    const userName = found ? found.name : clean.split('@')[0];
+    const userTag = found ? found.tag : `BR${Math.floor(10 + Math.random() * 89)}`;
+    
+    const updatedProfile: UserProfile = {
+      ...userProfile,
+      id: found?.id || `usr-${Date.now()}`,
+      name: userName,
+      tag: userTag,
+      joinedDate: found?.joinedDate || 'Membro Ativo',
+      totalDownloads: userProfile.totalDownloads || 0
+    };
+
+    setUserProfile(updatedProfile);
+    localStorage.setItem('vortex_user_profile', JSON.stringify(updatedProfile));
+    setIsLoggedIn(true);
+    localStorage.setItem('vortex_is_logged_in', 'true');
+    setIsAuthModalOpen(false);
+    return true;
+  };
+
+  const register = (name: string, email: string, _password?: string) => {
+    const cleanName = name.trim();
+    const cleanEmail = email.trim();
+    if (!cleanName) return false;
+
+    const newAccount = {
+      id: `usr-${Date.now()}`,
+      name: cleanName,
+      email: cleanEmail || `${cleanName.toLowerCase().replace(/\s+/g, '')}@vortex.gg`,
+      tag: `BR${Math.floor(10 + Math.random() * 89)}`,
+      joinedDate: 'Hoje',
+      preferredPlatform: 'PC' as const,
+      avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${cleanName}`
+    };
+
+    const savedUsersRaw = localStorage.getItem('vortex_registered_accounts');
+    let accounts: any[] = [];
+    if (savedUsersRaw) {
+      try { accounts = JSON.parse(savedUsersRaw); } catch {}
+    }
+    accounts.push(newAccount);
+    localStorage.setItem('vortex_registered_accounts', JSON.stringify(accounts));
+
+    const updatedProfile: UserProfile = {
+      ...userProfile,
+      ...newAccount,
+      bio: `Membro cadastrado da comunidade Vortex Games!`,
+      totalDownloads: 0
+    };
+
+    setUserProfile(updatedProfile);
+    localStorage.setItem('vortex_user_profile', JSON.stringify(updatedProfile));
+    setIsLoggedIn(true);
+    localStorage.setItem('vortex_is_logged_in', 'true');
+    setIsAuthModalOpen(false);
+    return true;
+  };
+
+  const logout = () => {
+    setIsLoggedIn(false);
+    localStorage.removeItem('vortex_is_logged_in');
+  };
+
+  const requireAuth = () => {
+    if (!isLoggedIn) {
+      setIsAuthModalOpen(true);
+      return false;
+    }
+    return true;
+  };
+
+  // Game Request Modal State
+  const [isGameRequestOpen, setIsGameRequestOpen] = useState(false);
+
+  // Cloud Sync Code & Multi-Device Sync
+  const [cloudSyncCode, setCloudSyncCode] = useState<string>(() => {
+    const saved = localStorage.getItem('vortex_cloud_sync_code');
+    if (saved) return saved;
+    const newCode = `VX-${Math.floor(1000 + Math.random() * 9000)}-BR`;
+    localStorage.setItem('vortex_cloud_sync_code', newCode);
+    return newCode;
+  });
+
+  const syncToCloud = async (): Promise<{ success: boolean; syncCode: string; message: string }> => {
+    const currentCode = cloudSyncCode || `VX-${Math.floor(1000 + Math.random() * 9000)}-BR`;
+    const payload = {
+      profile: userProfile,
+      library,
+      votes: JSON.parse(localStorage.getItem('vortex_user_votes') || '{}'),
+      savedAccounts: JSON.parse(localStorage.getItem('vortex_registered_accounts') || '[]'),
+      syncedAt: new Date().toISOString()
+    };
+    
+    const res = await saveCloudSyncData(currentCode, payload);
+    return { success: res.success, syncCode: currentCode, message: res.message };
+  };
+
+  const restoreFromCloudCode = async (code: string): Promise<{ success: boolean; message: string }> => {
+    const clean = code.toUpperCase().trim();
+    if (!clean) return { success: false, message: 'Por favor, digite o código de sincronização.' };
+
+    const res = await getCloudSyncData(clean);
+    if (res.success && res.data) {
+      if (res.data.profile) {
+        setUserProfile(res.data.profile);
+        localStorage.setItem('vortex_user_profile', JSON.stringify(res.data.profile));
+      }
+      if (Array.isArray(res.data.library)) {
+        setLibrary(res.data.library);
+        localStorage.setItem('vortex_library', JSON.stringify(res.data.library));
+      }
+      if (res.data.votes) {
+        localStorage.setItem('vortex_user_votes', JSON.stringify(res.data.votes));
+      }
+      setCloudSyncCode(clean);
+      localStorage.setItem('vortex_cloud_sync_code', clean);
+      setIsLoggedIn(true);
+      localStorage.setItem('vortex_is_logged_in', 'true');
+      return { success: true, message: 'Dados e favoritos restaurados da nuvem!' };
+    }
+    return { success: false, message: res.error || 'Código de nuvem não encontrado ou inválido.' };
   };
 
   // Sync state to LocalStorage
@@ -652,8 +808,20 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsSupabaseGuideOpen,
         isUserMenuOpen,
         setIsUserMenuOpen,
+        isGameRequestOpen,
+        setIsGameRequestOpen,
         userProfile,
         updateUserProfile,
+        isLoggedIn,
+        isAuthModalOpen,
+        setIsAuthModalOpen,
+        login,
+        register,
+        logout,
+        requireAuth,
+        cloudSyncCode,
+        syncToCloud,
+        restoreFromCloudCode,
         theme,
         toggleTheme,
         autoSyncConfig,

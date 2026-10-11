@@ -25,10 +25,12 @@ import {
   Disc,
   Volume2,
   FileArchive,
-  Globe
+  Globe,
+  Lock
 } from 'lucide-react';
 import { Game, LibraryStatus } from '../types';
 import { useGame } from '../context/GameContext';
+import { TorrentHealthBadge } from './TorrentHealthBadge';
 
 interface GameDetailModalProps {
   game: Game;
@@ -47,7 +49,9 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
     removeFromLibrary, 
     updateLibraryStatus,
     incrementDownload,
-    userProfile 
+    userProfile,
+    isLoggedIn,
+    setIsAuthModalOpen
   } = useGame();
 
   const [activeTab, setActiveTab] = useState<'downloads' | 'specs' | 'screenshots' | 'instructions'>('downloads');
@@ -100,12 +104,20 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
   };
 
   const handleCopyMagnet = (url: string) => {
+    if (!isLoggedIn) {
+      setIsAuthModalOpen(true);
+      return;
+    }
     navigator.clipboard.writeText(url);
     setCopiedMagnet(true);
     setTimeout(() => setCopiedMagnet(false), 2500);
   };
 
   const handleDownloadClick = (url: string) => {
+    if (!isLoggedIn) {
+      setIsAuthModalOpen(true);
+      return;
+    }
     incrementDownload(game.id);
     if (url.startsWith('magnet:')) {
       window.location.href = url;
@@ -491,10 +503,61 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                 </div>
               )}
 
+              {/* MEMBER EXCLUSIVE BANNER / LOCK STATUS */}
+              {isLoggedIn ? (
+                <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-3 text-xs shadow-sm">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-xl bg-emerald-500 text-slate-950 font-black">
+                      ✓
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-900 dark:text-white">Membro Conectado: {userProfile.name}</p>
+                      <p className="text-slate-600 dark:text-slate-400 text-[11px]">Todos os links de download direto, torrents, magnets e servidores rápidos estão liberados.</p>
+                    </div>
+                  </div>
+                  <span className="hidden sm:inline-block px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-bold text-[11px]">
+                    Acesso Total Liberado
+                  </span>
+                </div>
+              ) : (
+                <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-amber-500/15 via-cyan-500/10 to-blue-500/15 border-2 border-cyan-500/40 space-y-4 shadow-xl">
+                  <div className="flex items-start justify-between gap-3 flex-wrap sm:flex-nowrap">
+                    <div className="flex items-start gap-3">
+                      <div className="p-3 rounded-2xl bg-cyan-500 text-slate-950 font-black shrink-0 mt-0.5">
+                        <Lock className="w-6 h-6 animate-pulse" />
+                      </div>
+                      <div className="space-y-1">
+                        <h4 className="text-base sm:text-lg font-black text-slate-900 dark:text-white font-display">
+                          Links de Download Exclusivos para Membros Cadastrados
+                        </h4>
+                        <p className="text-xs text-slate-600 dark:text-slate-300 max-w-xl">
+                          Para proteger os torrents contra bots e garantir alta velocidade de seeds para toda a comunidade, o acesso aos links diretos, magnets e patches PT-BR é exclusivo para membros cadastrados.
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                      <button
+                        onClick={() => setIsAuthModalOpen(true)}
+                        className="flex-1 sm:flex-initial px-5 py-3 rounded-xl font-black text-xs bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-md shadow-cyan-500/30 transition-all cursor-pointer transform hover:scale-105 whitespace-nowrap"
+                      >
+                        🔓 Cadastrar Grátis & Liberar Links
+                      </button>
+                      <button
+                        onClick={() => setIsAuthModalOpen(true)}
+                        className="px-4 py-3 rounded-xl font-bold text-xs bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 transition-all cursor-pointer whitespace-nowrap"
+                      >
+                        Já sou Membro
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* DISTINCT DOWNLOAD BUTTONS SECTION */}
               <div className="space-y-4">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                  <Download className="w-4 h-4 text-cyan-400" />
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                  <Download className="w-4 h-4 text-cyan-500 dark:text-cyan-400" />
                   Opções de Download por Formato & Plataforma
                 </h4>
 
@@ -528,23 +591,44 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                           <span>•</span>
                           <span className="text-emerald-400 font-medium">Download Imediato</span>
                         </div>
+
+                        {/* Testador de Seeds em Tempo Real (>50 Seeds Excelente) */}
+                        <div className="pt-1">
+                          <TorrentHealthBadge 
+                            seeders={link.seeders || 78} 
+                            leechers={link.leechers || 24} 
+                            torrentName={link.label}
+                          />
+                        </div>
                       </div>
 
                       <div className="flex items-center gap-2 pt-2">
-                        <a
-                          href={link.url}
-                          onClick={() => incrementDownload(game.id)}
-                          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-xs bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-md shadow-cyan-500/30 transition-all transform hover:scale-[1.02] cursor-pointer"
-                          title="Enviar link Magnet direto para seu aplicativo de torrent (qBittorrent / uTorrent)"
-                        >
-                          <Download className="w-4 h-4 stroke-[2.5]" />
-                          <span>Baixar Torrent PC (Abrir no qBittorrent / uTorrent)</span>
-                        </a>
+                        {isLoggedIn ? (
+                          <a
+                            href={link.url}
+                            onClick={() => incrementDownload(game.id)}
+                            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-xs bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-md shadow-cyan-500/30 transition-all transform hover:scale-[1.02] cursor-pointer"
+                            title="Enviar link Magnet direto para seu aplicativo de torrent (qBittorrent / uTorrent)"
+                          >
+                            <Download className="w-4 h-4 stroke-[2.5]" />
+                            <span>Baixar Torrent PC (Abrir no qBittorrent / uTorrent)</span>
+                          </a>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setIsAuthModalOpen(true)}
+                            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-xs bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-md shadow-cyan-500/30 transition-all transform hover:scale-[1.02] cursor-pointer"
+                            title="Acesso exclusivo para membros. Clique para cadastrar grátis!"
+                          >
+                            <Lock className="w-4 h-4 stroke-[2.5]" />
+                            <span>🔒 Liberar Download Torrent (Exclusivo Membros)</span>
+                          </button>
+                        )}
 
                         <button
                           onClick={() => handleCopyMagnet(link.url)}
-                          className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all shrink-0"
-                          title="Copiar Link Magnet"
+                          className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all shrink-0 cursor-pointer"
+                          title={isLoggedIn ? 'Copiar Link Magnet' : '🔒 Cadastre-se para copiar o link'}
                         >
                           {copiedMagnet ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                         </button>

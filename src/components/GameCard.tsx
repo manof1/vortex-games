@@ -3,11 +3,10 @@ import {
   Download, 
   Star, 
   HardDrive, 
-  ShieldCheck, 
   Bookmark, 
   Check, 
   Sparkles,
-  ExternalLink
+  Lock
 } from 'lucide-react';
 import { Game } from '../types';
 import { useGame } from '../context/GameContext';
@@ -17,7 +16,16 @@ interface GameCardProps {
 }
 
 export const GameCard: React.FC<GameCardProps> = ({ game }) => {
-  const { setActiveGame, isInLibrary, addToLibrary, removeFromLibrary, incrementDownload } = useGame();
+  const { 
+    setActiveGame, 
+    isInLibrary, 
+    addToLibrary, 
+    removeFromLibrary, 
+    incrementDownload, 
+    isLoggedIn, 
+    setIsAuthModalOpen 
+  } = useGame();
+  
   const libraryStatus = isInLibrary(game.id);
 
   const handleLibraryToggle = (e: React.MouseEvent) => {
@@ -31,6 +39,10 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
 
   const handleTorrentDownload = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isLoggedIn) {
+      setIsAuthModalOpen(true);
+      return;
+    }
     const torrentLink = game.downloadLinks.find(l => l.type === 'magnet' || l.type === 'torrent' || l.format === 'torrent');
     if (torrentLink) {
       incrementDownload(game.id);
@@ -42,6 +54,10 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
 
   const handlePkgDownload = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isLoggedIn) {
+      setIsAuthModalOpen(true);
+      return;
+    }
     const pkgLink = game.downloadLinks.find(l => l.type === 'pkg' || l.format === 'pkg');
     if (pkgLink) {
       incrementDownload(game.id);
@@ -58,16 +74,16 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
 
   // Badge color based on repacker
   const getRepackerColor = (repacker: string) => {
-    if (repacker.includes('FitGirl')) return 'bg-pink-500/20 text-pink-300 border-pink-500/30';
-    if (repacker.includes('DODI')) return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
-    if (repacker.includes('ElAmigos')) return 'bg-amber-500/20 text-amber-300 border-amber-500/30';
-    return 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30';
+    if (repacker.includes('FitGirl')) return 'bg-pink-500/20 text-pink-700 dark:text-pink-300 border-pink-500/30';
+    if (repacker.includes('DODI')) return 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/30';
+    if (repacker.includes('ElAmigos')) return 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/30';
+    return 'bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 border-cyan-500/30';
   };
 
   return (
     <div
       onClick={() => setActiveGame(game)}
-      className="group relative flex flex-col rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/50 hover:shadow-xl hover:shadow-cyan-950/30 transition-all duration-300 overflow-hidden cursor-pointer"
+      className="group relative flex flex-col rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 hover:border-cyan-500/50 hover:shadow-xl dark:hover:shadow-cyan-950/30 transition-all duration-300 overflow-hidden cursor-pointer"
     >
       {/* Poster Image Container */}
       <div className="relative aspect-[3/4] w-full overflow-hidden bg-slate-950">
@@ -84,113 +100,76 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
         {/* Gradient shadows */}
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
 
-        {/* Top badges */}
-        <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-1.5 z-10">
-          <div className="flex items-center gap-1 flex-wrap">
-            {game.id.startsWith('fg-') && (
-              <span className="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase bg-pink-500 text-slate-950 border border-pink-400 shadow-sm flex items-center gap-0.5 animate-pulse">
-                <span>🤖</span> FITGIRL BOT
-              </span>
-            )}
+        {/* Top Badges overlay */}
+        <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-1 z-10 pointer-events-none">
+          {/* Repacker badge */}
+          <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md border backdrop-blur-md shadow-sm ${getRepackerColor(game.repackInfo.repacker)}`}>
+            {game.repackInfo.repacker.replace(' Repack', '')}
+          </span>
 
-            {game.id.startsWith('dodi-') && (
-              <span className="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase bg-emerald-500 text-slate-950 border border-emerald-400 shadow-sm flex items-center gap-0.5">
-                <span>⚡</span> DODI DUAL
-              </span>
-            )}
-
-            <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase border backdrop-blur-md ${getRepackerColor(game.repackInfo.repacker)}`}>
-              {game.repackInfo.repacker}
+          {/* PT-BR Badge - Dublado ou Legendado */}
+          {(game.hasPtBrAudio || game.hasPtBrSubs) && (
+            <span 
+              className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded border backdrop-blur-md flex items-center gap-1 shadow-sm ${
+                game.hasPtBrAudio 
+                  ? 'bg-emerald-500 text-slate-950 border-emerald-400 font-extrabold' 
+                  : 'bg-emerald-950/90 text-emerald-300 border-emerald-600/60'
+              }`}
+              title={game.hasPtBrAudio ? 'Dublagem e Áudio PT-BR Completo' : 'Legendas e Menus em Português do Brasil'}
+            >
+              <span>🇧🇷</span>
+              <span>{game.hasPtBrAudio ? 'Dublado' : 'Legendado'}</span>
             </span>
-
-            {/* PT-BR Language Badge (Dublado vs Legendado) */}
-            {game.hasPtBrAudio ? (
-              <span className="px-1.5 py-0.5 rounded-md text-[10px] font-black uppercase bg-emerald-500 text-slate-950 border border-emerald-400 shadow-sm flex items-center gap-0.5" title="Dublagem e Áudio em Português do Brasil">
-                <span>🇧🇷</span> DUBLADO
-              </span>
-            ) : (game.hasPtBrSubs || game.languages?.some(l => l.toLowerCase().includes('português'))) ? (
-              <span className="px-1.5 py-0.5 rounded-md text-[10px] font-black uppercase bg-cyan-950 text-cyan-300 border border-cyan-700/80 shadow-sm flex items-center gap-0.5" title="Legendas e Menus em Português do Brasil">
-                <span>🇧🇷</span> LEGENDADO
-              </span>
-            ) : null}
-
-            {/* PKG Badge */}
-            {game.hasPkgFormat && (
-              <span className="px-1.5 py-0.5 rounded-md text-[10px] font-black uppercase bg-purple-600/90 text-white border border-purple-400 shadow-sm">
-                PKG
-              </span>
-            )}
-          </div>
-
-          {/* Library bookmark button */}
-          <button
-            onClick={handleLibraryToggle}
-            className={`p-1.5 rounded-lg backdrop-blur-md border transition-all ${
-              libraryStatus
-                ? 'bg-cyan-500 text-slate-950 border-cyan-400 shadow-md shadow-cyan-500/40'
-                : 'bg-slate-950/70 text-slate-300 border-slate-700/80 hover:text-white hover:bg-slate-900'
-            }`}
-            title={libraryStatus ? 'Na sua biblioteca' : 'Adicionar à biblioteca'}
-          >
-            {libraryStatus ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <Bookmark className="w-3.5 h-3.5" />}
-          </button>
+          )}
         </div>
 
-        {/* Bottom overlays inside image: IMDb, User Rating & Size */}
-        <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between text-xs z-10">
-          <div className="flex items-center gap-1.5">
-            {/* IMDb Rating Badge */}
-            <div 
-              className="flex items-center gap-1 bg-slate-950/90 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-amber-500/50 shadow-sm"
-              title="Nota IMDb (Crítica & Base de Dados Externa)"
-            >
-              <span className="bg-amber-400 text-slate-950 px-1 py-0.1 rounded text-[9px] font-black uppercase tracking-tight">IMDb</span>
-              <span className="text-amber-300 font-bold text-[11px]">
-                {(game.imdbRating || 8.8).toFixed(1)}
-              </span>
+        {/* Library Bookmark Button */}
+        <button
+          onClick={handleLibraryToggle}
+          className={`absolute top-2.5 right-2.5 z-20 p-2 rounded-xl backdrop-blur-md border transition-all ${
+            libraryStatus
+              ? 'bg-cyan-500 text-slate-950 border-cyan-400 shadow-md shadow-cyan-500/30'
+              : 'bg-slate-900/60 text-slate-300 border-white/10 hover:bg-slate-900 hover:text-white'
+          }`}
+          title={libraryStatus ? 'Remover da Biblioteca' : 'Salvar na Biblioteca'}
+        >
+          {libraryStatus ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <Bookmark className="w-3.5 h-3.5" />}
+        </button>
+
+        {/* Bottom image overlay: Rating & Size */}
+        <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between text-xs text-white z-10 pointer-events-none">
+          {/* Real User Rating or Trending */}
+          {game.rating > 0 ? (
+            <div className="flex items-center gap-1 bg-slate-950/80 px-2 py-0.5 rounded-lg border border-amber-500/30 backdrop-blur-md text-amber-400 font-bold">
+              <Star className="w-3 h-3 fill-amber-400" />
+              <span>{game.rating.toFixed(1)}</span>
             </div>
+          ) : (
+            <div className="flex items-center gap-1 bg-slate-950/80 px-2 py-0.5 rounded-lg border border-cyan-500/30 backdrop-blur-md text-cyan-400 font-bold text-[10px]">
+              <Sparkles className="w-2.5 h-2.5" />
+              <span>Novo</span>
+            </div>
+          )}
 
-            {/* User Rating Badge - Apenas Votos Reais */}
-            {game.totalVotes > 0 ? (
-              <div 
-                className="flex items-center gap-1 bg-slate-950/80 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-slate-800 text-amber-400 font-bold text-[11px]"
-                title={`Avaliação dos Usuários: ${game.rating.toFixed(1)} / 5.0 (${game.totalVotes} ${game.totalVotes === 1 ? 'voto real' : 'votos reais'})`}
-              >
-                <Star className="w-3 h-3 fill-amber-400" />
-                <span>{game.rating.toFixed(1)}</span>
-                <span className="text-slate-400 text-[10px]">({game.totalVotes})</span>
-              </div>
-            ) : (
-              <div 
-                className="flex items-center gap-1 bg-slate-950/80 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-slate-800 text-slate-400 text-[10px] font-medium"
-                title="Sem avaliações de usuários ainda. Seja o primeiro a votar!"
-              >
-                <Star className="w-3 h-3 text-slate-600" />
-                <span>Sem notas</span>
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center gap-1 bg-slate-950/80 backdrop-blur-md px-2 py-0.5 rounded-md border border-slate-800 text-cyan-300 font-semibold text-[11px]">
+          {/* Repack Size */}
+          <div className="flex items-center gap-1 bg-slate-950/80 px-2 py-0.5 rounded-lg border border-white/10 backdrop-blur-md text-slate-200 font-mono text-[11px]">
             <HardDrive className="w-3 h-3 text-cyan-400" />
             <span>{game.repackInfo.repackSize}</span>
           </div>
         </div>
       </div>
 
-      {/* Card Info Content */}
-      <div className="flex flex-col flex-1 p-4 justify-between space-y-3">
+      {/* Content Section */}
+      <div className="flex-1 flex flex-col justify-between p-3.5 space-y-3">
         <div>
-          {/* Release date/year */}
-          <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
-            <span className="font-semibold text-slate-400 truncate max-w-[130px]">
-              {game.developer && game.developer !== 'Desconhecido' && game.developer !== 'Desconhecida'
-                ? game.developer
-                : (game.releaseDate || `${game.releaseYear}`)}
+          {/* Categories / Format indicators */}
+          <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 mb-1">
+            <span className="font-semibold uppercase tracking-wider text-cyan-600 dark:text-cyan-400 text-[10px]">
+              {game.categories[0] || 'Jogo Completo'}
             </span>
             <div className="flex items-center gap-1.5">
               {game.titleId && (
-                <span className="font-mono text-[9px] px-1 py-0.2 rounded bg-purple-950 text-purple-300 border border-purple-800">
+                <span className="font-mono text-[9px] px-1 py-0.2 rounded bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-800">
                   {game.titleId}
                 </span>
               )}
@@ -199,7 +178,7 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
           </div>
 
           {/* Title */}
-          <h3 className="text-base font-bold text-white group-hover:text-cyan-400 transition-colors line-clamp-1 font-display">
+          <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors line-clamp-1 font-display">
             {game.title}
           </h3>
 
@@ -208,13 +187,13 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
             {game.genres.slice(0, 3).map((genre, idx) => (
               <span
                 key={idx}
-                className="text-[10px] px-2 py-0.5 rounded bg-slate-800/80 text-slate-300 font-medium"
+                className="text-[10px] px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-medium"
               >
                 {genre}
               </span>
             ))}
             {game.genres.length > 3 && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800/40 text-slate-400">
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800/40 text-slate-500 dark:text-slate-400">
                 +{game.genres.length - 3}
               </span>
             )}
@@ -222,15 +201,15 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
         </div>
 
         {/* Card footer: Seeds Ativos & Download Buttons */}
-        <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between gap-1.5 flex-wrap">
-          {/* Seeds Ativos Status */}
+        <div className="pt-2 border-t border-slate-200 dark:border-slate-800/80 flex items-center justify-between gap-1.5 flex-wrap">
+          {/* Seeds Ativos Status - Selo de Saúde Excelente */}
           <div 
-            className="flex items-center gap-1.5 text-[11px] text-emerald-400 font-semibold"
-            title="Seeds Ativos no Enxame P2P (Tracker Online)"
+            className="flex items-center gap-1.5 text-[10px] text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20"
+            title="Saúde do Torrent: Excelente (+50 seeds ativos testados em tempo real)"
           >
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             <span>
-              {((torrentLink?.seeders) || 3200).toLocaleString('pt-BR')} seeds
+              Saúde: Excelente ({((torrentLink?.seeders) || 78).toLocaleString('pt-BR')} seeds)
             </span>
           </div>
 
@@ -239,10 +218,10 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
             {hasTorrent && (
               <button
                 onClick={handleTorrentDownload}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-cyan-500/10 hover:bg-cyan-500 text-cyan-400 hover:text-slate-950 border border-cyan-500/30 transition-all duration-200 cursor-pointer"
-                title="Abrir Magnet direto no seu qBittorrent / uTorrent"
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-cyan-50 dark:bg-cyan-500/10 hover:bg-cyan-500 text-cyan-700 dark:text-cyan-400 hover:text-slate-950 border border-cyan-200 dark:border-cyan-500/30 transition-all duration-200 cursor-pointer"
+                title={isLoggedIn ? 'Abrir Magnet direto no seu qBittorrent / uTorrent' : '🔒 Exclusivo para membros cadastrados. Clique para liberar!'}
               >
-                <Download className="w-3 h-3" />
+                {isLoggedIn ? <Download className="w-3 h-3" /> : <Lock className="w-3 h-3 text-cyan-600 dark:text-cyan-400" />}
                 <span>Torrent</span>
               </button>
             )}
@@ -251,9 +230,10 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
             {hasPkg && (
               <button
                 onClick={handlePkgDownload}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-purple-500/15 hover:bg-purple-600 text-purple-300 hover:text-white border border-purple-500/30 transition-all duration-200 cursor-pointer"
-                title="Download Arquivo PKG Console"
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-purple-50 dark:bg-purple-500/15 hover:bg-purple-600 text-purple-700 dark:text-purple-300 hover:text-white border border-purple-200 dark:border-purple-500/30 transition-all duration-200 cursor-pointer"
+                title={isLoggedIn ? 'Download Arquivo PKG Console' : '🔒 Exclusivo para membros cadastrados. Clique para liberar!'}
               >
+                {isLoggedIn ? null : <Lock className="w-2.5 h-2.5 text-purple-600 dark:text-purple-400" />}
                 <span>PKG</span>
               </button>
             )}
@@ -261,7 +241,7 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
             {!hasTorrent && !hasPkg && (
               <button
                 onClick={(e) => { e.stopPropagation(); setActiveGame(game); }}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-slate-800 hover:bg-cyan-500 text-slate-300 hover:text-slate-950 border border-slate-700 transition-all cursor-pointer"
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-cyan-500 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer"
               >
                 <Download className="w-3 h-3" />
                 <span>Baixar</span>

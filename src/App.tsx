@@ -9,6 +9,8 @@ import { GameDetailModal } from './components/GameDetailModal';
 import { UserLibraryView } from './components/UserLibraryView';
 import { NotificationModal } from './components/NotificationModal';
 import { UserMenuModal } from './components/UserMenuModal';
+import { AuthModal } from './components/AuthModal';
+import { GameRequestModal } from './components/GameRequestModal';
 import { Footer } from './components/Footer';
 import { SearchX, Sparkles, Flame } from 'lucide-react';
 
@@ -24,7 +26,11 @@ const MainContent: React.FC = () => {
     isNotificationsOpen, 
     setIsNotificationsOpen,
     isUserMenuOpen, 
-    setIsUserMenuOpen 
+    setIsUserMenuOpen,
+    isAuthModalOpen,
+    setIsAuthModalOpen,
+    isGameRequestOpen,
+    setIsGameRequestOpen
   } = useGame();
 
   // Filter & sort games
@@ -77,6 +83,14 @@ const MainContent: React.FC = () => {
           if (!matchRepacker && !matchOrigin && !matchTags) return false;
         }
 
+        // Year Range filter (Faixa de Ano)
+        if (filters.yearRange && filters.yearRange !== 'all') {
+          if (filters.yearRange === '2024-2026' && (game.releaseYear < 2024 || game.releaseYear > 2026)) return false;
+          if (filters.yearRange === '2020-2023' && (game.releaseYear < 2020 || game.releaseYear > 2023)) return false;
+          if (filters.yearRange === '2015-2019' && (game.releaseYear < 2015 || game.releaseYear > 2019)) return false;
+          if (filters.yearRange === 'retro' && game.releaseYear >= 2015) return false;
+        }
+
         return true;
       })
       .sort((a, b) => {
@@ -104,7 +118,7 @@ const MainContent: React.FC = () => {
   const showHero = !filters.search && (filters.category === 'Todos' || filters.category === 'Lançamentos');
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-cyan-500 selection:text-slate-950">
+    <div className="min-h-screen bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-100 flex flex-col selection:bg-cyan-500 selection:text-slate-950 transition-colors duration-200">
       {/* Header - Tradicional & Sempre Visível */}
       <Header />
 
@@ -139,9 +153,9 @@ const MainContent: React.FC = () => {
             <FilterBar />
 
             {/* Section Header */}
-            <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-800/80">
+            <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-300 dark:border-slate-800/80">
               <div className="flex items-center gap-2.5">
-                <h2 className="text-xl sm:text-2xl font-black text-white font-display flex items-center gap-2">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-display flex items-center gap-2">
                   {filters.search ? (
                     <span>Resultados para "{filters.search}"</span>
                   ) : filters.category !== 'Todos' ? (
@@ -150,27 +164,27 @@ const MainContent: React.FC = () => {
                     <span>Jogos de {filters.genre}</span>
                   ) : (
                     <>
-                      <Flame className="w-5 h-5 text-cyan-400" />
+                      <Flame className="w-5 h-5 text-cyan-500" />
                       <span>Catálogo de Torrents</span>
                     </>
                   )}
                 </h2>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-cyan-950 text-cyan-400 border border-cyan-800/40">
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-400 border border-cyan-300 dark:border-cyan-800/40">
                   {filteredGames.length} jogos
                 </span>
               </div>
 
-              <div className="hidden sm:flex items-center gap-2 text-xs text-slate-400">
+              <div className="hidden sm:flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
                 <span>Torrent P2P com Seeds Testados</span>
               </div>
             </div>
 
             {/* Games Grid */}
             {filteredGames.length === 0 ? (
-              <div className="p-16 text-center rounded-3xl bg-slate-900/40 border border-slate-800 space-y-4 my-8">
-                <SearchX className="w-16 h-16 text-slate-600 mx-auto" />
-                <h3 className="text-lg font-bold text-white">Nenhum jogo encontrado com esses filtros</h3>
-                <p className="text-xs text-slate-400 max-w-md mx-auto">
+              <div className="p-16 text-center rounded-3xl bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 my-8">
+                <SearchX className="w-16 h-16 text-slate-400 dark:text-slate-600 mx-auto" />
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Nenhum jogo encontrado com esses filtros</h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400 max-w-md mx-auto">
                   Tente pesquisar por outro título, escolher outro gênero ou limpar os filtros de busca para navegar em todos os jogos disponíveis.
                 </p>
                 <button
@@ -180,7 +194,7 @@ const MainContent: React.FC = () => {
                     setIsUserMenuOpen(false);
                     setFilters(prev => ({ ...prev, search: '', genre: 'Todos', category: 'Todos', repacker: 'Todos', sortBy: 'popular' }));
                   }}
-                  className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-cyan-500 text-slate-950 hover:bg-cyan-400 transition-all cursor-pointer"
+                  className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-cyan-500 text-slate-950 hover:bg-cyan-400 transition-all cursor-pointer shadow-md"
                 >
                   <Sparkles className="w-4 h-4" />
                   <span>Limpar Filtros e Ver Catálogo Completo</span>
@@ -204,6 +218,17 @@ const MainContent: React.FC = () => {
       {isNotificationsOpen && (
         <NotificationModal onClose={() => setIsNotificationsOpen(false)} />
       )}
+
+      {/* Member Auth Modal (Login / Register) */}
+      {isAuthModalOpen && (
+        <AuthModal onClose={() => setIsAuthModalOpen(false)} />
+      )}
+
+      {/* Pedir um Jogo Modal (Comunidade) */}
+      <GameRequestModal 
+        isOpen={isGameRequestOpen} 
+        onClose={() => setIsGameRequestOpen(false)} 
+      />
     </div>
   );
 };
