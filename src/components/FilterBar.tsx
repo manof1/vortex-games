@@ -1,8 +1,7 @@
 import React from 'react';
-import { Filter, SlidersHorizontal, ArrowUpDown, X, Tag, Calendar, Globe } from 'lucide-react';
+import { SlidersHorizontal, ArrowUpDown, X, Tag, Globe } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { useLanguage } from '../context/LanguageContext';
-import { LanguageSelector } from './LanguageSelector';
 
 const GENRES = [
   'Todos',
@@ -20,7 +19,7 @@ const GENRES = [
 
 export const FilterBar: React.FC = () => {
   const { filters, setFilters } = useGame();
-  const { t } = useLanguage();
+  const { t, language, setLanguage, supportedLanguages } = useLanguage();
 
   const CATEGORIES = [
     { id: 'Todos', label: t('filter.allGames', 'Todos os Jogos') },
@@ -53,8 +52,8 @@ export const FilterBar: React.FC = () => {
     filters.category !== 'Todos' || 
     filters.repacker !== 'Todos' || 
     filters.search !== '' ||
-    (filters.yearRange && filters.yearRange !== 'all') ||
-    filters.onlyPtBr;
+    filters.onlyPtBr ||
+    (filters.formatFilter && filters.formatFilter !== 'all');
 
   const clearFilters = () => {
     setFilters(prev => ({
@@ -160,20 +159,26 @@ export const FilterBar: React.FC = () => {
             </select>
           </div>
 
-          {/* Year Range selector */}
+          {/* Seletor de Idioma para o Sistema (Escolha no próprio idioma nativo) */}
           <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-950/60 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-800">
-            <Calendar className="w-3.5 h-3.5 text-cyan-500 dark:text-cyan-400" />
-            <span className="text-slate-500 dark:text-slate-400 font-medium">{t('filter.yearRange', 'Faixa de Ano:')}</span>
+            <Globe className="w-3.5 h-3.5 text-cyan-500 dark:text-cyan-400" />
+            <span className="text-slate-500 dark:text-slate-400 font-medium">
+              {t('header.language', 'Idioma')}:
+            </span>
             <select
-              value={filters.yearRange || 'all'}
-              onChange={e => setFilters(prev => ({ ...prev, yearRange: e.target.value as any }))}
+              value={language}
+              onChange={e => setLanguage(e.target.value as any)}
               className="bg-transparent text-slate-800 dark:text-slate-200 font-semibold focus:outline-none cursor-pointer"
             >
-              <option value="all" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{t('filter.allYears', 'Todos os Anos')}</option>
-              <option value="2024-2026" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">🚀 {t('filter.nextGen', '2024–2026 (Nova Geração)')}</option>
-              <option value="2020-2023" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">⚡ {t('filter.recentGen', '2020–2023 (Geração Recente)')}</option>
-              <option value="2015-2019" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">🎮 {t('filter.established', '2015–2019 (Consagrados)')}</option>
-              <option value="retro" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">🕹️ {t('filter.retro', 'Clássicos & Retrô (Até 2014)')}</option>
+              {supportedLanguages.map(opt => (
+                <option 
+                  key={opt.code} 
+                  value={opt.code} 
+                  className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                >
+                  {opt.flag} {opt.label}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -196,9 +201,8 @@ export const FilterBar: React.FC = () => {
           </div>
         </div>
 
-        {/* Right cluster: Sort order + Language Selector */}
+        {/* Right cluster: Sort order */}
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Sort order */}
           <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-950/60 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-800">
             <ArrowUpDown className="w-3.5 h-3.5 text-cyan-500 dark:text-cyan-400" />
             <span className="text-slate-500 dark:text-slate-400 font-medium">{t('filter.sortBy', 'Ordenar por:')}</span>
@@ -215,9 +219,6 @@ export const FilterBar: React.FC = () => {
               <option value="sizeDesc" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{t('filter.sortSizeDesc', 'Maior Tamanho')}</option>
             </select>
           </div>
-
-          {/* Language Selector right in the filter bar */}
-          <LanguageSelector compact />
         </div>
 
       </div>
