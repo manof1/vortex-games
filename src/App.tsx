@@ -1,8 +1,8 @@
 import React, { useMemo, useEffect } from 'react';
 import { GameProvider, useGame } from './context/GameContext';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { Header } from './components/Header';
 import { HeroBanner } from './components/HeroBanner';
-import { RecentReleasesRow } from './components/RecentReleasesRow';
 import { FilterBar } from './components/FilterBar';
 import { GameCard } from './components/GameCard';
 import { GameDetailModal } from './components/GameDetailModal';
@@ -33,6 +33,7 @@ const MainContent: React.FC = () => {
     isGameRequestOpen,
     setIsGameRequestOpen
   } = useGame();
+  const { t } = useLanguage();
 
   // Scroll to top whenever a game is opened
   useEffect(() => {
@@ -148,17 +149,6 @@ const MainContent: React.FC = () => {
             {/* Hero Spotlight (Shown on Homepage & Lançamentos) */}
             {showHero && <HeroBanner />}
 
-            {/* Quick Access Row for Fresh Bot Releases on Capa */}
-            {!filters.search && filters.category === 'Todos' && (
-              <RecentReleasesRow 
-                onViewAll={() => {
-                  setFilters(prev => ({ ...prev, category: 'Lançamentos', sortBy: 'latest' }));
-                  const el = document.getElementById('catalogo-section');
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }} 
-              />
-            )}
-
             {/* Anchor for smooth scrolling */}
             <div id="catalogo-section" className="scroll-mt-24" />
 
@@ -170,7 +160,7 @@ const MainContent: React.FC = () => {
               <div className="flex items-center gap-2.5">
                 <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-display flex items-center gap-2">
                   {filters.search ? (
-                    <span>Resultados para "{filters.search}"</span>
+                    <span>{t('catalog.resultsFor', 'Resultados para')} "{filters.search}"</span>
                   ) : filters.category !== 'Todos' ? (
                     <span>{filters.category}</span>
                   ) : filters.genre !== 'Todos' ? (
@@ -178,17 +168,17 @@ const MainContent: React.FC = () => {
                   ) : (
                     <>
                       <Flame className="w-5 h-5 text-cyan-500" />
-                      <span>Catálogo de Torrents</span>
+                      <span>{t('catalog.title', 'Catálogo de Torrents')}</span>
                     </>
                   )}
                 </h2>
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-400 border border-cyan-300 dark:border-cyan-800/40">
-                  {filteredGames.length} jogos
+                  {filteredGames.length} {t('catalog.games', 'jogos')}
                 </span>
               </div>
 
               <div className="hidden sm:flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
-                <span>Torrent P2P com Seeds Testados</span>
+                <span>{t('catalog.p2pVerified', 'Torrent P2P com Seeds Testados')}</span>
               </div>
             </div>
 
@@ -196,9 +186,9 @@ const MainContent: React.FC = () => {
             {filteredGames.length === 0 ? (
               <div className="p-16 text-center rounded-3xl bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 my-8">
                 <SearchX className="w-16 h-16 text-slate-400 dark:text-slate-600 mx-auto" />
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Nenhum jogo encontrado com esses filtros</h3>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('catalog.noGamesFound', 'Nenhum jogo encontrado com esses filtros')}</h3>
                 <p className="text-xs text-slate-600 dark:text-slate-400 max-w-md mx-auto">
-                  Tente pesquisar por outro título, escolher outro gênero ou limpar os filtros de busca para navegar em todos os jogos disponíveis.
+                  {t('catalog.noGamesDesc', 'Tente pesquisar por outro título, escolher outro gênero ou limpar os filtros de busca para navegar em todos os jogos disponíveis.')}
                 </p>
                 <button
                   onClick={() => {
@@ -210,7 +200,7 @@ const MainContent: React.FC = () => {
                   className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-cyan-500 text-slate-950 hover:bg-cyan-400 transition-all cursor-pointer shadow-md"
                 >
                   <Sparkles className="w-4 h-4" />
-                  <span>Limpar Filtros e Ver Catálogo Completo</span>
+                  <span>{t('catalog.resetFilters', 'Limpar Filtros e Ver Catálogo Completo')}</span>
                 </button>
               </div>
             ) : (
@@ -248,8 +238,10 @@ const MainContent: React.FC = () => {
 
 export default function App() {
   return (
-    <GameProvider>
-      <MainContent />
-    </GameProvider>
+    <LanguageProvider>
+      <GameProvider>
+        <MainContent />
+      </GameProvider>
+    </LanguageProvider>
   );
 }

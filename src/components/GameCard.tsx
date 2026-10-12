@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { Game } from '../types';
 import { useGame } from '../context/GameContext';
+import { useLanguage } from '../context/LanguageContext';
 
 interface GameCardProps {
   game: Game;
@@ -25,6 +26,7 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
     isLoggedIn, 
     setIsAuthModalOpen 
   } = useGame();
+  const { t } = useLanguage();
   
   const libraryStatus = isInLibrary(game.id);
 
@@ -208,11 +210,11 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
           {/* Seeds Ativos Status - Selo de Saúde Excelente */}
           <div 
             className="flex items-center gap-1.5 text-[10px] text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20"
-            title="Saúde do Torrent: Excelente (+50 seeds ativos testados em tempo real)"
+            title="Saúde do Torrent: Excelente (+50 seeds)"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             <span>
-              Saúde: Excelente ({((torrentLink?.seeders) || 78).toLocaleString('pt-BR')} seeds)
+              {t('health.excellent', 'Saúde: Excelente')} ({((torrentLink?.seeders) || 78).toLocaleString('pt-BR')} seeds)
             </span>
           </div>
 
@@ -222,7 +224,7 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
               <button
                 onClick={handleTorrentDownload}
                 className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-cyan-50 dark:bg-cyan-500/10 hover:bg-cyan-500 text-cyan-700 dark:text-cyan-400 hover:text-slate-950 border border-cyan-200 dark:border-cyan-500/30 transition-all duration-200 cursor-pointer"
-                title={isLoggedIn ? 'Abrir Magnet direto no seu qBittorrent / uTorrent' : '🔒 Exclusivo para membros cadastrados. Clique para liberar!'}
+                title={isLoggedIn ? 'Abrir Magnet direto no seu qBittorrent / uTorrent' : '🔒 Exclusivo para membros cadastrados'}
               >
                 {isLoggedIn ? <Download className="w-3 h-3" /> : <Lock className="w-3 h-3 text-cyan-600 dark:text-cyan-400" />}
                 <span>Torrent</span>
@@ -234,7 +236,7 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
               <button
                 onClick={handlePkgDownload}
                 className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-purple-50 dark:bg-purple-500/15 hover:bg-purple-600 text-purple-700 dark:text-purple-300 hover:text-white border border-purple-200 dark:border-purple-500/30 transition-all duration-200 cursor-pointer"
-                title={isLoggedIn ? 'Download Arquivo PKG Console' : '🔒 Exclusivo para membros cadastrados. Clique para liberar!'}
+                title={isLoggedIn ? 'Download Arquivo PKG Console' : '🔒 Exclusivo para membros cadastrados'}
               >
                 {isLoggedIn ? null : <Lock className="w-2.5 h-2.5 text-purple-600 dark:text-purple-400" />}
                 <span>PKG</span>
@@ -247,7 +249,7 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
                 className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-cyan-500 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer"
               >
                 <Download className="w-3 h-3" />
-                <span>Baixar</span>
+                <span>{t('card.download', 'Baixar')}</span>
               </button>
             )}
           </div>

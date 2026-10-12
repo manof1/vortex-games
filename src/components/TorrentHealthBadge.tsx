@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Activity, CheckCircle2, ShieldCheck, Zap, RefreshCw, Radio, Wifi } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface TorrentHealthBadgeProps {
   seeders?: number;
@@ -14,6 +15,7 @@ export const TorrentHealthBadge: React.FC<TorrentHealthBadgeProps> = ({
   compact = false,
   torrentName
 }) => {
+  const { t } = useLanguage();
   const [isTesting, setIsTesting] = useState(false);
   const [tested, setTested] = useState(false);
   const [currentSeeds, setCurrentSeeds] = useState(seeders);
@@ -50,10 +52,10 @@ export const TorrentHealthBadge: React.FC<TorrentHealthBadgeProps> = ({
             ? 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/30'
             : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
         }`}
-        title={`Saúde: ${currentSeeds} seeds ativos (${isExcellent ? 'Excelente' : 'Boa'})`}
+        title={`Seeds: ${currentSeeds}`}
       >
         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-        <span>Saúde: {isExcellent ? 'Excelente' : 'Boa'} ({currentSeeds} seeds)</span>
+        <span>{isExcellent ? t('health.excellent', 'Saúde: Excelente') : t('health.good', 'Saúde: Boa')} ({currentSeeds} seeds)</span>
       </div>
     );
   }
@@ -70,7 +72,7 @@ export const TorrentHealthBadge: React.FC<TorrentHealthBadgeProps> = ({
             <div className="flex items-center gap-1.5">
               <span className="text-xs font-black text-emerald-400 uppercase tracking-wide flex items-center gap-1">
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                {isExcellent ? 'Saúde do Torrent: Excelente' : isGood ? 'Saúde do Torrent: Boa' : 'Saúde do Torrent: Moderada'}
+                {isExcellent ? t('health.excellent', 'Saúde do Torrent: Excelente') : isGood ? t('health.good', 'Saúde do Torrent: Boa') : t('health.regular', 'Saúde do Torrent: Moderada')}
               </span>
               <span className="px-1.5 py-0.2 rounded text-[10px] font-black bg-emerald-400/20 text-emerald-300 border border-emerald-400/30">
                 +50 SEEDS ONLINE

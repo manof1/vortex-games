@@ -13,10 +13,12 @@ import {
   Lock
 } from 'lucide-react';
 import { useGame } from '../context/GameContext';
+import { useLanguage } from '../context/LanguageContext';
 import { Game } from '../types';
 
 export const HeroBanner: React.FC = () => {
   const { games, setActiveGame, incrementDownload, isLoggedIn, setIsAuthModalOpen } = useGame();
+  const { t } = useLanguage();
 
   // Pick top 6 spotlight releases (prioritizing new automated releases and trending games)
   const spotlightGames = useMemo(() => {
@@ -121,11 +123,11 @@ export const HeroBanner: React.FC = () => {
           <div className="flex flex-wrap items-center gap-2">
             {isBotGame ? (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-cyan-500 text-slate-950 border border-cyan-400 shadow-md shadow-cyan-500/25 animate-pulse">
-                <Bot className="w-3.5 h-3.5" /> Auto-Bot Indexado
+                <Bot className="w-3.5 h-3.5" /> {t('hero.botIndexed', 'Auto-Bot Indexado')}
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-500/20 text-rose-400 border border-rose-500/30">
-                <Flame className="w-3.5 h-3.5" /> Destaque da Semana
+                <Flame className="w-3.5 h-3.5" /> {t('hero.weekHighlight', 'Destaque da Semana')}
               </span>
             )}
 
@@ -142,23 +144,23 @@ export const HeroBanner: React.FC = () => {
             {/* PT-BR badge: Dublado vs Legendado */}
             {current.hasPtBrAudio ? (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500 text-slate-950 border border-emerald-400 shadow-sm" title="Jogo com Dublagem e Áudio em Português do Brasil">
-                <span>🇧🇷</span> Dublado PT-BR
+                <span>🇧🇷</span> {t('hero.dubbed', 'Dublado PT-BR')}
               </span>
             ) : (current.hasPtBrSubs || current.languages?.some(l => l.toLowerCase().includes('português'))) ? (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-cyan-950 text-cyan-300 border border-cyan-700/80 shadow-sm" title="Jogo com Legendas e Menus em Português do Brasil">
-                <span>🇧🇷</span> Legendado PT-BR
+                <span>🇧🇷</span> {t('hero.subtitled', 'Legendado PT-BR')}
               </span>
             ) : null}
 
             {/* PKG badge */}
             {current.hasPkgFormat && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-purple-600 text-white border border-purple-400 shadow-sm">
-                Formato PKG
+                {t('hero.pkgFormat', 'Formato PKG')}
               </span>
             )}
 
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-              <ShieldCheck className="w-3.5 h-3.5" /> {current.repackInfo.crackStatus || 'Crackeado'}
+              <ShieldCheck className="w-3.5 h-3.5" /> {current.repackInfo.crackStatus || t('hero.cracked', 'Crackeado')}
             </span>
           </div>
 
@@ -187,21 +189,21 @@ export const HeroBanner: React.FC = () => {
                 <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                 <span>{current.rating.toFixed(1)}</span>
                 <span className="text-slate-400 font-normal">
-                  ({current.totalVotes} {current.totalVotes === 1 ? 'voto real' : 'votos reais'})
+                  ({current.totalVotes} {t('hero.realVotes', 'votos reais')})
                 </span>
               </div>
             ) : (
               <div className="flex items-center gap-1.5 text-slate-400 bg-slate-950/70 px-2.5 py-1 rounded-lg border border-slate-800 text-xs">
                 <Star className="w-3.5 h-3.5 text-slate-600" />
-                <span>Sem avaliações ainda</span>
-                <span className="text-cyan-400 text-[11px] font-bold">(Seja o 1º a votar!)</span>
+                <span>{t('hero.noVotes', 'Sem avaliações ainda')}</span>
+                <span className="text-cyan-400 text-[11px] font-bold">{t('hero.firstVote', '(Seja o 1º a votar!)')}</span>
               </div>
             )}
 
             {/* Repack Size */}
             <div className="flex items-center gap-1.5 bg-slate-950/70 px-2.5 py-1 rounded-lg border border-slate-800">
               <HardDrive className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Repack: <strong className="text-white">{current.repackInfo.repackSize}</strong></span>
+              <span>{t('hero.repack', 'Repack:')} <strong className="text-white">{current.repackInfo.repackSize}</strong></span>
               {current.repackInfo.originalSize && (
                 <span className="text-slate-500 line-through text-[11px]">({current.repackInfo.originalSize})</span>
               )}
@@ -210,7 +212,7 @@ export const HeroBanner: React.FC = () => {
             {/* Seeds */}
             <div className="flex items-center gap-1.5 bg-slate-950/70 px-2.5 py-1 rounded-lg border border-slate-800 text-emerald-400 font-semibold">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Seeds: <strong className="text-emerald-400">{(current.downloadLinks[0]?.seeders || 3500).toLocaleString('pt-BR')} Ativos</strong></span>
+              <span>Seeds: <strong className="text-emerald-400">{(current.downloadLinks[0]?.seeders || 3500).toLocaleString('pt-BR')} {t('hero.seedsActive', 'Ativos')}</strong></span>
             </div>
           </div>
 
@@ -226,7 +228,7 @@ export const HeroBanner: React.FC = () => {
               ) : (
                 <Lock className="w-4 h-4 sm:w-5 sm:h-5 text-slate-950 stroke-[2.5]" />
               )}
-              <span>{isLoggedIn ? 'Baixar Torrent (Magnet)' : 'Baixar Torrent (Membros)'}</span>
+              <span>{isLoggedIn ? t('hero.downloadMagnet', 'Baixar Torrent (Magnet)') : t('hero.downloadMembers', 'Baixar Torrent (Membros)')}</span>
             </button>
 
             <button
@@ -236,7 +238,7 @@ export const HeroBanner: React.FC = () => {
               }}
               className="flex items-center gap-2 px-4 sm:px-5 py-3 rounded-xl font-bold text-xs sm:text-sm bg-slate-900/90 hover:bg-slate-800 text-slate-200 border border-slate-700/80 hover:border-slate-500 transition-all cursor-pointer"
             >
-              <span>Ver Detalhes & Requisitos</span>
+              <span>{t('hero.viewDetails', 'Ver Detalhes & Requisitos')}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
 
@@ -244,7 +246,7 @@ export const HeroBanner: React.FC = () => {
               onClick={scrollToCatalog}
               className="flex items-center gap-1.5 px-3.5 py-3 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition-colors cursor-pointer"
             >
-              <span>Ver no Catálogo ↓</span>
+              <span>{t('hero.viewInCatalog', 'Ver no Catálogo ↓')}</span>
             </button>
           </div>
 

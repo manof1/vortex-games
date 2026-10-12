@@ -1,6 +1,8 @@
 import React from 'react';
-import { Filter, SlidersHorizontal, ArrowUpDown, X, Tag, Calendar } from 'lucide-react';
+import { Filter, SlidersHorizontal, ArrowUpDown, X, Tag, Calendar, Globe } from 'lucide-react';
 import { useGame } from '../context/GameContext';
+import { useLanguage } from '../context/LanguageContext';
+import { LanguageSelector } from './LanguageSelector';
 
 const GENRES = [
   'Todos',
@@ -16,18 +18,19 @@ const GENRES = [
   'Soulslike'
 ];
 
-const CATEGORIES = [
-  { id: 'Todos', label: 'Todos os Jogos' },
-  { id: 'FitGirl', label: '🌸 FitGirl Repacks' },
-  { id: 'DODI', label: '⚡ DODI Repacks' },
-  { id: 'Lançamentos', label: '🔥 Lançamentos' },
-  { id: 'Mais Populares', label: '⭐ Mais Populares' },
-  { id: 'AAA', label: '💎 Superproduções (AAA)' },
-  { id: 'Repacks Leves', label: '⚡ Repacks Leves' }
-];
-
 export const FilterBar: React.FC = () => {
   const { filters, setFilters } = useGame();
+  const { t } = useLanguage();
+
+  const CATEGORIES = [
+    { id: 'Todos', label: t('filter.allGames', 'Todos os Jogos') },
+    { id: 'FitGirl', label: `🌸 ${t('filter.fitgirl', 'FitGirl Repacks')}` },
+    { id: 'DODI', label: `⚡ ${t('filter.dodi', 'DODI Repacks')}` },
+    { id: 'Lançamentos', label: `🔥 ${t('filter.launches', 'Lançamentos')}` },
+    { id: 'Mais Populares', label: `⭐ ${t('filter.popular', 'Mais Populares')}` },
+    { id: 'AAA', label: `💎 ${t('filter.aaa', 'Superproduções (AAA)')}` },
+    { id: 'Repacks Leves', label: `⚡ ${t('filter.lightweight', 'Repacks Leves')}` }
+  ];
 
   const handleCategoryClick = (catId: string) => {
     setFilters(prev => ({ ...prev, category: catId }));
@@ -97,7 +100,7 @@ export const FilterBar: React.FC = () => {
             className="flex items-center gap-1 text-xs text-rose-500 hover:text-rose-600 dark:text-rose-400 dark:hover:text-rose-300 transition-colors ml-auto py-1 font-bold cursor-pointer"
           >
             <X className="w-3.5 h-3.5" />
-            <span>Limpar Filtros</span>
+            <span>{t('filter.clearFilters', 'Limpar Filtros')}</span>
           </button>
         )}
       </div>
@@ -106,7 +109,7 @@ export const FilterBar: React.FC = () => {
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
         <span className="flex items-center gap-1 text-xs font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap mr-1">
           <Tag className="w-3.5 h-3.5 text-cyan-500 dark:text-cyan-400" />
-          Gêneros:
+          {t('filter.genres', 'Gêneros:')}
         </span>
         {GENRES.map(g => {
           const isSelected = filters.genre === g;
@@ -126,10 +129,10 @@ export const FilterBar: React.FC = () => {
         })}
       </div>
 
-      {/* Dropdown controls for sorting & repacker */}
+      {/* Dropdown controls for sorting & filters & language */}
       <div className="flex flex-wrap items-center justify-between gap-3 pt-2 text-xs">
         
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-2.5 flex-wrap">
           {/* PT-BR Quick Filter Button */}
           <button
             onClick={() => setFilters(prev => ({ ...prev, onlyPtBr: !prev.onlyPtBr }))}
@@ -140,50 +143,50 @@ export const FilterBar: React.FC = () => {
             }`}
           >
             <span>🇧🇷</span>
-            <span>PT-BR (Dublado & Legendado)</span>
+            <span>{t('filter.ptbrOnly', 'PT-BR (Dublado & Legendado)')}</span>
           </button>
 
           {/* Format selector (Torrent vs PKG) */}
           <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-950/60 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-800">
-            <span className="text-slate-500 dark:text-slate-400 font-medium">Formato:</span>
+            <span className="text-slate-500 dark:text-slate-400 font-medium">{t('filter.format', 'Formato:')}</span>
             <select
               value={filters.formatFilter || 'all'}
               onChange={e => setFilters(prev => ({ ...prev, formatFilter: e.target.value as any }))}
               className="bg-transparent text-slate-800 dark:text-slate-200 font-semibold focus:outline-none cursor-pointer"
             >
-              <option value="all" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Todos os Formatos</option>
-              <option value="torrent" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">💻 Torrent PC (.torrent)</option>
-              <option value="pkg" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">🎮 Arquivo PKG (PlayStation)</option>
+              <option value="all" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{t('filter.allFormats', 'Todos os Formatos')}</option>
+              <option value="torrent" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">💻 {t('filter.torrentPc', 'Torrent PC (.torrent)')}</option>
+              <option value="pkg" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">🎮 {t('filter.pkgConsole', 'Arquivo PKG (PlayStation)')}</option>
             </select>
           </div>
 
           {/* Year Range selector */}
           <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-950/60 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-800">
             <Calendar className="w-3.5 h-3.5 text-cyan-500 dark:text-cyan-400" />
-            <span className="text-slate-500 dark:text-slate-400 font-medium">Faixa de Ano:</span>
+            <span className="text-slate-500 dark:text-slate-400 font-medium">{t('filter.yearRange', 'Faixa de Ano:')}</span>
             <select
               value={filters.yearRange || 'all'}
               onChange={e => setFilters(prev => ({ ...prev, yearRange: e.target.value as any }))}
               className="bg-transparent text-slate-800 dark:text-slate-200 font-semibold focus:outline-none cursor-pointer"
             >
-              <option value="all" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Todos os Anos</option>
-              <option value="2024-2026" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">🚀 2024–2026 (Nova Geração)</option>
-              <option value="2020-2023" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">⚡ 2020–2023 (Geração Recente)</option>
-              <option value="2015-2019" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">🎮 2015–2019 (Consagrados)</option>
-              <option value="retro" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">🕹️ Clássicos & Retrô (Até 2014)</option>
+              <option value="all" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{t('filter.allYears', 'Todos os Anos')}</option>
+              <option value="2024-2026" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">🚀 {t('filter.nextGen', '2024–2026 (Nova Geração)')}</option>
+              <option value="2020-2023" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">⚡ {t('filter.recentGen', '2020–2023 (Geração Recente)')}</option>
+              <option value="2015-2019" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">🎮 {t('filter.established', '2015–2019 (Consagrados)')}</option>
+              <option value="retro" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">🕹️ {t('filter.retro', 'Clássicos & Retrô (Até 2014)')}</option>
             </select>
           </div>
 
           {/* Repacker selector */}
           <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-950/60 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-800">
             <SlidersHorizontal className="w-3.5 h-3.5 text-cyan-500 dark:text-cyan-400" />
-            <span className="text-slate-500 dark:text-slate-400 font-medium">Origem / Grupo:</span>
+            <span className="text-slate-500 dark:text-slate-400 font-medium">{t('filter.sourceGroup', 'Origem / Grupo:')}</span>
             <select
               value={filters.repacker}
               onChange={handleRepackerChange}
               className="bg-transparent text-slate-800 dark:text-slate-200 font-semibold focus:outline-none cursor-pointer"
             >
-              <option value="Todos" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Todos os Grupos</option>
+              <option value="Todos" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{t('filter.allGroups', 'Todos os Grupos')}</option>
               <option value="FitGirl Repack" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">FitGirl Repack</option>
               <option value="TheZukoStore" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">TheZukoStore (PKG/PS)</option>
               <option value="Tapochek" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Tapochek.net Tracker</option>
@@ -193,22 +196,28 @@ export const FilterBar: React.FC = () => {
           </div>
         </div>
 
-        {/* Sort order */}
-        <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-950/60 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-800">
-          <ArrowUpDown className="w-3.5 h-3.5 text-cyan-500 dark:text-cyan-400" />
-          <span className="text-slate-500 dark:text-slate-400 font-medium">Ordenar por:</span>
-          <select
-            value={filters.sortBy}
-            onChange={handleSortChange}
-            className="bg-transparent text-slate-800 dark:text-slate-200 font-semibold focus:outline-none cursor-pointer"
-          >
-            <option value="latest" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Mais Recentes</option>
-            <option value="popular" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Mais Vistos</option>
-            <option value="rating" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Melhor Avaliados (Notas)</option>
-            <option value="downloads" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Mais Baixados</option>
-            <option value="sizeAsc" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Menor Tamanho (Leves)</option>
-            <option value="sizeDesc" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Maior Tamanho</option>
-          </select>
+        {/* Right cluster: Sort order + Language Selector */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Sort order */}
+          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-950/60 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-800">
+            <ArrowUpDown className="w-3.5 h-3.5 text-cyan-500 dark:text-cyan-400" />
+            <span className="text-slate-500 dark:text-slate-400 font-medium">{t('filter.sortBy', 'Ordenar por:')}</span>
+            <select
+              value={filters.sortBy}
+              onChange={handleSortChange}
+              className="bg-transparent text-slate-800 dark:text-slate-200 font-semibold focus:outline-none cursor-pointer"
+            >
+              <option value="latest" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{t('filter.sortLatest', 'Mais Recentes')}</option>
+              <option value="popular" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{t('filter.sortPopular', 'Mais Vistos')}</option>
+              <option value="rating" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{t('filter.sortRating', 'Melhor Avaliados (Notas)')}</option>
+              <option value="downloads" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{t('filter.sortDownloads', 'Mais Baixados')}</option>
+              <option value="sizeAsc" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{t('filter.sortSizeAsc', 'Menor Tamanho (Leves)')}</option>
+              <option value="sizeDesc" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{t('filter.sortSizeDesc', 'Maior Tamanho')}</option>
+            </select>
+          </div>
+
+          {/* Language Selector right in the filter bar */}
+          <LanguageSelector compact />
         </div>
 
       </div>
