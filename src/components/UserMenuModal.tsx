@@ -28,6 +28,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { useGame } from '../context/GameContext';
+import { useLanguage } from '../context/LanguageContext';
 import { LibraryStatus, UserProfile } from '../types';
 
 interface UserMenuModalProps {
@@ -54,6 +55,7 @@ export const UserMenuModal: React.FC<UserMenuModalProps> = ({ onClose }) => {
     syncToCloud,
     restoreFromCloudCode
   } = useGame();
+  const { t, language, setLanguage, supportedLanguages } = useLanguage();
 
   const [activeTab, setActiveTab] = useState<'profile' | 'downloads' | 'library' | 'reviews' | 'settings' | 'cloud'>('profile');
   const [copiedSyncCode, setCopiedSyncCode] = useState(false);
@@ -777,7 +779,7 @@ export const UserMenuModal: React.FC<UserMenuModalProps> = ({ onClose }) => {
             <div className="space-y-6">
               <div className="pb-3 border-b border-slate-800">
                 <h3 className="text-base font-bold text-white font-display">Preferências de Acesso & Download</h3>
-                <p className="text-xs text-slate-400">Configure suas opções favoritas de reprodução, formato e notificações</p>
+                <p className="text-xs text-slate-400">Configure suas opções favoritas de reprodução, formato e idioma</p>
               </div>
 
               <div className="space-y-4">
@@ -792,7 +794,7 @@ export const UserMenuModal: React.FC<UserMenuModalProps> = ({ onClose }) => {
                       setPlatformInput(e.target.value as any);
                       updateUserProfile({ preferredPlatform: e.target.value as any });
                     }}
-                    className="text-xs bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-cyan-300 focus:outline-none focus:border-cyan-500"
+                    className="text-xs bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-cyan-300 focus:outline-none focus:border-cyan-500 cursor-pointer"
                   >
                     <option value="PC">Torrent PC (.torrent / magnet)</option>
                     <option value="PS4">PKG PlayStation 4</option>
@@ -803,22 +805,20 @@ export const UserMenuModal: React.FC<UserMenuModalProps> = ({ onClose }) => {
 
                 <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 flex items-center justify-between">
                   <div>
-                    <h4 className="text-xs font-bold text-white">Notificações de Novos Lançamentos</h4>
-                    <p className="text-[11px] text-slate-400">Receber alertas automáticos quando o robô da FitGirl indexar jogos</p>
+                    <h4 className="text-xs font-bold text-white">Idioma do Sistema & Preferido</h4>
+                    <p className="text-[11px] text-slate-400">Alterar idioma de exibição da interface da plataforma</p>
                   </div>
-                  <span className="px-2.5 py-1 rounded-xl text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                    Ativo
-                  </span>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 flex items-center justify-between">
-                  <div>
-                    <h4 className="text-xs font-bold text-white">Idioma Preferido</h4>
-                    <p className="text-[11px] text-slate-400">Destacar jogos com Dublagem ou Legenda PT-BR</p>
-                  </div>
-                  <span className="px-2.5 py-1 rounded-xl text-xs font-bold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
-                    Português (Brasil) 🇧🇷
-                  </span>
+                  <select
+                    value={language}
+                    onChange={e => setLanguage(e.target.value as any)}
+                    className="text-xs bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-cyan-300 focus:outline-none focus:border-cyan-500 cursor-pointer font-semibold"
+                  >
+                    {supportedLanguages.map(opt => (
+                      <option key={opt.code} value={opt.code} className="bg-slate-900 text-white">
+                        {opt.flag} {opt.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 {/* Account Membership & Session Management */}

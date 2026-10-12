@@ -7,7 +7,6 @@ import { FilterBar } from './components/FilterBar';
 import { GameCard } from './components/GameCard';
 import { GameDetailModal } from './components/GameDetailModal';
 import { UserLibraryView } from './components/UserLibraryView';
-import { NotificationModal } from './components/NotificationModal';
 import { UserMenuModal } from './components/UserMenuModal';
 import { AuthModal } from './components/AuthModal';
 import { GameRequestModal } from './components/GameRequestModal';
@@ -24,8 +23,6 @@ const MainContent: React.FC = () => {
     setActiveGame, 
     isLibraryOpen, 
     setIsLibraryOpen,
-    isNotificationsOpen, 
-    setIsNotificationsOpen,
     isUserMenuOpen, 
     setIsUserMenuOpen,
     isAuthModalOpen,
@@ -216,11 +213,6 @@ const MainContent: React.FC = () => {
 
       {/* Footer */}
       <Footer />
-
-      {/* Notifications Drawer/Modal */}
-      {isNotificationsOpen && (
-        <NotificationModal onClose={() => setIsNotificationsOpen(false)} />
-      )}
 
       {/* Member Auth Modal (Login / Register) */}
       {isAuthModalOpen && (
