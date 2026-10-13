@@ -13,6 +13,7 @@ import { useGame } from '../context/GameContext';
 import { useLanguage } from '../context/LanguageContext';
 import { sanitizeMagnetLink } from '../utils/magnetUtils';
 import { getCriticScores, getMetacriticBadgeColor, getOpenCriticTierColor } from '../utils/ratingUtils';
+import { getGameCover, handleImageError } from '../utils/imageUtils';
 
 interface GameCardProps {
   game: Game;
@@ -102,11 +103,9 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
       {/* Poster Image Container */}
       <div className="relative aspect-[3/4] w-full overflow-hidden bg-slate-950">
         <img
-          src={game.coverUrl}
+          src={getGameCover(game)}
           alt={game.title}
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80';
-          }}
+          onError={(e) => handleImageError(e, game)}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
         />

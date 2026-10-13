@@ -25,6 +25,7 @@ import { useGame } from '../context/GameContext';
 import { useLanguage } from '../context/LanguageContext';
 import { LibraryStatus, UserProfile } from '../types';
 import { sanitizeMagnetLink } from '../utils/magnetUtils';
+import { getGameCover, handleImageError } from '../utils/imageUtils';
 
 interface UserMenuModalProps {
   onClose: () => void;
@@ -735,8 +736,9 @@ export const UserMenuModal: React.FC<UserMenuModalProps> = ({ onClose }) => {
                     >
                       <div className="flex items-center gap-3.5">
                         <img
-                          src={game.coverUrl}
+                          src={getGameCover(game)}
                           alt={game.title}
+                          onError={(e) => handleImageError(e, game)}
                           className="w-14 h-18 object-cover rounded-xl border border-slate-800 shrink-0 cursor-pointer hover:opacity-90"
                           onClick={() => {
                             setActiveGame(game);
@@ -873,8 +875,9 @@ export const UserMenuModal: React.FC<UserMenuModalProps> = ({ onClose }) => {
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
                           <img
-                            src={item.game.coverUrl}
+                            src={getGameCover(item.game)}
                             alt={item.game.title}
+                            onError={(e) => handleImageError(e, item.game)}
                             className="w-12 h-16 object-cover rounded-xl border border-slate-800 shrink-0 cursor-pointer"
                             onClick={() => {
                               setActiveGame(item.game);

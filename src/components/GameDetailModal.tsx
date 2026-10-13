@@ -33,6 +33,7 @@ import { useGame } from '../context/GameContext';
 import { TorrentHealthBadge } from './TorrentHealthBadge';
 import { sanitizeMagnetLink } from '../utils/magnetUtils';
 import { getCriticScores, getMetacriticBadgeColor, getOpenCriticTierColor } from '../utils/ratingUtils';
+import { getGameCover, getGameBanner, handleImageError } from '../utils/imageUtils';
 
 interface GameDetailModalProps {
   game: Game;
@@ -88,10 +89,9 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
     directx: 'Versão 12'
   };
 
-  // Exibir apenas as imagens do jogo com limite estrito de 4 imagens
   const realGameScreenshots = (Array.isArray(game.screenshots) && game.screenshots.length > 0)
     ? game.screenshots.filter(s => typeof s === 'string' && s.trim().length > 0)
-    : [game.bannerUrl, game.coverUrl].filter(Boolean);
+    : [getGameBanner(game), getGameCover(game)].filter(Boolean);
 
   const displayScreenshots = realGameScreenshots.slice(0, 4);
   
@@ -210,8 +210,9 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
         {/* Hero Header with Banner */}
         <div className="relative h-64 sm:h-80 md:h-96 w-full overflow-hidden bg-slate-950">
           <img 
-            src={game.bannerUrl || game.coverUrl} 
+            src={getGameBanner(game)} 
             alt={game.title} 
+            onError={(e) => handleImageError(e, game)}
             className="w-full h-full object-cover filter brightness-[0.7] transform scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent" />
@@ -1009,12 +1010,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                         src={shot} 
                         alt={`${game.title} imagem oficial ${idx + 1}`} 
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        onError={(e) => {
-                          const target = e.currentTarget;
-                          if (game.coverUrl && target.src !== game.coverUrl) {
-                            target.src = game.coverUrl;
-                          }
-                        }}
+                        onError={(e) => handleImageError(e, game)}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2.5">
                         <span className="text-[11px] font-bold text-cyan-300">🔍 Ver Imagem {idx + 1}</span>

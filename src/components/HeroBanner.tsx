@@ -18,6 +18,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { Game } from '../types';
 import { sanitizeMagnetLink } from '../utils/magnetUtils';
 import { getCriticScores, getMetacriticBadgeColor, getOpenCriticTierColor } from '../utils/ratingUtils';
+import { getGameCover, getGameBanner, handleImageError } from '../utils/imageUtils';
 
 export const HeroBanner: React.FC = () => {
   const { games, setActiveGame, incrementDownload, isLoggedIn, setIsAuthModalOpen } = useGame();
@@ -117,7 +118,7 @@ export const HeroBanner: React.FC = () => {
       {/* Background image with blur and gradients */}
       <div 
         className="absolute inset-0 bg-cover bg-center transition-all duration-700 transform scale-105 filter blur-[1px]"
-        style={{ backgroundImage: `url(${current.bannerUrl || current.coverUrl})` }}
+        style={{ backgroundImage: `url(${getGameBanner(current)})` }}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/85 to-slate-950/50" />
       <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/90 to-transparent" />
@@ -304,11 +305,9 @@ export const HeroBanner: React.FC = () => {
             className="relative group cursor-pointer w-48 sm:w-56 lg:w-64 aspect-[3/4] rounded-2xl overflow-hidden border-2 border-cyan-500/40 shadow-2xl shadow-cyan-950/80 group-hover:border-cyan-400 transition-all duration-300 transform group-hover:scale-[1.02] bg-slate-950"
           >
             <img 
-              src={current.coverUrl} 
+              src={getGameCover(current)} 
               alt={current.title} 
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80';
-              }}
+              onError={(e) => handleImageError(e, current)}
               className="w-full h-full object-cover" 
             />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80" />

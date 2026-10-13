@@ -2,6 +2,7 @@ import { Game } from '../types';
 import { FITGIRL_PRESET_GAMES } from '../data/fitgirlCatalog';
 import { sanitizeMagnetLink } from '../utils/magnetUtils';
 import { getImdbRating } from '../utils/ratingUtils';
+import { getGameCover, getGameBanner } from '../utils/imageUtils';
 
 export interface FitGirlFeedItem {
   title: string;
@@ -63,10 +64,11 @@ export function parseFitGirlRssXml(xmlText: string): Game[] {
         ? `Mirror Direto: ${rawMirrors[0].text.slice(0, 30)}`
         : 'Mirror Direto: DataNodes & MultiUpload';
 
-      // Extract cover image and screenshots from content
+      // Extract cover image and screenshots from content (safe resolution)
       const imgMatch = content.match(/<img[^>]+src="([^">]+)"/i);
-      const coverUrl = imgMatch ? imgMatch[1] : 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80';
-      const bannerUrl = coverUrl;
+      const rawCover = imgMatch ? imgMatch[1] : '';
+      const coverUrl = getGameCover({ title: cleanTitle, coverUrl: rawCover });
+      const bannerUrl = getGameBanner({ title: cleanTitle, bannerUrl: rawCover, coverUrl });
 
       // Extract riotpixels or screenshot images
       const riotMatches = [...content.matchAll(/src="(http[^"]+riotpixels[^"]+)"/g)].map(m => m[1]);

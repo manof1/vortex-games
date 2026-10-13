@@ -1,6 +1,7 @@
 import { Game } from '../types';
 import { sanitizeMagnetLink } from '../utils/magnetUtils';
 import { getImdbRating } from '../utils/ratingUtils';
+import { getGameCover, getGameBanner } from '../utils/imageUtils';
 
 /**
  * Service to parse DODI Repacks RSS feed (https://dodi-repacks.site/feed/)
@@ -43,12 +44,11 @@ export function parseDodiRssXml(xmlText: string): Game[] {
                                content.match(/Final\s*Size\s*:\s*([\d.,]+\s*[MG]B)/i);
       const originalSize = originalSizeMatch ? originalSizeMatch[1] : '65.0 GB';
 
-      // Cover image from post content (ImageBan / external CDN)
+      // Cover image from post content (safe resolution)
       const imgMatch = content.match(/src="([^">]+\.(?:jpg|png|jpeg|webp))"/i);
-      const coverUrl = imgMatch 
-        ? imgMatch[1] 
-        : 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80';
-      const bannerUrl = coverUrl;
+      const rawCover = imgMatch ? imgMatch[1] : '';
+      const coverUrl = getGameCover({ title: cleanTitle, coverUrl: rawCover });
+      const bannerUrl = getGameBanner({ title: cleanTitle, bannerUrl: rawCover, coverUrl });
 
       // Extract screenshots
       const allImgs = [...content.matchAll(/src="([^">]+\.(?:jpg|png|jpeg|webp))"/gi)]

@@ -1,6 +1,7 @@
 import { Game } from "../types";
+import { getGameCover, getGameBanner } from "../utils/imageUtils";
 
-export const SUPABASE_SYNCED_GAMES: Game[] = [
+const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
   {
     "id": "dodi-baldur-s-gate-3-digital-deluxe-edition-v4-1-1",
     "title": "Baldur’s Gate 3: Digital Deluxe Edition (v4.1.1.7631656 + All DLCs + Bonus Content + Toolkit + MULTi",
@@ -1708,3 +1709,10 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "imdbRating": 9.7
   }
 ];
+
+export const SUPABASE_SYNCED_GAMES: Game[] = RAW_SUPABASE_SYNCED_GAMES.map(g => ({
+  ...g,
+  coverUrl: getGameCover(g),
+  bannerUrl: getGameBanner(g)
+}));
+

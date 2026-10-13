@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { Game, Comment } from '../types';
+import { getGameCover, getGameBanner } from '../utils/imageUtils';
 
 // Credenciais configuradas
 export const SUPABASE_URL = 
@@ -56,8 +57,8 @@ export async function fetchGamesFromSupabase(): Promise<Game[] | null> {
       id: item.id,
       title: item.title,
       slug: item.slug,
-      coverUrl: item.cover_url || item.coverUrl,
-      bannerUrl: item.banner_url || item.bannerUrl,
+      coverUrl: getGameCover({ title: item.title, coverUrl: item.cover_url || item.coverUrl, genres: item.genres }),
+      bannerUrl: getGameBanner({ title: item.title, bannerUrl: item.banner_url || item.bannerUrl, coverUrl: item.cover_url || item.coverUrl, genres: item.genres }),
       shortDescription: item.short_description || item.shortDescription || '',
       description: item.description || '',
       genres: item.genres || [],

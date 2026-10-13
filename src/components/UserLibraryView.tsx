@@ -15,6 +15,7 @@ import {
 import { LibraryStatus } from '../types';
 import { useGame } from '../context/GameContext';
 import { sanitizeMagnetLink } from '../utils/magnetUtils';
+import { getGameCover, handleImageError } from '../utils/imageUtils';
 
 interface UserLibraryViewProps {
   onClose: () => void;
@@ -180,8 +181,9 @@ export const UserLibraryView: React.FC<UserLibraryViewProps> = ({ onClose }) => 
                     <div className="flex gap-4">
                       {/* Cover Thumbnail */}
                       <img
-                        src={game.coverUrl}
+                        src={getGameCover(game)}
                         alt={game.title}
+                        onError={(e) => handleImageError(e, game)}
                         className="w-20 h-28 object-cover rounded-xl border border-slate-800 shrink-0 cursor-pointer hover:opacity-90"
                         onClick={() => {
                           setActiveGame(game);
