@@ -1,4 +1,5 @@
 import { Game } from '../types';
+import { sanitizeMagnetLink } from '../utils/magnetUtils';
 
 /**
  * Service to parse DODI Repacks RSS feed (https://dodi-repacks.site/feed/)
@@ -71,7 +72,7 @@ export function parseDodiRssXml(xmlText: string): Game[] {
         );
 
       // Generate verified fast torrent magnet link
-      const magnetUrl = `magnet:?xt=urn:btih:${Math.random().toString(36).substring(2, 15)}&dn=${encodeURIComponent(cleanTitle + '-DODI')}&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80`;
+      const magnetUrl = sanitizeMagnetLink('', `${cleanTitle} [DODI Repack]`);
       const directMirrorUrl = rawLinks[0]?.url || magnetUrl;
       const directMirrorLabel = rawLinks[0]?.text && rawLinks[0].text.length > 2
         ? `Mirror Direto: ${rawLinks[0].text.slice(0, 30)}`

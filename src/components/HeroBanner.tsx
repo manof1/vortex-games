@@ -15,6 +15,7 @@ import {
 import { useGame } from '../context/GameContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Game } from '../types';
+import { sanitizeMagnetLink } from '../utils/magnetUtils';
 
 export const HeroBanner: React.FC = () => {
   const { games, setActiveGame, incrementDownload, isLoggedIn, setIsAuthModalOpen } = useGame();
@@ -81,7 +82,10 @@ export const HeroBanner: React.FC = () => {
     const magnetLink = current.downloadLinks.find(l => l.type === 'magnet' || l.type === 'torrent');
     if (magnetLink) {
       incrementDownload(current.id);
-      window.location.href = magnetLink.url;
+      const cleanUrl = magnetLink.url.startsWith('magnet:')
+        ? sanitizeMagnetLink(magnetLink.url, `${current.title} [${current.repackInfo?.repacker || 'Vortex'}]`)
+        : magnetLink.url;
+      window.location.href = cleanUrl;
     } else {
       setActiveGame(current);
     }

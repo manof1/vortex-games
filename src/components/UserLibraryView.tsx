@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { LibraryStatus } from '../types';
 import { useGame } from '../context/GameContext';
+import { sanitizeMagnetLink } from '../utils/magnetUtils';
 
 interface UserLibraryViewProps {
   onClose: () => void;
@@ -56,10 +57,13 @@ export const UserLibraryView: React.FC<UserLibraryViewProps> = ({ onClose }) => 
   };
 
   const handleDownload = (game: any) => {
-    const magnet = game.downloadLinks.find((l: any) => l.type === 'magnet');
+    const magnet = game.downloadLinks.find((l: any) => l.type === 'magnet' || l.type === 'torrent');
     if (magnet) {
       incrementDownload(game.id);
-      window.location.href = magnet.url;
+      const cleanUrl = magnet.url.startsWith('magnet:')
+        ? sanitizeMagnetLink(magnet.url, `${game.title} [${game.repackInfo?.repacker || 'Vortex'}]`)
+        : magnet.url;
+      window.location.href = cleanUrl;
     } else {
       setActiveGame(game);
     }

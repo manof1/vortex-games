@@ -1,4 +1,5 @@
 import { IgdbSearchResult, Game } from '../types';
+import { sanitizeMagnetLink } from '../utils/magnetUtils';
 
 // Curated comprehensive database for instant online lookup simulation & fallback
 const POPULAR_GAMES_DATABASE: IgdbSearchResult[] = [
@@ -212,7 +213,7 @@ export function convertIgdbResultToGame(
   const slug = result.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
   const id = `game-${slug}-${Date.now().toString(36)}`;
   
-  const defaultMagnet = torrentMagnetUrl || `magnet:?xt=urn:btih:${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}&dn=${encodeURIComponent(result.name + '-' + repacker)}&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce`;
+  const defaultMagnet = sanitizeMagnetLink(torrentMagnetUrl || '', `${result.name} [${repacker}]`);
 
   return {
     id,

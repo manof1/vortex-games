@@ -11,6 +11,7 @@ import {
 import { Game } from '../types';
 import { useGame } from '../context/GameContext';
 import { useLanguage } from '../context/LanguageContext';
+import { sanitizeMagnetLink } from '../utils/magnetUtils';
 
 interface GameCardProps {
   game: Game;
@@ -48,7 +49,10 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
     const torrentLink = game.downloadLinks.find(l => l.type === 'magnet' || l.type === 'torrent' || l.format === 'torrent');
     if (torrentLink) {
       incrementDownload(game.id);
-      window.location.href = torrentLink.url;
+      const cleanUrl = torrentLink.url.startsWith('magnet:')
+        ? sanitizeMagnetLink(torrentLink.url, `${game.title} [${game.repackInfo?.repacker || 'Vortex'}]`)
+        : torrentLink.url;
+      window.location.href = cleanUrl;
     } else {
       setActiveGame(game);
     }

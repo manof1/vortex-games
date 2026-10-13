@@ -31,6 +31,7 @@ import {
 import { Game, LibraryStatus } from '../types';
 import { useGame } from '../context/GameContext';
 import { TorrentHealthBadge } from './TorrentHealthBadge';
+import { sanitizeMagnetLink } from '../utils/magnetUtils';
 
 interface GameDetailModalProps {
   game: Game;
@@ -94,9 +95,16 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
   // User review form state
   const [authorName, setAuthorName] = useState(userProfile.name);
   const [reviewContent, setReviewContent] = useState('');
-  const [userScore, setUserScore] = useState(5);
+  const [userScore, setUserScore] = useState<number>(() => getUserVote(game.id) || 5);
   const [hoverScore, setHoverScore] = useState(0);
   const [submittedComment, setSubmittedComment] = useState(false);
+
+  useEffect(() => {
+    const existing = getUserVote(game.id);
+    if (existing) {
+      setUserScore(existing);
+    }
+  }, [game.id]);
 
   // Filter comments for this game
   const gameComments = comments.filter(c => c.gameId === game.id);
@@ -115,9 +123,12 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
       setIsAuthModalOpen(true);
       return;
     }
-    navigator.clipboard.writeText(url);
+    const cleanUrl = url.startsWith('magnet:')
+      ? sanitizeMagnetLink(url, `${game.title} [${game.repackInfo?.repacker || 'Vortex'}]`)
+      : url;
+    navigator.clipboard.writeText(cleanUrl);
     setCopiedMagnet(true);
-    setTimeout(() => setCopiedMagnet(false), 2500);
+    setTimeout(() => setCopiedMagnet(false), 3000);
   };
 
   const handleDownloadClick = (url: string) => {
@@ -127,7 +138,8 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
     }
     incrementDownload(game.id);
     if (url.startsWith('magnet:')) {
-      window.location.href = url;
+      const cleanUrl = sanitizeMagnetLink(url, `${game.title} [${game.repackInfo?.repacker || 'Vortex'}]`);
+      window.location.href = cleanUrl;
     } else {
       const a = document.createElement('a');
       a.href = url;
@@ -612,10 +624,10 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                       <div className="flex items-center gap-2 pt-2">
                         {isLoggedIn ? (
                           <a
-                            href={link.url}
+                            href={sanitizeMagnetLink(link.url, `${game.title} [${game.repackInfo?.repacker || 'Vortex'}]`)}
                             onClick={() => incrementDownload(game.id)}
                             className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-xs bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-md shadow-cyan-500/30 transition-all transform hover:scale-[1.02] cursor-pointer"
-                            title="Enviar link Magnet direto para seu aplicativo de torrent (qBittorrent / uTorrent)"
+                            title="Enviar link Magnet limpo direto para seu aplicativo de torrent (qBittorrent / uTorrent)"
                           >
                             <Download className="w-4 h-4 stroke-[2.5]" />
                             <span>Baixar Torrent PC (Abrir no qBittorrent / uTorrent)</span>
@@ -634,12 +646,29 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
 
                         <button
                           onClick={() => handleCopyMagnet(link.url)}
-                          className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all shrink-0 cursor-pointer"
-                          title={isLoggedIn ? 'Copiar Link Magnet' : '🔒 Cadastre-se para copiar o link'}
+                          className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all shrink-0 cursor-pointer flex items-center gap-1.5"
+                          title={isLoggedIn ? 'Copiar Link Magnet Limpo (Sem erros de sintaxe no Windows/qBittorrent)' : '🔒 Cadastre-se para copiar o link'}
                         >
-                          {copiedMagnet ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                          {copiedMagnet ? (
+                            <>
+                              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                              <span className="text-[11px] font-bold text-emerald-400 hidden sm:inline">Copiado!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-4 h-4" />
+                              <span className="text-[11px] font-bold hidden sm:inline">Copiar Magnet</span>
+                            </>
+                          )}
                         </button>
                       </div>
+
+                      {copiedMagnet && (
+                        <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2 animate-fadeIn">
+                          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                          <span>Link Magnet 100% verificado copiado! Cole no qBittorrent via <strong>Ctrl + U</strong> ou Arquivo &gt; Adicionar Link Torrent.</span>
+                        </div>
+                      )}
                     </div>
                   ))}
 

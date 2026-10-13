@@ -38,7 +38,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "downloadLinks": [
       {
         "id": "dl-dodi-1-baldur-s-gate-3-digital-deluxe-edition-v4-1-1-7631656-all-dlcs-bonus-content-toolkit-multi15-fast-install",
-        "url": "magnet:?xt=urn:btih:bsxt3lz8w2h&dn=Baldur%E2%80%99s%20Gate%203%3A%20Digital%20Deluxe%20Edition%20(v4.1.1.7631656%20%2B%20All%20DLCs%20%2B%20Bonus%20Content%20%2B%20Toolkit%20%2B%20MULTi15)%20(Fast%20Install)-DODI&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80",
+        "url": "magnet:?xt=urn:btih:ce844658a558c47675f08476fbe3db22cdaa733e&dn=Baldur%E2%80%99s%20Gate%203%20-%20Digital%20Deluxe%20Edition%20(v4.1.1.7631656%20%2B%20All%20DLCs%20%2B%20Bonus%20Content%20%2B%20Toolkit%20%2B%20MULTi%20%5BDODI%20Repack%5D&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
         "size": "8 GB",
         "type": "magnet",
         "label": "Torrent Magnet DODI (Fonte 1: OpenTrackr)",
@@ -50,7 +50,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
       },
       {
         "id": "dl-dodi-2-baldur-s-gate-3-digital-deluxe-edition-v4-1-1-7631656-all-dlcs-bonus-content-toolkit-multi15-fast-install",
-        "url": "magnet:?xt=urn:btih:awhqkgm24l&dn=Baldur%E2%80%99s%20Gate%203%3A%20Digital%20Deluxe%20Edition%20(v4.1.1.7631656%20%2B%20All%20DLCs%20%2B%20Bonus%20Content%20%2B%20Toolkit%20%2B%20MULTi15)%20(Fast%20Install)-DODI-P2P&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
+        "url": "magnet:?xt=urn:btih:951232bbeb7366bdf887e70523396fb1261fc6e5&dn=Baldur%E2%80%99s%20Gate%203%20-%20Digital%20Deluxe%20Edition%20(v4.1.1.7631656%20%2B%20All%20DLCs%20%2B%20Bonus%20Content%20%2B%20Toolkit%20%2B%20MULTi%20%5BDODI%20Repack%5D&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
         "size": "8 GB",
         "type": "magnet",
         "label": "Torrent Magnet Secundário (Fonte 2: P2P Swarm)",
@@ -140,7 +140,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "downloadLinks": [
       {
         "id": "dl-dodi-1-dead-island-2-ultimate-edition-update-v7-0-0-1244637-all-dlcs-bonus-content-online-multiplayer-multi14",
-        "url": "magnet:?xt=urn:btih:sl233yfpi4e&dn=Dead%20Island%202%3A%20Ultimate%20Edition%20(%2B%20Update%20v7.0.0.1244637%2B%20All%20DLCs%20%2B%20Bonus%20Content%20%2B%20Online%20Multiplayer%20%2B%20MULTi14)-DODI&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80",
+        "url": "magnet:?xt=urn:btih:014426c40dc681aafc2fb8aa422f187adcd5adc2&dn=Dead%20Island%202%20-%20Ultimate%20Edition%20(%2B%20Update%20v7.0.0.1244637%2B%20All%20DLCs%20%2B%20Bonus%20Content%20%2B%20Online%20Multipla%20%5BDODI%20Repack%5D&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
         "size": "51 GB",
         "type": "magnet",
         "label": "Torrent Magnet DODI (Fonte 1: OpenTrackr)",
@@ -152,7 +152,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
       },
       {
         "id": "dl-dodi-2-dead-island-2-ultimate-edition-update-v7-0-0-1244637-all-dlcs-bonus-content-online-multiplayer-multi14",
-        "url": "magnet:?xt=urn:btih:dbmnpe9kghl&dn=Dead%20Island%202%3A%20Ultimate%20Edition%20(%2B%20Update%20v7.0.0.1244637%2B%20All%20DLCs%20%2B%20Bonus%20Content%20%2B%20Online%20Multiplayer%20%2B%20MULTi14)-DODI-P2P&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
+        "url": "magnet:?xt=urn:btih:33307297df9c8f55ef13810185375ffbb477b62d&dn=Dead%20Island%202%20-%20Ultimate%20Edition%20(%2B%20Update%20v7.0.0.1244637%2B%20All%20DLCs%20%2B%20Bonus%20Content%20%2B%20Online%20Multipla%20%5BDODI%20Repack%5D&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
         "size": "51 GB",
         "type": "magnet",
         "label": "Torrent Magnet Secundário (Fonte 2: P2P Swarm)",
@@ -242,7 +242,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "downloadLinks": [
       {
         "id": "dl-dodi-1-stronghold-crusader-definitive-edition-v2-8-2-all-dlcs",
-        "url": "magnet:?xt=urn:btih:r1doqgrlwgd&dn=Stronghold%20Crusader%3A%20Definitive%20Edition%20(v2.8.2%20%2B%20All%20DLCs)-DODI&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80",
+        "url": "magnet:?xt=urn:btih:5d88939d680dc80f0184ba2bc1379f0114438df7&dn=Stronghold%20Crusader%20-%20Definitive%20Edition%20(v2.8.2%20%2B%20All%20DLCs)%20%5BDODI%20Repack%5D&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
         "size": "8 GB",
         "type": "magnet",
         "label": "Torrent Magnet DODI (Fonte 1: OpenTrackr)",
@@ -254,7 +254,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
       },
       {
         "id": "dl-dodi-2-stronghold-crusader-definitive-edition-v2-8-2-all-dlcs",
-        "url": "magnet:?xt=urn:btih:ihxi3ij9ov9&dn=Stronghold%20Crusader%3A%20Definitive%20Edition%20(v2.8.2%20%2B%20All%20DLCs)-DODI-P2P&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
+        "url": "magnet:?xt=urn:btih:0ba5646ec8956b904b46281087557f6c796023b8&dn=Stronghold%20Crusader%20-%20Definitive%20Edition%20(v2.8.2%20%2B%20All%20DLCs)%20%5BDODI%20Repack%5D&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
         "size": "8 GB",
         "type": "magnet",
         "label": "Torrent Magnet Secundário (Fonte 2: P2P Swarm)",
@@ -344,7 +344,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "downloadLinks": [
       {
         "id": "dl-dodi-1-halloween-the-game-deluxe-edition-v1-0-3-71395-all-dlcs-multi10",
-        "url": "magnet:?xt=urn:btih:eajx2056885&dn=Halloween%3A%20The%20Game%20%E2%80%93%20Deluxe%20Edition%20(v1.0.3.71395%20%2B%20All%20DLCs%20%2B%20MULTi10)-DODI&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80",
+        "url": "magnet:?xt=urn:btih:91ef731dec19686b4810d3e343c28f0bfe17ec73&dn=Halloween%20-%20The%20Game%20-%20Deluxe%20Edition%20(v1.0.3.71395%20%2B%20All%20DLCs%20%2B%20MULTi10)%20%5BDODI%20Repack%5D&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
         "size": "16 GB",
         "type": "magnet",
         "label": "Torrent Magnet DODI (Fonte 1: OpenTrackr)",
@@ -356,7 +356,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
       },
       {
         "id": "dl-dodi-2-halloween-the-game-deluxe-edition-v1-0-3-71395-all-dlcs-multi10",
-        "url": "magnet:?xt=urn:btih:77k9t7xjpeb&dn=Halloween%3A%20The%20Game%20%E2%80%93%20Deluxe%20Edition%20(v1.0.3.71395%20%2B%20All%20DLCs%20%2B%20MULTi10)-DODI-P2P&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
+        "url": "magnet:?xt=urn:btih:1f42d47e9631c4a0894268b08fe587e47818ee68&dn=Halloween%20-%20The%20Game%20-%20Deluxe%20Edition%20(v1.0.3.71395%20%2B%20All%20DLCs%20%2B%20MULTi10)%20%5BDODI%20Repack%5D&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
         "size": "16 GB",
         "type": "magnet",
         "label": "Torrent Magnet Secundário (Fonte 2: P2P Swarm)",
@@ -446,7 +446,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "downloadLinks": [
       {
         "id": "dl-dodi-1-beast-of-reincarnation-deluxe-edition-v1-1-0-all-dlcs-multi11",
-        "url": "magnet:?xt=urn:btih:nbfpfd27a8&dn=Beast%20of%20Reincarnation%3A%20Deluxe%20Edition%20(v1.1.0%20%2B%20All%20DLCs%20%2B%20MULTi11)-DODI&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80",
+        "url": "magnet:?xt=urn:btih:32489cb4970b69f645288f52fe5f165cadfd120e&dn=Beast%20of%20Reincarnation%20-%20Deluxe%20Edition%20(v1.1.0%20%2B%20All%20DLCs%20%2B%20MULTi11)%20%5BDODI%20Repack%5D&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
         "size": "16 GB",
         "type": "magnet",
         "label": "Torrent Magnet DODI (Fonte 1: OpenTrackr)",
@@ -458,7 +458,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
       },
       {
         "id": "dl-dodi-2-beast-of-reincarnation-deluxe-edition-v1-1-0-all-dlcs-multi11",
-        "url": "magnet:?xt=urn:btih:cce3jklzv8q&dn=Beast%20of%20Reincarnation%3A%20Deluxe%20Edition%20(v1.1.0%20%2B%20All%20DLCs%20%2B%20MULTi11)-DODI-P2P&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
+        "url": "magnet:?xt=urn:btih:092647b74f57fd5d8384fb21283219036b9e4235&dn=Beast%20of%20Reincarnation%20-%20Deluxe%20Edition%20(v1.1.0%20%2B%20All%20DLCs%20%2B%20MULTi11)%20%5BDODI%20Repack%5D&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
         "size": "16 GB",
         "type": "magnet",
         "label": "Torrent Magnet Secundário (Fonte 2: P2P Swarm)",
@@ -548,7 +548,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "downloadLinks": [
       {
         "id": "dl-dodi-1-resonance-a-plague-tale-legacy-v1-3-0-0-heritage-pack-multi17",
-        "url": "magnet:?xt=urn:btih:gzyg0qwjg6b&dn=Resonance%3A%20A%20Plague%20Tale%20Legacy%20(v1.3.0.0%20%2B%20Heritage%20Pack%20%2B%20MULTi17)-DODI&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80",
+        "url": "magnet:?xt=urn:btih:054ab2a17ae8932f6ee26b3f3a0ff63f1e16d3e7&dn=Resonance%20-%20A%20Plague%20Tale%20Legacy%20(v1.3.0.0%20%2B%20Heritage%20Pack%20%2B%20MULTi17)%20%5BDODI%20Repack%5D&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
         "size": "16 GB",
         "type": "magnet",
         "label": "Torrent Magnet DODI (Fonte 1: OpenTrackr)",
@@ -560,7 +560,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
       },
       {
         "id": "dl-dodi-2-resonance-a-plague-tale-legacy-v1-3-0-0-heritage-pack-multi17",
-        "url": "magnet:?xt=urn:btih:50gt53b1do3&dn=Resonance%3A%20A%20Plague%20Tale%20Legacy%20(v1.3.0.0%20%2B%20Heritage%20Pack%20%2B%20MULTi17)-DODI-P2P&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
+        "url": "magnet:?xt=urn:btih:330128c2ce9bb3c42715857c876ca564ff5a003c&dn=Resonance%20-%20A%20Plague%20Tale%20Legacy%20(v1.3.0.0%20%2B%20Heritage%20Pack%20%2B%20MULTi17)%20%5BDODI%20Repack%5D&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
         "size": "16 GB",
         "type": "magnet",
         "label": "Torrent Magnet Secundário (Fonte 2: P2P Swarm)",
@@ -650,7 +650,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "downloadLinks": [
       {
         "id": "dl-dodi-1-gears-of-war-e-day-v4894958-build-25724756-all-dlcs-multi22",
-        "url": "magnet:?xt=urn:btih:3ju6y93nvbm&dn=Gears%20of%20War%3A%20E-Day%20(v4894958%20%E2%80%93%20Build%2025724756%20%2B%20All%20DLCs%20%2B%20MULTi22)-DODI&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80",
+        "url": "magnet:?xt=urn:btih:22a5f619297f8b63ff87208ffe32c379936841eb&dn=Gears%20of%20War%20-%20E-Day%20(v4894958%20-%20Build%2025724756%20%2B%20All%20DLCs%20%2B%20MULTi22)%20%5BDODI%20Repack%5D&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
         "size": "93.2 GB",
         "type": "magnet",
         "label": "Torrent Magnet DODI (Fonte 1: OpenTrackr)",
@@ -662,7 +662,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
       },
       {
         "id": "dl-dodi-2-gears-of-war-e-day-v4894958-build-25724756-all-dlcs-multi22",
-        "url": "magnet:?xt=urn:btih:weokv2q6efb&dn=Gears%20of%20War%3A%20E-Day%20(v4894958%20%E2%80%93%20Build%2025724756%20%2B%20All%20DLCs%20%2B%20MULTi22)-DODI-P2P&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
+        "url": "magnet:?xt=urn:btih:e964d61a8bc35988f3255a5cbef9f59ec39633d0&dn=Gears%20of%20War%20-%20E-Day%20(v4894958%20-%20Build%2025724756%20%2B%20All%20DLCs%20%2B%20MULTi22)%20%5BDODI%20Repack%5D&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
         "size": "93.2 GB",
         "type": "magnet",
         "label": "Torrent Magnet Secundário (Fonte 2: P2P Swarm)",
@@ -752,7 +752,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "downloadLinks": [
       {
         "id": "dl-dodi-1-forza-horizon-6-premium-edition-v461-691-all-dlcs-multiplayer-multi23",
-        "url": "magnet:?xt=urn:btih:zcn60a22jzq&dn=Forza%20Horizon%206%3A%20Premium%20Edition%20(v461.691%20%2B%20All%20DLCs%20%2B%20Multiplayer%20%2B%20MULTi23)-DODI&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80",
+        "url": "magnet:?xt=urn:btih:fd03bdeeec0be9c45999e0b8803587daa297a10c&dn=Forza%20Horizon%206%20-%20Premium%20Edition%20(v461.691%20%2B%20All%20DLCs%20%2B%20Multiplayer%20%2B%20MULTi23)%20%5BDODI%20Repack%5D&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
         "size": "90.7 GB",
         "type": "magnet",
         "label": "Torrent Magnet DODI (Fonte 1: OpenTrackr)",
@@ -764,7 +764,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
       },
       {
         "id": "dl-dodi-2-forza-horizon-6-premium-edition-v461-691-all-dlcs-multiplayer-multi23",
-        "url": "magnet:?xt=urn:btih:jpx91zv0u7&dn=Forza%20Horizon%206%3A%20Premium%20Edition%20(v461.691%20%2B%20All%20DLCs%20%2B%20Multiplayer%20%2B%20MULTi23)-DODI-P2P&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
+        "url": "magnet:?xt=urn:btih:ff9047ed573e71970caab55b65769ef11d2802ff&dn=Forza%20Horizon%206%20-%20Premium%20Edition%20(v461.691%20%2B%20All%20DLCs%20%2B%20Multiplayer%20%2B%20MULTi23)%20%5BDODI%20Repack%5D&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
         "size": "90.7 GB",
         "type": "magnet",
         "label": "Torrent Magnet Secundário (Fonte 2: P2P Swarm)",
@@ -854,7 +854,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "downloadLinks": [
       {
         "id": "dl-dodi-1-007-first-light-deluxe-edition-v1-3-1-all-dlcs-multi14-fast-install",
-        "url": "magnet:?xt=urn:btih:i5k5uy31lra&dn=007%20First%20Light%3A%20Deluxe%20Edition%20(v1.3.1%20%2B%20All%20DLCs%20%2B%20MULTi14)%20(Fast%20Install)-DODI&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80",
+        "url": "magnet:?xt=urn:btih:a4e348b72da988d5da7c7ef11e8f28d7c0e48c2d&dn=007%20First%20Light%20-%20Deluxe%20Edition%20(v1.3.1%20%2B%20All%20DLCs%20%2B%20MULTi14)%20(Fast%20Install)%20%5BDODI%20Repack%5D&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
         "size": "16 GB",
         "type": "magnet",
         "label": "Torrent Magnet DODI (Fonte 1: OpenTrackr)",
@@ -866,7 +866,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
       },
       {
         "id": "dl-dodi-2-007-first-light-deluxe-edition-v1-3-1-all-dlcs-multi14-fast-install",
-        "url": "magnet:?xt=urn:btih:rlwuvciuz5h&dn=007%20First%20Light%3A%20Deluxe%20Edition%20(v1.3.1%20%2B%20All%20DLCs%20%2B%20MULTi14)%20(Fast%20Install)-DODI-P2P&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
+        "url": "magnet:?xt=urn:btih:d9476474bbeae7eed5280432020d3d4c83dbe7e6&dn=007%20First%20Light%20-%20Deluxe%20Edition%20(v1.3.1%20%2B%20All%20DLCs%20%2B%20MULTi14)%20(Fast%20Install)%20%5BDODI%20Repack%5D&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
         "size": "16 GB",
         "type": "magnet",
         "label": "Torrent Magnet Secundário (Fonte 2: P2P Swarm)",
@@ -956,7 +956,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "downloadLinks": [
       {
         "id": "dl-dodi-1-dead-space-remake-2023-digital-deluxe-edition",
-        "url": "magnet:?xt=urn:btih:db9pafyv9m4&dn=Dead%20Space%20Remake%20(2023)%20Digital%20Deluxe%20Edition-DODI&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80",
+        "url": "magnet:?xt=urn:btih:60d308d4802dcac2f266364a7c9cdb56ea48c5ba&dn=Dead%20Space%20Remake%20(2023)%20Digital%20Deluxe%20Edition%20%5BDODI%20Repack%5D&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
         "size": "23.3 GB",
         "type": "magnet",
         "label": "Torrent Magnet DODI (Fonte 1: OpenTrackr)",
@@ -968,7 +968,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
       },
       {
         "id": "dl-dodi-2-dead-space-remake-2023-digital-deluxe-edition",
-        "url": "magnet:?xt=urn:btih:gpzja7enep&dn=Dead%20Space%20Remake%20(2023)%20Digital%20Deluxe%20Edition-DODI-P2P&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
+        "url": "magnet:?xt=urn:btih:8848989702c99061e59bd069e06b266935034d79&dn=Dead%20Space%20Remake%20(2023)%20Digital%20Deluxe%20Edition%20%5BDODI%20Repack%5D&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
         "size": "23.3 GB",
         "type": "magnet",
         "label": "Torrent Magnet Secundário (Fonte 2: P2P Swarm)",
@@ -1058,7 +1058,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "downloadLinks": [
       {
         "id": "dl-fg-retrospace-deluxe-edition-build-6499-bonus-artbook",
-        "url": "magnet:?xt=urn:btih:9CF68DAAD31354BE09FE5BAF2D483B3A9E75AC81&#038;dn=RetroSpace%3A+Deluxe+Edition+%28Build+6499+%2B+Bonus+ArtBook%2C+MULTi9%29+%5BFitGirl+Repack%5D&#038;tr=udp%3A%2F%2Fopentor.net%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.qu.ax%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.fnix.net%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Fevan.im%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Fmartin-gebhardt.eu%3A25%2Fannounce&#038;tr=https%3A%2F%2Fshahidrazi.online%3A443%2Fannounce&#038;tr=http%3A%2F%2Fwegkxfcivgx.ydns.eu%3A80%2Fannounce&#038;tr=http%3A%2F%2Flucke.fenesisu.moe%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Fextracker.dahrkael.net%3A6969%2Fannounce&#038;tr=https%3A%2F%2Ftracker.alaskantf.com%3A443%2Fannounce&#038;tr=https%3A%2F%2Ftracker.qingwa.pro%3A443%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.playground.ru%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&#038;tr=http%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&#038;tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.internetwarriors.net%3A1337%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Fcoppersurfer.tk%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.zer0day.to%3A1337%2Fannounce",
+        "url": "magnet:?xt=urn:btih:01983625f3374def415486b3847a610d776dbc27&dn=RetroSpace%20-%20Deluxe%20Edition%20-%20Build%206499%20%2B%20Bonus%20ArtBook%20%5BFitGirl%20Repack%5D&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
         "size": "2.6 GB",
         "type": "magnet",
         "label": "Torrent Magnet Oficial FitGirl (Seeds Verificados)",
@@ -1150,7 +1150,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "downloadLinks": [
       {
         "id": "dl-fg-dinobones-tidy-up-the-museum",
-        "url": "magnet:?xt=urn:btih:B7F056286EDD8314D7F68C89FF6906B865ED9407&#038;dn=DinoBones%3A+Tidy+Up+the+Museum+%28v5.9.2%2C+MULTi11%29+%5BFitGirl+Repack%5D&#038;tr=udp%3A%2F%2Fopentor.net%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.qu.ax%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.fnix.net%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Fevan.im%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Fmartin-gebhardt.eu%3A25%2Fannounce&#038;tr=https%3A%2F%2Fshahidrazi.online%3A443%2Fannounce&#038;tr=http%3A%2F%2Fwegkxfcivgx.ydns.eu%3A80%2Fannounce&#038;tr=http%3A%2F%2Flucke.fenesisu.moe%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Fextracker.dahrkael.net%3A6969%2Fannounce&#038;tr=https%3A%2F%2Ftracker.alaskantf.com%3A443%2Fannounce&#038;tr=https%3A%2F%2Ftracker.qingwa.pro%3A443%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.playground.ru%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&#038;tr=http%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&#038;tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.internetwarriors.net%3A1337%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Fcoppersurfer.tk%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.zer0day.to%3A1337%2Fannounce",
+        "url": "magnet:?xt=urn:btih:82782628ec1d88a6ddac96e658984c3ed5daa60e&dn=DinoBones%20-%20Tidy%20Up%20the%20Museum%20%5BFitGirl%20Repack%5D&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
         "size": "807 MB",
         "type": "magnet",
         "label": "Torrent Magnet Oficial FitGirl (Seeds Verificados)",
@@ -1244,7 +1244,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "downloadLinks": [
       {
         "id": "dl-fg-false-hero",
-        "url": "magnet:?xt=urn:btih:8A87D50CDFFA65899D413E3F27C48AE3DFA135DD&#038;dn=False+Hero+%28v26.9.14%2C+MULTi12%29+%5BFitGirl+Repack%5D&#038;tr=udp%3A%2F%2Fopentor.net%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.qu.ax%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.fnix.net%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Fevan.im%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Fmartin-gebhardt.eu%3A25%2Fannounce&#038;tr=https%3A%2F%2Fshahidrazi.online%3A443%2Fannounce&#038;tr=http%3A%2F%2Fwegkxfcivgx.ydns.eu%3A80%2Fannounce&#038;tr=http%3A%2F%2Flucke.fenesisu.moe%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Fextracker.dahrkael.net%3A6969%2Fannounce&#038;tr=https%3A%2F%2Ftracker.alaskantf.com%3A443%2Fannounce&#038;tr=https%3A%2F%2Ftracker.qingwa.pro%3A443%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.playground.ru%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&#038;tr=http%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&#038;tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.internetwarriors.net%3A1337%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Fcoppersurfer.tk%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.zer0day.to%3A1337%2Fannounce",
+        "url": "magnet:?xt=urn:btih:bb929558443b31c226741b6ee8484c0810b010aa&dn=False%20Hero%20%5BFitGirl%20Repack%5D&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
         "size": "4.5 GB",
         "type": "magnet",
         "label": "Torrent Magnet Oficial FitGirl (Seeds Verificados)",
@@ -1338,7 +1338,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "downloadLinks": [
       {
         "id": "dl-fg-land-of-glarefall",
-        "url": "magnet:?xt=urn:btih:EA79E8178E492766D6F789B0A32A3CBF34E03291&#038;dn=Land+of+Glarefall+%28v1.0.1%2C+MULTi6%29+%5BFitGirl+Repack%2C+Selective+Download+-+from+1.9+GB%5D&#038;tr=udp%3A%2F%2Fopentor.net%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.qu.ax%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.fnix.net%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Fevan.im%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Fmartin-gebhardt.eu%3A25%2Fannounce&#038;tr=https%3A%2F%2Fshahidrazi.online%3A443%2Fannounce&#038;tr=http%3A%2F%2Fwegkxfcivgx.ydns.eu%3A80%2Fannounce&#038;tr=http%3A%2F%2Flucke.fenesisu.moe%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Fextracker.dahrkael.net%3A6969%2Fannounce&#038;tr=https%3A%2F%2Ftracker.alaskantf.com%3A443%2Fannounce&#038;tr=https%3A%2F%2Ftracker.qingwa.pro%3A443%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.playground.ru%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&#038;tr=http%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&#038;tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.internetwarriors.net%3A1337%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Fcoppersurfer.tk%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.zer0day.to%3A1337%2Fannounce",
+        "url": "magnet:?xt=urn:btih:125e2dd840a78aea9a9050de706319f45cac5e72&dn=Land%20of%20Glarefall%20%5BFitGirl%20Repack%5D&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
         "size": "2.1 GB",
         "type": "magnet",
         "label": "Torrent Magnet Oficial FitGirl (Seeds Verificados)",
@@ -1432,7 +1432,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "downloadLinks": [
       {
         "id": "dl-fg-gears-of-war-e-day",
-        "url": "magnet:?xt=urn:btih:05ADA45DB37EF9D8E8A2CB89B3BC5F07F1766E19&#038;dn=Gears+of+War%3A+E-Day+%28v4894958%2FRelease+%2B+7+DLCs%2A%2C+MULTi22%29+%5BFitGirl+Repack%2C+Selective+Download+-+from+78.3+GB%5D&#038;tr=udp%3A%2F%2Fopentor.net%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.qu.ax%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.fnix.net%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Fevan.im%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Fmartin-gebhardt.eu%3A25%2Fannounce&#038;tr=https%3A%2F%2Fshahidrazi.online%3A443%2Fannounce&#038;tr=http%3A%2F%2Fwegkxfcivgx.ydns.eu%3A80%2Fannounce&#038;tr=http%3A%2F%2Flucke.fenesisu.moe%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Fextracker.dahrkael.net%3A6969%2Fannounce&#038;tr=https%3A%2F%2Ftracker.alaskantf.com%3A443%2Fannounce&#038;tr=https%3A%2F%2Ftracker.qingwa.pro%3A443%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.playground.ru%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&#038;tr=http%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&#038;tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.internetwarriors.net%3A1337%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Fcoppersurfer.tk%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.zer0day.to%3A1337%2Fannounce",
+        "url": "magnet:?xt=urn:btih:d5bf08786441353a66c674bef85bb5b43bde8582&dn=Gears%20of%20War%20-%20E-Day%20%5BFitGirl%20Repack%5D&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
         "size": "78.3 GB",
         "type": "magnet",
         "label": "Torrent Magnet Oficial FitGirl (Seeds Verificados)",
@@ -1526,7 +1526,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "downloadLinks": [
       {
         "id": "dl-fg-mxgp-26-fox-holeshot-edition-2-dlcs",
-        "url": "magnet:?xt=urn:btih:A819F9041DD9FE0A847E2ECB420AD48013C53B5A&#038;dn=MXGP+26%3A+Fox+Holeshot+Edition+%28%2B+2+DLCs%2C+MULTi11%29+%5BFitGirl+Repack%5D&#038;tr=udp%3A%2F%2Fopentor.net%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.qu.ax%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.fnix.net%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Fevan.im%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Fmartin-gebhardt.eu%3A25%2Fannounce&#038;tr=https%3A%2F%2Fshahidrazi.online%3A443%2Fannounce&#038;tr=http%3A%2F%2Fwegkxfcivgx.ydns.eu%3A80%2Fannounce&#038;tr=http%3A%2F%2Flucke.fenesisu.moe%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Fextracker.dahrkael.net%3A6969%2Fannounce&#038;tr=https%3A%2F%2Ftracker.alaskantf.com%3A443%2Fannounce&#038;tr=https%3A%2F%2Ftracker.qingwa.pro%3A443%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.playground.ru%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&#038;tr=http%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&#038;tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.internetwarriors.net%3A1337%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Fcoppersurfer.tk%3A6969%2Fannounce&#038;tr=udp%3A%2F%2Ftracker.zer0day.to%3A1337%2Fannounce",
+        "url": "magnet:?xt=urn:btih:32d93c987687d8b21882a6bed9eb72508461ec9a&dn=MXGP%2026%20-%20Fox%20Holeshot%20Edition%20%2B%202%20DLCs%20%5BFitGirl%20Repack%5D&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
         "size": "12.7 GB",
         "type": "magnet",
         "label": "Torrent Magnet Oficial FitGirl (Seeds Verificados)",
@@ -1621,7 +1621,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "downloadLinks": [
       {
         "id": "dl-tlou-torrent",
-        "url": "magnet:?xt=urn:btih:6182910293847102938471029384710293847102&dn=The.Last.Of.Us.Part.I.v1.1.3-Tapochek",
+        "url": "magnet:?xt=urn:btih:a6a2ae6f08bfa9a9db5ade612d0774b185782b11&dn=The%20Last%20of%20Us%20Part%20I%20-%20Digital%20Deluxe%20%5BTheZukoStore%20%26%20Tapochek%20Tracker%5D&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce",
         "size": "68.5 GB",
         "type": "magnet",
         "label": "Torrent PC Original (Tracker Tapochek.net)",

@@ -1,5 +1,6 @@
 import { Game } from '../types';
 import { FITGIRL_PRESET_GAMES } from '../data/fitgirlCatalog';
+import { sanitizeMagnetLink } from '../utils/magnetUtils';
 
 export interface FitGirlFeedItem {
   title: string;
@@ -42,9 +43,8 @@ export function parseFitGirlRssXml(xmlText: string): Game[] {
 
       // Extract magnet link if present in description
       const magnetMatch = content.match(/href="(magnet:\?[^"]+)"/i);
-      const magnetUrl = magnetMatch 
-        ? magnetMatch[1] 
-        : `magnet:?xt=urn:btih:${Math.random().toString(36).substring(2, 15)}&dn=${encodeURIComponent(cleanTitle + '-FitGirl')}&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce`;
+      const rawMagnet = magnetMatch ? magnetMatch[1] : '';
+      const magnetUrl = sanitizeMagnetLink(rawMagnet, `${cleanTitle} [FitGirl Repack]`);
 
       // Extract direct mirror links from post, strictly avoiding fitgirl-repacks.site
       const rawMirrors = [...content.matchAll(/<a\s+[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)]

@@ -10,6 +10,7 @@ import {
   checkForNewFitGirlReleases 
 } from '../services/autoSyncService';
 import { fetchGamesFromSupabase, saveCloudSyncData, getCloudSyncData } from '../services/supabaseClient';
+import { sanitizeMagnetLink } from '../utils/magnetUtils';
 
 interface GameContextType {
   games: Game[];
@@ -123,10 +124,22 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return baseList.map(g => {
       const realVote = userVotesMap[g.id];
-      if (realVote) {
-        return { ...g, rating: realVote, totalVotes: 1 };
-      }
-      return { ...g, rating: 0, totalVotes: 0 };
+      const sanitizedLinks = (g.downloadLinks || []).map(dl => {
+        if (dl.url && (dl.type === 'magnet' || dl.url.startsWith('magnet:?'))) {
+          return {
+            ...dl,
+            url: sanitizeMagnetLink(dl.url, `${g.title} [${g.repackInfo?.repacker || 'Vortex'}]`)
+          };
+        }
+        return dl;
+      });
+
+      return {
+        ...g,
+        downloadLinks: sanitizedLinks,
+        rating: realVote ? realVote : 0,
+        totalVotes: realVote ? 1 : 0
+      };
     });
   });
 
@@ -610,8 +623,35 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const incrementDownload = (gameId: string) => {
     setGames(prev =>
-      prev.map(g => (g.id === gameId ? { ...g, downloadsCount: g.downloadsCount + 1 } : g))
+      prev.map(g => (g.id === gameId ? { ...g, downloadsCount: (g.downloadsCount || 0) + 1 } : g))
     );
+
+    // Registra o download no perfil do usuário
+    setUserProfile(prev => {
+      const updated = {
+        ...prev,
+        totalDownloads: (prev.totalDownloads || 0) + 1
+      };
+      localStorage.setItem('vortex_user_profile', JSON.stringify(updated));
+      return updated;
+    });
+
+    // Registra o jogo na biblioteca do usuário
+    setLibrary(prev => {
+      const existing = prev.find(e => e.gameId === gameId);
+      if (existing) {
+        return prev.map(e => (e.gameId === gameId ? { ...e, downloadCount: (e.downloadCount || 0) + 1 } : e));
+      }
+      return [...prev, { gameId, status: 'downloaded', downloadCount: 1, addedAt: new Date().toISOString() }];
+    });
+
+    try {
+      const downloadedIds: string[] = JSON.parse(localStorage.getItem('vortex_downloaded_ids') || '[]');
+      if (!downloadedIds.includes(gameId)) {
+        downloadedIds.push(gameId);
+        localStorage.setItem('vortex_downloaded_ids', JSON.stringify(downloadedIds));
+      }
+    } catch {}
   };
 
   const getUserVote = (gameId: string): number | null => {
@@ -663,10 +703,25 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       })
     );
 
-    // Also update in library if exists
-    setLibrary(prev =>
-      prev.map(entry => (entry.gameId === gameId ? { ...entry, userRating: score } : entry))
-    );
+    // Update reviewsCount in userProfile
+    const totalVotesCount = Object.keys(currentVotesMap).length;
+    setUserProfile(prev => {
+      const updated = {
+        ...prev,
+        reviewsCount: totalVotesCount
+      };
+      localStorage.setItem('vortex_user_profile', JSON.stringify(updated));
+      return updated;
+    });
+
+    // Also update in library if exists, or add with userRating
+    setLibrary(prev => {
+      const existing = prev.find(e => e.gameId === gameId);
+      if (existing) {
+        return prev.map(entry => (entry.gameId === gameId ? { ...entry, userRating: score } : entry));
+      }
+      return [...prev, { gameId, status: 'wishlist', userRating: score, addedAt: new Date().toISOString() }];
+    });
   };
 
   // Comments management

@@ -123,6 +123,7 @@ export interface UserProfile {
   preferredPlatform: 'PC' | 'PS4' | 'PS5' | 'Emulador';
   favoriteGenre: string;
   totalDownloads: number;
+  reviewsCount?: number;
   email?: string;
 }
 
