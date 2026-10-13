@@ -76,6 +76,7 @@ const FITGIRL_DYNAMIC_FEED_POOL: Array<Omit<Game, 'id' | 'createdAt'>> = [
       }
     },
     rating: 4.8,
+    imdbRating: 8.6,
     totalVotes: 890,
     screenshots: [
       'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1200&q=80',
@@ -142,6 +143,7 @@ const FITGIRL_DYNAMIC_FEED_POOL: Array<Omit<Game, 'id' | 'createdAt'>> = [
       }
     },
     rating: 4.6,
+    imdbRating: 8.7,
     totalVotes: 640,
     screenshots: [
       'https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=1200&q=80',

@@ -287,6 +287,7 @@ export const INITIAL_GAMES: Game[] = [
         directx: 'Versão 12'
       }
     },
+    imdbRating: 9.5,
     rating: 0,
     totalVotes: 0,
     screenshots: [
@@ -363,6 +364,7 @@ export const INITIAL_GAMES: Game[] = [
         directx: 'Versão 12'
       }
     },
+    imdbRating: 8.9,
     rating: 0,
     totalVotes: 0,
     screenshots: [
@@ -438,6 +440,7 @@ export const INITIAL_GAMES: Game[] = [
         directx: 'Versão 11'
       }
     },
+    imdbRating: 9.6,
     rating: 0,
     totalVotes: 0,
     screenshots: [
@@ -547,6 +550,7 @@ export const INITIAL_GAMES: Game[] = [
         directx: 'Versão 12'
       }
     },
+    imdbRating: 9.4,
     rating: 0,
     totalVotes: 0,
     screenshots: [
@@ -629,6 +633,7 @@ export const INITIAL_GAMES: Game[] = [
         directx: 'Versão 12'
       }
     },
+    imdbRating: 9.8,
     rating: 0,
     totalVotes: 0,
     screenshots: [
@@ -705,6 +710,7 @@ export const INITIAL_GAMES: Game[] = [
         directx: 'Versão 12'
       }
     },
+    imdbRating: 9.3,
     rating: 0,
     totalVotes: 0,
     screenshots: [
@@ -772,6 +778,7 @@ export const INITIAL_GAMES: Game[] = [
         directx: 'Versão 12'
       }
     },
+    imdbRating: 9,
     rating: 0,
     totalVotes: 0,
     screenshots: [
@@ -847,6 +854,7 @@ export const INITIAL_GAMES: Game[] = [
         directx: 'Versão 11'
       }
     },
+    imdbRating: 9.4,
     rating: 0,
     totalVotes: 0,
     screenshots: [

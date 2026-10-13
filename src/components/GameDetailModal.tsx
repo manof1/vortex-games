@@ -32,6 +32,7 @@ import { Game, LibraryStatus } from '../types';
 import { useGame } from '../context/GameContext';
 import { TorrentHealthBadge } from './TorrentHealthBadge';
 import { sanitizeMagnetLink } from '../utils/magnetUtils';
+import { getImdbRating } from '../utils/ratingUtils';
 
 interface GameDetailModalProps {
   game: Game;
@@ -283,7 +284,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                       IMDb
                     </span>
                     <span className="text-xl font-black text-amber-300 font-mono">
-                      {(game.imdbRating || 8.8).toFixed(1)}
+                      {getImdbRating(game).toFixed(1)}
                     </span>
                     <span className="text-[10px] text-slate-400 font-normal">/ 10</span>
                   </div>

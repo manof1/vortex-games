@@ -1,5 +1,6 @@
 import { Game } from '../types';
 import { sanitizeMagnetLink } from '../utils/magnetUtils';
+import { getImdbRating } from '../utils/ratingUtils';
 
 /**
  * Service to parse DODI Repacks RSS feed (https://dodi-repacks.site/feed/)
@@ -164,6 +165,7 @@ export function parseDodiRssXml(xmlText: string): Game[] {
         ],
         systemRequirements,
         rating: 4.9,
+        imdbRating: getImdbRating({ title: cleanTitle }),
         totalVotes: 410,
         screenshots,
         trailerYoutubeId: 'RgtDGb5v03Y',

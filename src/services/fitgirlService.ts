@@ -1,6 +1,7 @@
 import { Game } from '../types';
 import { FITGIRL_PRESET_GAMES } from '../data/fitgirlCatalog';
 import { sanitizeMagnetLink } from '../utils/magnetUtils';
+import { getImdbRating } from '../utils/ratingUtils';
 
 export interface FitGirlFeedItem {
   title: string;
@@ -187,6 +188,7 @@ export function parseFitGirlRssXml(xmlText: string): Game[] {
         ],
         systemRequirements,
         rating: 4.8,
+        imdbRating: getImdbRating({ title: cleanTitle }),
         totalVotes: 320,
         screenshots,
         trailerYoutubeId: 'dQw4w9WgXcQ',

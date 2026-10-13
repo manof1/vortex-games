@@ -101,7 +101,8 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "viewsCount": 38000,
     "isFeatured": true,
     "isTrending": true,
-    "createdAt": "2026-10-08T12:20:35.274201+00:00"
+    "createdAt": "2026-10-08T12:20:35.274201+00:00",
+    "imdbRating": 9.6
   },
   {
     "id": "dodi-dead-island-2-ultimate-edition-update-v7-0-0-",
@@ -203,7 +204,8 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "viewsCount": 38000,
     "isFeatured": true,
     "isTrending": true,
-    "createdAt": "2026-10-08T12:20:35.023391+00:00"
+    "createdAt": "2026-10-08T12:20:35.023391+00:00",
+    "imdbRating": 7.5
   },
   {
     "id": "dodi-stronghold-crusader-definitive-edition-v2-8-2",
@@ -305,7 +307,8 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "viewsCount": 38000,
     "isFeatured": true,
     "isTrending": true,
-    "createdAt": "2026-10-08T12:20:34.907564+00:00"
+    "createdAt": "2026-10-08T12:20:34.907564+00:00",
+    "imdbRating": 8.3
   },
   {
     "id": "dodi-halloween-the-game-deluxe-edition-v1-0-3-7139",
@@ -407,7 +410,8 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "viewsCount": 38000,
     "isFeatured": true,
     "isTrending": true,
-    "createdAt": "2026-10-08T12:20:34.783716+00:00"
+    "createdAt": "2026-10-08T12:20:34.783716+00:00",
+    "imdbRating": 7.2
   },
   {
     "id": "dodi-beast-of-reincarnation-deluxe-edition-v1-1-0-",
@@ -509,7 +513,8 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "viewsCount": 38000,
     "isFeatured": true,
     "isTrending": true,
-    "createdAt": "2026-10-08T12:20:34.669811+00:00"
+    "createdAt": "2026-10-08T12:20:34.669811+00:00",
+    "imdbRating": 8.1
   },
   {
     "id": "dodi-resonance-a-plague-tale-legacy-v1-3-0-0-herit",
@@ -611,7 +616,8 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "viewsCount": 38000,
     "isFeatured": true,
     "isTrending": true,
-    "createdAt": "2026-10-08T12:20:34.370952+00:00"
+    "createdAt": "2026-10-08T12:20:34.370952+00:00",
+    "imdbRating": 8.6
   },
   {
     "id": "dodi-gears-of-war-e-day-v4894958-build-25724756-al",
@@ -713,7 +719,8 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "viewsCount": 38000,
     "isFeatured": true,
     "isTrending": true,
-    "createdAt": "2026-10-08T12:20:34.118283+00:00"
+    "createdAt": "2026-10-08T12:20:34.118283+00:00",
+    "imdbRating": 8.7
   },
   {
     "id": "dodi-forza-horizon-6-premium-edition-v461-691-all-",
@@ -815,7 +822,8 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "viewsCount": 38000,
     "isFeatured": true,
     "isTrending": true,
-    "createdAt": "2026-10-08T12:20:33.991923+00:00"
+    "createdAt": "2026-10-08T12:20:33.991923+00:00",
+    "imdbRating": 9.2
   },
   {
     "id": "dodi-007-first-light-deluxe-edition-v1-3-1-all-dlc",
@@ -917,7 +925,8 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "viewsCount": 38000,
     "isFeatured": true,
     "isTrending": true,
-    "createdAt": "2026-10-08T12:20:33.740234+00:00"
+    "createdAt": "2026-10-08T12:20:33.740234+00:00",
+    "imdbRating": 8.4
   },
   {
     "id": "dodi-dead-space-remake-2023-digital-deluxe-edition",
@@ -1019,7 +1028,8 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "viewsCount": 38000,
     "isFeatured": true,
     "isTrending": true,
-    "createdAt": "2026-10-08T12:20:33.343404+00:00"
+    "createdAt": "2026-10-08T12:20:33.343404+00:00",
+    "imdbRating": 9
   },
   {
     "id": "fg-retrospace-deluxe-edition-build-6499-bonus-ar",
@@ -1111,7 +1121,8 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "viewsCount": 5100,
     "isFeatured": true,
     "isTrending": true,
-    "createdAt": "2026-10-07T20:24:52.958851+00:00"
+    "createdAt": "2026-10-07T20:24:52.958851+00:00",
+    "imdbRating": 7.8
   },
   {
     "id": "fg-dinobones-tidy-up-the-museum",
@@ -1205,7 +1216,8 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "viewsCount": 5100,
     "isFeatured": true,
     "isTrending": true,
-    "createdAt": "2026-10-07T20:24:52.859713+00:00"
+    "createdAt": "2026-10-07T20:24:52.859713+00:00",
+    "imdbRating": 7.2
   },
   {
     "id": "fg-false-hero",
@@ -1299,7 +1311,8 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "viewsCount": 5100,
     "isFeatured": true,
     "isTrending": true,
-    "createdAt": "2026-10-07T20:24:52.495357+00:00"
+    "createdAt": "2026-10-07T20:24:52.495357+00:00",
+    "imdbRating": 7.4
   },
   {
     "id": "fg-land-of-glarefall",
@@ -1393,7 +1406,8 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "viewsCount": 5100,
     "isFeatured": true,
     "isTrending": true,
-    "createdAt": "2026-10-07T20:24:52.369658+00:00"
+    "createdAt": "2026-10-07T20:24:52.369658+00:00",
+    "imdbRating": 7.6
   },
   {
     "id": "fg-gears-of-war-e-day",
@@ -1487,7 +1501,8 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "viewsCount": 5100,
     "isFeatured": true,
     "isTrending": true,
-    "createdAt": "2026-10-07T20:24:52.23965+00:00"
+    "createdAt": "2026-10-07T20:24:52.23965+00:00",
+    "imdbRating": 8.7
   },
   {
     "id": "fg-mxgp-26-fox-holeshot-edition-2-dlcs",
@@ -1581,7 +1596,8 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "viewsCount": 5100,
     "isFeatured": true,
     "isTrending": true,
-    "createdAt": "2026-10-07T20:24:52.10263+00:00"
+    "createdAt": "2026-10-07T20:24:52.10263+00:00",
+    "imdbRating": 7.5
   },
   {
     "id": "tlou-part-1-deluxe",
@@ -1688,6 +1704,7 @@ export const SUPABASE_SYNCED_GAMES: Game[] = [
     "viewsCount": 4800,
     "isFeatured": true,
     "isTrending": true,
-    "createdAt": "2026-10-07T19:56:57.009378+00:00"
+    "createdAt": "2026-10-07T19:56:57.009378+00:00",
+    "imdbRating": 9.7
   }
 ];

@@ -1,5 +1,6 @@
 import { IgdbSearchResult, Game } from '../types';
 import { sanitizeMagnetLink } from '../utils/magnetUtils';
+import { getImdbRating } from '../utils/ratingUtils';
 
 // Curated comprehensive database for instant online lookup simulation & fallback
 const POPULAR_GAMES_DATABASE: IgdbSearchResult[] = [
@@ -276,6 +277,7 @@ export function convertIgdbResultToGame(
       }
     },
     rating: result.rating || 4.8,
+    imdbRating: getImdbRating({ title: result.name }),
     totalVotes: 120,
     screenshots: result.screenshots,
     trailerYoutubeId: 'dQw4w9WgXcQ',

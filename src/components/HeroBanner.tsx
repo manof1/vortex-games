@@ -16,6 +16,7 @@ import { useGame } from '../context/GameContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Game } from '../types';
 import { sanitizeMagnetLink } from '../utils/magnetUtils';
+import { getImdbRating } from '../utils/ratingUtils';
 
 export const HeroBanner: React.FC = () => {
   const { games, setActiveGame, incrementDownload, isLoggedIn, setIsAuthModalOpen } = useGame();
@@ -183,7 +184,7 @@ export const HeroBanner: React.FC = () => {
             {/* IMDb / Rating */}
             <div className="flex items-center gap-1.5 bg-slate-950/80 px-2.5 py-1 rounded-lg border border-amber-500/40 text-amber-300 font-bold shadow-sm" title="Nota IMDb (Crítica & Base de Dados Externa)">
               <span className="bg-amber-400 text-slate-950 text-[10px] font-black px-1.5 py-0.2 rounded uppercase">IMDb</span>
-              <span className="text-sm font-black font-mono">{(current.imdbRating || 8.8).toFixed(1)}</span>
+              <span className="text-sm font-black font-mono">{getImdbRating(current).toFixed(1)}</span>
               <span className="text-slate-400 text-[10px]">/ 10</span>
             </div>
 
