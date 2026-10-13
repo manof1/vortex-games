@@ -12,6 +12,7 @@ import { Game } from '../types';
 import { useGame } from '../context/GameContext';
 import { useLanguage } from '../context/LanguageContext';
 import { sanitizeMagnetLink } from '../utils/magnetUtils';
+import { getCriticScores, getMetacriticBadgeColor, getOpenCriticTierColor } from '../utils/ratingUtils';
 
 interface GameCardProps {
   game: Game;
@@ -28,6 +29,10 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
     setIsAuthModalOpen 
   } = useGame();
   const { t } = useLanguage();
+  
+  const critic = getCriticScores(game);
+  const metaBadge = getMetacriticBadgeColor(critic.metacritic);
+  const openBadge = getOpenCriticTierColor(critic.opencriticTier);
   
   const libraryStatus = isInLibrary(game.id);
 
@@ -145,23 +150,46 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
           {libraryStatus ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <Bookmark className="w-3.5 h-3.5" />}
         </button>
 
-        {/* Bottom image overlay: Rating & Size */}
+        {/* Bottom image overlay: Critic Rating (Metascore & OpenCritic) & Size */}
         <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between text-xs text-white z-10 pointer-events-none">
-          {/* Real User Rating or Trending */}
-          {game.rating > 0 ? (
-            <div className="flex items-center gap-1 bg-slate-950/80 px-2 py-0.5 rounded-lg border border-amber-500/30 backdrop-blur-md text-amber-400 font-bold">
-              <Star className="w-3 h-3 fill-amber-400" />
-              <span>{game.rating.toFixed(1)}</span>
+          {/* Critic Scores Badges: Metacritic + OpenCritic */}
+          <div className="flex items-center gap-1.5 max-w-[70%]">
+            {/* Metacritic Metascore - Always visible directly on game cover */}
+            <div 
+              className="flex items-center gap-1 bg-slate-950/90 px-1.5 py-0.5 rounded-lg border border-slate-700/80 backdrop-blur-md shadow-lg"
+              title={`Metascore Oficial: ${critic.metacritic}/100 (${critic.metacriticVerdict})\nOpenCritic: ${critic.opencritic}/100 (${critic.opencriticTier})\nGameFAQs: ${critic.gamefaqs}/5.0`}
+            >
+              <span className={`w-4 h-4 rounded flex items-center justify-center text-[10px] font-black font-mono leading-none shadow-sm ${metaBadge.bg} ${metaBadge.text}`}>
+                {critic.metacritic}
+              </span>
+              <span className="text-[10px] font-bold text-slate-200 tracking-tight">
+                Meta
+              </span>
             </div>
-          ) : (
-            <div className="flex items-center gap-1 bg-slate-950/80 px-2 py-0.5 rounded-lg border border-cyan-500/30 backdrop-blur-md text-cyan-400 font-bold text-[10px]">
-              <Sparkles className="w-2.5 h-2.5" />
-              <span>Novo</span>
+
+            {/* OpenCritic Badge */}
+            <div 
+              className={`hidden sm:flex items-center gap-1 px-1.5 py-0.5 rounded-lg border backdrop-blur-md text-[10px] font-bold shadow-md bg-slate-950/90 ${openBadge.border} ${openBadge.text}`}
+              title={`OpenCritic: ${critic.opencritic}/100 (Classificação: ${critic.opencriticTier})`}
+            >
+              <span className="text-[9px] text-slate-400 font-normal">OC</span>
+              <span className="font-mono">{critic.opencritic}</span>
             </div>
-          )}
+
+            {/* Real User Rating if available */}
+            {game.rating > 0 && (
+              <div 
+                className="flex items-center gap-1 bg-slate-950/85 px-1.5 py-0.5 rounded-lg border border-amber-500/30 backdrop-blur-md text-amber-400 font-bold text-[10px]"
+                title={`Avaliação dos Usuários Vortex: ${game.rating.toFixed(1)}/5.0 (${game.totalVotes} votos)`}
+              >
+                <Star className="w-2.5 h-2.5 fill-amber-400" />
+                <span>{game.rating.toFixed(1)}</span>
+              </div>
+            )}
+          </div>
 
           {/* Repack Size */}
-          <div className="flex items-center gap-1 bg-slate-950/80 px-2 py-0.5 rounded-lg border border-white/10 backdrop-blur-md text-slate-200 font-mono text-[11px]">
+          <div className="flex items-center gap-1 bg-slate-950/90 px-2 py-0.5 rounded-lg border border-white/10 backdrop-blur-md text-slate-200 font-mono text-[11px] shrink-0">
             <HardDrive className="w-3 h-3 text-cyan-400" />
             <span>{game.repackInfo.repackSize}</span>
           </div>

@@ -63,6 +63,20 @@ export interface Comment {
   replies?: CommentReply[];
 }
 
+export interface CriticReviewData {
+  metacritic: number; // 0 to 100
+  metacriticUser: number; // 0.0 to 10.0
+  metacriticVerdict: string;
+  opencritic: number; // 0 to 100
+  opencriticTier: 'Mighty' | 'Strong' | 'Fair' | 'Weak';
+  opencriticRecommendPercent: number; // 0 to 100
+  gamefaqs: number; // 0.0 to 5.0
+  gamefaqsVotesCount: number;
+  metacriticUrl: string;
+  opencriticUrl: string;
+  gamefaqsUrl: string;
+}
+
 export interface Game {
   id: string;
   title: string;
@@ -82,7 +96,8 @@ export interface Game {
   systemRequirements: SystemRequirements;
   rating: number; // 0 to 5 (avaliação dos usuários)
   totalVotes: number;
-  imdbRating?: number; // 0 to 10 (nota IMDb / Metacritic)
+  imdbRating?: number; // 0 to 10 (legado)
+  criticScores?: CriticReviewData; // Metacritic, OpenCritic, GameFAQs
   screenshots: string[];
   trailerYoutubeId?: string;
   tags: string[];

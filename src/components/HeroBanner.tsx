@@ -10,13 +10,14 @@ import {
   ChevronLeft,
   ChevronRight,
   Bot,
-  Lock
+  Lock,
+  ExternalLink
 } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Game } from '../types';
 import { sanitizeMagnetLink } from '../utils/magnetUtils';
-import { getImdbRating } from '../utils/ratingUtils';
+import { getCriticScores, getMetacriticBadgeColor, getOpenCriticTierColor } from '../utils/ratingUtils';
 
 export const HeroBanner: React.FC = () => {
   const { games, setActiveGame, incrementDownload, isLoggedIn, setIsAuthModalOpen } = useGame();
@@ -63,6 +64,9 @@ export const HeroBanner: React.FC = () => {
   if (spotlightGames.length === 0) return null;
 
   const current = spotlightGames[currentIndex] || spotlightGames[0];
+  const heroCritic = getCriticScores(current);
+  const heroMetaBadge = getMetacriticBadgeColor(heroCritic.metacritic);
+  const heroOpenBadge = getOpenCriticTierColor(heroCritic.opencriticTier);
 
   const handlePrev = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -181,12 +185,48 @@ export const HeroBanner: React.FC = () => {
 
           {/* Metadata chips */}
           <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-slate-300 py-1">
-            {/* IMDb / Rating */}
-            <div className="flex items-center gap-1.5 bg-slate-950/80 px-2.5 py-1 rounded-lg border border-amber-500/40 text-amber-300 font-bold shadow-sm" title="Nota IMDb (Crítica & Base de Dados Externa)">
-              <span className="bg-amber-400 text-slate-950 text-[10px] font-black px-1.5 py-0.2 rounded uppercase">IMDb</span>
-              <span className="text-sm font-black font-mono">{getImdbRating(current).toFixed(1)}</span>
-              <span className="text-slate-400 text-[10px]">/ 10</span>
-            </div>
+            {/* Metacritic Official Metascore */}
+            <a 
+              href={heroCritic.metacriticUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 bg-slate-950/90 px-2.5 py-1 rounded-lg border border-slate-700/80 hover:border-emerald-500/80 text-white font-bold shadow-md transition-all group/meta"
+              title={`Metascore Oficial: ${heroCritic.metacritic}/100 (${heroCritic.metacriticVerdict}) • Clique para ver críticas no Metacritic`}
+            >
+              <span className={`w-5 h-5 rounded flex items-center justify-center text-xs font-black font-mono shadow-sm ${heroMetaBadge.bg} ${heroMetaBadge.text}`}>
+                {heroCritic.metacritic}
+              </span>
+              <span className="text-xs text-slate-200">Metacritic</span>
+              <ExternalLink className="w-2.5 h-2.5 text-slate-400 group-hover/meta:text-emerald-400" />
+            </a>
+
+            {/* OpenCritic Score */}
+            <a 
+              href={heroCritic.opencriticUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`flex items-center gap-1.5 bg-slate-950/90 px-2.5 py-1 rounded-lg border hover:border-cyan-400/80 transition-all font-bold shadow-md group/oc ${heroOpenBadge.border}`}
+              title={`OpenCritic: ${heroCritic.opencritic}/100 (${heroCritic.opencriticTier}) • ${heroCritic.opencriticRecommendPercent}% Recomendam • Ver no OpenCritic`}
+            >
+              <span className="text-[10px] text-slate-400 uppercase font-bold">OpenCritic</span>
+              <span className={`text-xs font-mono font-black ${heroOpenBadge.text}`}>{heroCritic.opencritic}</span>
+              <span className="text-[10px] px-1 py-0.2 rounded bg-slate-800 text-slate-300 font-normal">{heroCritic.opencriticTier}</span>
+              <ExternalLink className="w-2.5 h-2.5 text-slate-400 group-hover/oc:text-cyan-400" />
+            </a>
+
+            {/* GameFAQs Score */}
+            <a 
+              href={heroCritic.gamefaqsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden md:flex items-center gap-1.5 bg-slate-950/90 px-2.5 py-1 rounded-lg border border-slate-800 hover:border-amber-400/60 transition-all font-bold text-xs text-slate-300 group/faqs"
+              title={`GameFAQs / GameSpot: ${heroCritic.gamefaqs}/5.0 (${heroCritic.gamefaqsVotesCount.toLocaleString()} avaliações registradas)`}
+            >
+              <span className="text-amber-400 font-mono font-black">{heroCritic.gamefaqs}</span>
+              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+              <span className="text-[11px] text-slate-400 font-normal">GameFAQs</span>
+              <ExternalLink className="w-2.5 h-2.5 text-slate-400 group-hover/faqs:text-amber-400" />
+            </a>
 
             {/* User Rating - Apenas Votos Reais */}
             {current.totalVotes > 0 ? (

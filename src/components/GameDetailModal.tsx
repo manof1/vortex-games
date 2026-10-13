@@ -32,7 +32,7 @@ import { Game, LibraryStatus } from '../types';
 import { useGame } from '../context/GameContext';
 import { TorrentHealthBadge } from './TorrentHealthBadge';
 import { sanitizeMagnetLink } from '../utils/magnetUtils';
-import { getImdbRating } from '../utils/ratingUtils';
+import { getCriticScores, getMetacriticBadgeColor, getOpenCriticTierColor } from '../utils/ratingUtils';
 
 interface GameDetailModalProps {
   game: Game;
@@ -67,7 +67,9 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
   const [copiedMagnet, setCopiedMagnet] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   
-  // Safe System Requirements computation
+  const critic = getCriticScores(game);
+  const metaBadge = getMetacriticBadgeColor(critic.metacritic);
+  const openBadge = getOpenCriticTierColor(critic.opencriticTier);
   const minSpecs = (game.systemRequirements?.minimum?.processor) ? game.systemRequirements.minimum : {
     os: 'Windows 10 64-bit (Build 1909 ou superior)',
     processor: 'Intel Core i5-8400 ou AMD Ryzen 5 2600',
@@ -273,59 +275,123 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
               </div>
             </div>
 
-            {/* Dual Rating Badges: IMDb & User Rating (Votos Reais) */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-slate-950/85 backdrop-blur-md p-3.5 rounded-2xl border border-slate-800 self-stretch sm:self-auto shadow-xl">
+            {/* Gaming Critic Scores & Community Rating Panel */}
+            <div className="flex flex-col gap-3 bg-slate-950/90 backdrop-blur-md p-4 rounded-2xl border border-slate-800 self-stretch sm:self-auto shadow-2xl">
               
-              {/* IMDb Rating */}
-              <div className="flex items-center gap-2 pr-0 sm:pr-3 border-b sm:border-b-0 sm:border-r border-slate-800 pb-2.5 sm:pb-0">
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-1.5">
-                    <span className="bg-amber-400 text-slate-950 text-[10px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider shadow-sm">
-                      IMDb
-                    </span>
-                    <span className="text-xl font-black text-amber-300 font-mono">
-                      {getImdbRating(game).toFixed(1)}
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-normal">/ 10</span>
-                  </div>
-                  <span className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider">
-                    Crítica Externa
-                  </span>
-                </div>
+              {/* Header: Avaliações da Crítica Gamer */}
+              <div className="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
+                <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  Crítica Especializada Gamer
+                </span>
+                <span className="text-[10px] text-slate-500 font-medium">Fontes Oficiais Verificadas</span>
               </div>
 
-              {/* User Community Rating - Baseado 100% em Votos Reais */}
-              <div className="flex items-center justify-between sm:justify-start gap-3">
-                <div>
+              {/* 3 Critic Platform Badges */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                
+                {/* 1. Metacritic */}
+                <a 
+                  href={critic.metacriticUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-emerald-500/60 transition-all group/meta cursor-pointer"
+                  title="Abrir página oficial do jogo no Metacritic"
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[10px] font-black tracking-wider text-slate-400 uppercase">Metacritic</span>
+                    <ExternalLink className="w-3 h-3 text-slate-500 group-hover/meta:text-emerald-400 transition-colors" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black font-mono shadow-md ${metaBadge.bg} ${metaBadge.text}`}>
+                      {critic.metacritic}
+                    </span>
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-white leading-tight">Metascore</span>
+                      <span className="text-[10px] text-slate-400">{critic.metacriticVerdict}</span>
+                    </div>
+                  </div>
+                  <div className="mt-2 pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400">
+                    <span>User Score</span>
+                    <span className="font-bold text-amber-400 font-mono">{critic.metacriticUser} / 10</span>
+                  </div>
+                </a>
+
+                {/* 2. OpenCritic */}
+                <a 
+                  href={critic.opencriticUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-cyan-500/60 transition-all group/oc cursor-pointer"
+                  title="Abrir busca e avaliações no OpenCritic"
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[10px] font-black tracking-wider text-slate-400 uppercase">OpenCritic</span>
+                    <ExternalLink className="w-3 h-3 text-slate-500 group-hover/oc:text-cyan-400 transition-colors" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className={`px-2 py-1 rounded-lg border flex items-center justify-center font-mono font-black text-sm ${openBadge.border} ${openBadge.bg} ${openBadge.text}`}>
+                      {critic.opencritic}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-white leading-tight">Top Critic Avg</span>
+                      <span className={`text-[10px] font-semibold ${openBadge.text}`}>{critic.opencriticTier}</span>
+                    </div>
+                  </div>
+                  <div className="mt-2 pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400">
+                    <span>Recomendação</span>
+                    <span className="font-bold text-cyan-400 font-mono">{critic.opencriticRecommendPercent}%</span>
+                  </div>
+                </a>
+
+                {/* 3. GameFAQs / GameSpot */}
+                <a 
+                  href={critic.gamefaqsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-amber-500/60 transition-all group/faqs cursor-pointer"
+                  title="Abrir guia e notas no GameFAQs / GameSpot"
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[10px] font-black tracking-wider text-slate-400 uppercase">GameFAQs</span>
+                    <ExternalLink className="w-3 h-3 text-slate-500 group-hover/faqs:text-amber-400 transition-colors" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                      <Star className="w-4 h-4 fill-amber-400" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-white leading-tight font-mono">{critic.gamefaqs} <span className="text-[10px] text-slate-400 font-normal">/ 5.0</span></span>
+                      <span className="text-[10px] text-slate-400">Comunidade</span>
+                    </div>
+                  </div>
+                  <div className="mt-2 pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400">
+                    <span>Avaliações</span>
+                    <span className="font-bold text-slate-300 font-mono">{critic.gamefaqsVotesCount.toLocaleString()}</span>
+                  </div>
+                </a>
+
+              </div>
+
+              {/* Vortex Games Community Rating Strip */}
+              <div className="pt-2.5 border-t border-slate-800/80 flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">Comunidade Vortex:</span>
                   {game.totalVotes > 0 ? (
-                    <>
-                      <div className="flex items-center gap-1 text-amber-400">
-                        <Star className="w-4 h-4 fill-amber-400" />
-                        <span className="text-xl font-black text-white">{game.rating.toFixed(1)}</span>
-                        <span className="text-xs text-slate-400 font-normal">/ 5.0</span>
-                      </div>
-                      <p className="text-[10px] text-slate-400">
-                        {game.totalVotes} {game.totalVotes === 1 ? 'voto real' : 'votos reais'} da comunidade
-                      </p>
-                    </>
+                    <div className="flex items-center gap-1.5 text-amber-400">
+                      <Star className="w-3.5 h-3.5 fill-amber-400" />
+                      <span className="text-sm font-bold text-white">{game.rating.toFixed(1)}</span>
+                      <span className="text-[11px] text-slate-400">({game.totalVotes} {game.totalVotes === 1 ? 'voto real' : 'votos reais'})</span>
+                    </div>
                   ) : (
-                    <>
-                      <div className="flex items-center gap-1 text-slate-400">
-                        <Star className="w-4 h-4 text-slate-600" />
-                        <span className="text-sm font-bold text-slate-300">Sem avaliações</span>
-                      </div>
-                      <p className="text-[10px] text-cyan-400 font-semibold">
-                        Nenhum voto ainda
-                      </p>
-                    </>
+                    <span className="text-xs text-slate-500">Sem avaliações ainda</span>
                   )}
                 </div>
 
-                {/* User rating button trigger */}
                 {getUserVote(game.id) ? (
-                  <div className="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/10 text-amber-300 border border-amber-500/30 flex items-center gap-1">
-                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                    <span>Seu voto: {getUserVote(game.id)}.0</span>
+                  <div className="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-500/10 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                    <Star className="w-3 h-3 fill-amber-400" />
+                    <span>Sua nota: {getUserVote(game.id)}.0</span>
                   </div>
                 ) : (
                   <button
@@ -333,9 +399,9 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                       const element = document.getElementById('avaliar-secao');
                       element?.scrollIntoView({ behavior: 'smooth' });
                     }}
-                    className="px-3 py-1.5 rounded-xl text-xs font-bold bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500 hover:text-slate-950 border border-cyan-500/30 transition-all cursor-pointer whitespace-nowrap"
+                    className="px-2.5 py-1 rounded-lg text-xs font-bold bg-cyan-500/15 text-cyan-300 hover:bg-cyan-500 hover:text-slate-950 border border-cyan-500/30 transition-all cursor-pointer"
                   >
-                    Votar no Jogo
+                    Dar Minha Nota ⭐
                   </button>
                 )}
               </div>
