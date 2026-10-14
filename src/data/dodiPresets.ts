@@ -5,8 +5,8 @@ export const DODI_PRESET_GAMES: Game[] = [
     "id": "dodi-dead-space-remake",
     "title": "Dead Space Remake: Digital Deluxe Edition",
     "slug": "dead-space-remake-dodi-repack",
-    "coverUrl": "https://i4.imageban.ru/out/2026/01/12/0fa685ed65d9ff80f4e3859e8bc0dc22.jpg",
-    "bannerUrl": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1600&q=80",
+    "coverUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1693980/library_600x900.jpg",
+    "bannerUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1693980/header.jpg",
     "shortDescription": "O clássico do horror de sobrevivência sci-fi reconstruído do zero. Repack DODI compacto com instalação rápida e dual-sources de torrent.",
     "description": "Isaac Clarke é um engenheiro comum em uma missão para reparar a vasta nave de mineração USG Ishimura, apenas para descobrir que algo deu terrivelmente errado. A tripulação da nave foi massacrada e a amada parceira de Isaac, Nicole, está perdida em algum lugar a bordo. Inclui áudio localizado e gráficos de última geração.",
     "genres": [
@@ -88,7 +88,7 @@ export const DODI_PRESET_GAMES: Game[] = [
     "rating": 0,
     "totalVotes": 0,
     "screenshots": [
-      "https://i4.imageban.ru/out/2026/01/12/0fa685ed65d9ff80f4e3859e8bc0dc22.jpg",
+      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1693980/header.jpg",
       "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80"
@@ -122,8 +122,8 @@ export const DODI_PRESET_GAMES: Game[] = [
     "id": "dodi-forza-horizon-6",
     "title": "Forza Horizon: Premium Racing Edition",
     "slug": "forza-horizon-premium-dodi-repack",
-    "coverUrl": "https://i4.imageban.ru/out/2026/05/15/e7f68d534d8a0735438d055921cb845d.jpg",
-    "bannerUrl": "https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=1600&q=80",
+    "coverUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1551360/library_600x900.jpg",
+    "bannerUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1551360/header.jpg",
     "shortDescription": "O ápice da velocidade em mundo aberto. Repack DODI completo com 2 fontes de download torrent e dublagem PT-BR.",
     "description": "Explore paisagens deslumbrantes do mundo com centenas dos melhores carros do mundo em corridas ilimitadas e divertidas. Inclui todas as expansões de pistas, carros lendários e modo livre.",
     "genres": [
@@ -198,8 +198,8 @@ export const DODI_PRESET_GAMES: Game[] = [
     "rating": 0,
     "totalVotes": 0,
     "screenshots": [
-      "https://i4.imageban.ru/out/2026/05/15/e7f68d534d8a0735438d055921cb845d.jpg",
-      "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80",
+      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1551360/header.jpg",
+      "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80"
     ],
     "trailerYoutubeId": "FYH9n3Ov12U",

@@ -11,6 +11,7 @@ import {
 } from '../services/autoSyncService';
 import { fetchGamesFromSupabase, saveCloudSyncData, getCloudSyncData } from '../services/supabaseClient';
 import { sanitizeMagnetLink } from '../utils/magnetUtils';
+import { getGameCover, getGameBanner, DEFAULT_GAME_COVER, DEFAULT_GAME_BANNER } from '../utils/imageUtils';
 
 interface GameContextType {
   games: Game[];
@@ -100,18 +101,47 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Games state
   const [games, setGames] = useState<Game[]>(() => {
     let baseList = INITIAL_GAMES;
+    const initialMap = new Map<string, Game>(INITIAL_GAMES.map(g => [g.id, g]));
     const saved = localStorage.getItem('vortex_games');
+
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          const savedIds = new Set(parsed.map((g: Game) => g.id));
+          // If cached game is a preset, keep authentic cover/banner from INITIAL_GAMES
+          // to fix any old cached SVG/gameover/imageban covers on Vercel/GitHub
+          const sanitizedSaved = parsed.map((pg: Game) => {
+            const preset = initialMap.get(pg.id);
+            if (preset) {
+              return {
+                ...pg,
+                coverUrl: preset.coverUrl,
+                bannerUrl: preset.bannerUrl
+              };
+            }
+            if (pg.coverUrl?.includes('1091500') && !pg.title?.toLowerCase().includes('cyberpunk')) {
+              return {
+                ...pg,
+                coverUrl: DEFAULT_GAME_COVER,
+                bannerUrl: DEFAULT_GAME_BANNER
+              };
+            }
+            return pg;
+          });
+
+          const savedIds = new Set(sanitizedSaved.map((g: Game) => g.id));
           const missingPresets = INITIAL_GAMES.filter(g => !savedIds.has(g.id));
-          baseList = [...missingPresets, ...parsed];
+          baseList = [...missingPresets, ...sanitizedSaved];
         }
       } catch (e) {
         console.error('Failed to parse saved games', e);
       }
+    }
+
+    try {
+      localStorage.setItem('vortex_cover_version', 'v6_steam_cdn');
+    } catch {
+      // ignore
     }
 
     // Sanitize real votes: only keep votes that real users submitted via vortex_user_votes
@@ -136,6 +166,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return {
         ...g,
+        coverUrl: getGameCover(g),
+        bannerUrl: getGameBanner(g),
         downloadLinks: sanitizedLinks,
         rating: realVote ? realVote : 0,
         totalVotes: realVote ? 1 : 0

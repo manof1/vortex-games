@@ -105,7 +105,7 @@ export async function fetchGamesFromSupabase(): Promise<Game[] | null> {
         }
       },
       screenshots: (Array.isArray(item.screenshots) && item.screenshots.length > 0) ? item.screenshots : [
-        item.cover_url || item.coverUrl || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80',
+        item.cover_url || item.coverUrl || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80',
         'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80',
         'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80',
         'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80'

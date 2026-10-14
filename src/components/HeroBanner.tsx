@@ -307,6 +307,7 @@ export const HeroBanner: React.FC = () => {
             <img 
               src={getGameCover(current)} 
               alt={current.title} 
+              referrerPolicy="no-referrer"
               onError={(e) => handleImageError(e, current)}
               className="w-full h-full object-cover" 
             />

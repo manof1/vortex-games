@@ -5,8 +5,8 @@ export const ZUKO_TAPOCHEK_PRESETS: Game[] = [
     "id": "tlou-part-1-deluxe",
     "title": "The Last of Us Part I: Digital Deluxe",
     "slug": "the-last-of-us-part-1-deluxe-pkg-cusa",
-    "coverUrl": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80",
-    "bannerUrl": "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1600&q=80",
+    "coverUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1888930/library_600x900.jpg",
+    "bannerUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1888930/header.jpg",
     "shortDescription": "Reviva a inesquecível jornada de Joel e Ellie. Versão com dados originais TheZukoStore (PKG) e Torrent PC (Tapochek.net) com dublagem consagrada em PT-BR.",
     "description": "Em uma civilização devastada onde infectados e sobreviventes implacáveis estão à solta, o protagonista cansado da vida Joel é contratado para tirar uma garota de 14 anos, Ellie, de uma zona de quarentena militar. No entanto, o que começa como um pequeno trabalho logo se transforma em uma jornada brutal pelos EUA.",
     "genres": [
@@ -139,8 +139,8 @@ export const ZUKO_TAPOCHEK_PRESETS: Game[] = [
     "id": "ghost-of-tsushima-directors-cut",
     "title": "Ghost of Tsushima: Director's Cut",
     "slug": "ghost-of-tsushima-directors-cut-pkg-cusa24104",
-    "coverUrl": "https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?auto=format&fit=crop&w=800&q=80",
-    "bannerUrl": "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=1600&q=80",
+    "coverUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2215430/library_600x900.jpg",
+    "bannerUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2215430/header.jpg",
     "shortDescription": "Forje um novo caminho e trave uma guerra não convencional pela liberdade de Tsushima. Inclui expansão Ilha Iki e Dublagem PT-BR.",
     "description": "No final do século XIII, o império mongol devastou nações inteiras durante sua campanha para conquistar o Oriente. A ilha de Tsushima é tudo o que resta entre o Japão continental e uma frota colossal de invasão mongol. Jin Sakai deve deixar de lado as tradições dos samurais para se tornar o Fantasma.",
     "genres": [
@@ -272,8 +272,8 @@ export const ZUKO_TAPOCHEK_PRESETS: Game[] = [
     "id": "uncharted-legacy-of-thieves",
     "title": "UNCHARTED: Coleção Legado dos Ladrões",
     "slug": "uncharted-legacy-of-thieves-pkg-cusa",
-    "coverUrl": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80",
-    "bannerUrl": "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1600&q=80",
+    "coverUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1659420/library_600x900.jpg",
+    "bannerUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1659420/header.jpg",
     "shortDescription": "Viva as aventuras cinematográficas mais aclamadas do mundo com Nathan Drake e Chloe Frazer. Dublagem brasileira lendária.",
     "description": "Procure sua fortuna e deixe sua marca no mapa em UNCHARTED: Coleção Legado dos Ladrões. Descubra a emocionante narrativa cinematográfica e as maiores sequências de ação blockbuster da franquia Naughty Dog, incluindo UNCHARTED 4: A Thief's End e UNCHARTED: O Legado Perdido.",
     "genres": [
@@ -363,7 +363,7 @@ export const ZUKO_TAPOCHEK_PRESETS: Game[] = [
     "totalVotes": 0,
     "screenshots": [
       "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80"
+      "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80"
     ],
     "trailerYoutubeId": "dy5_f3vS_vM",
     "tags": [
@@ -404,8 +404,8 @@ export const ZUKO_TAPOCHEK_PRESETS: Game[] = [
     "id": "horizon-forbidden-west-complete",
     "title": "Horizon Forbidden West: Complete Edition",
     "slug": "horizon-forbidden-west-pkg-cusa24705",
-    "coverUrl": "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80",
-    "bannerUrl": "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1600&q=80",
+    "coverUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2420110/library_600x900.jpg",
+    "bannerUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2420110/header.jpg",
     "shortDescription": "Explore terras distantes, enfrente máquinas maiores e mais imponentes e encontre novas tribos surpreendentes com Aloy.",
     "description": "Junte-se a Aloy enquanto ela desbrava o Oeste Proibido — uma fronteira majestosa, mas perigosa, que esconde novas ameaças misteriosas. A terra está morrendo, tempestades terríveis e uma praga incontrolável devastam o que sobrou da humanidade.",
     "genres": [

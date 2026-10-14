@@ -29,7 +29,7 @@ export const INITIAL_NOTIFICATIONS: SiteNotification[] = [
     type: 'update',
     timestamp: 'Há 3 dias',
     read: true,
-    coverUrl: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=200&q=80'
+    coverUrl: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=200&q=80'
   },
   {
     id: 'notif-4',

@@ -6,7 +6,7 @@ export const FITGIRL_PRESET_GAMES: Game[] = [
     title: 'Marvel’s Spider-Man Remastered',
     slug: 'marvels-spider-man-remastered-fitgirl',
     coverUrl: 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=800&q=80',
-    bannerUrl: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1600&q=80',
+    bannerUrl: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1600&q=80',
     shortDescription: 'Balance pelas ruas de Nova York como Peter Parker na versão remasterizada definitiva para PC com Ray Tracing e suporte a Ultrawide.',
     description: 'Em Marvel\'s Spider-Man Remastered, os mundos de Peter Parker e do Homem-Aranha colidem em uma história original e cheia de ação. Jogue como um Peter Parker experiente, lutando contra o grande crime e vilões icônicos na Nova York da Marvel. Repack FitGirl com instalação otimizada e todos os DLCs da Cidade Que Nunca Dorme inclusos.',
     genres: ['Ação', 'Aventura', 'Mundo Aberto', 'Super-Heróis'],
@@ -64,7 +64,7 @@ export const FITGIRL_PRESET_GAMES: Game[] = [
     totalVotes: 2450,
     screenshots: [
       'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80'
+      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80'
     ],
     trailerYoutubeId: 'mrT93jcv9jQ',
     tags: ['Homem Aranha', 'Dublado PT-BR', 'PlayStation PC', 'Ray Tracing'],

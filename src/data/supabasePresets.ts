@@ -1,13 +1,12 @@
 import { Game } from "../types";
-import { getGameCover, getGameBanner } from "../utils/imageUtils";
 
-const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
+export const SUPABASE_SYNCED_GAMES: Game[] = [
   {
     "id": "dodi-baldur-s-gate-3-digital-deluxe-edition-v4-1-1",
     "title": "Baldur’s Gate 3: Digital Deluxe Edition (v4.1.1.7631656 + All DLCs + Bonus Content + Toolkit + MULTi",
     "slug": "baldur-s-gate-3-digital-deluxe-edition-v4-1-1-7631656-all-dlcs-bonus-content-toolkit-multi15-fast-in",
-    "coverUrl": "https://i4.imageban.ru/out/2023/08/04/7c57dca8517cc30592bf8439e2c1c0d1.jpg",
-    "bannerUrl": "https://i4.imageban.ru/out/2023/08/04/7c57dca8517cc30592bf8439e2c1c0d1.jpg",
+    "coverUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1086940/library_600x900.jpg",
+    "bannerUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1086940/header.jpg",
     "shortDescription": "Repack oficial DODI para Baldur’s Gate 3: Digital Deluxe Edition (v4.1.1.7631656 + All DLCs + Bonus Content + Toolkit + MULTi15) (Fast Install). Dual-source torrent com alta taxa de seeders.",
     "description": "Lançamento oficial da DODI Repacks para Baldur’s Gate 3: Digital Deluxe Edition (v4.1.1.7631656 + All DLCs + Bonus Content + Toolkit + MULTi15) (Fast Install). Instalação ágil e sem perdas, suporte a múltiplos idiomas e crack pré-aplicado pronto para jogar.",
     "genres": [
@@ -81,7 +80,7 @@ const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
       }
     },
     "screenshots": [
-      "https://i4.imageban.ru/out/2023/08/04/7c57dca8517cc30592bf8439e2c1c0d1.jpg",
+      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1086940/header.jpg",
       "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80"
@@ -109,8 +108,8 @@ const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
     "id": "dodi-dead-island-2-ultimate-edition-update-v7-0-0-",
     "title": "Dead Island 2: Ultimate Edition (+ Update v7.0.0.1244637+ All DLCs + Bonus Content + Online Multipla",
     "slug": "dead-island-2-ultimate-edition-update-v7-0-0-1244637-all-dlcs-bonus-content-online-multiplayer-multi",
-    "coverUrl": "https://i6.imageban.ru/out/2025/10/24/ec428a0bc3e8cd06c23257acbde51932.jpg",
-    "bannerUrl": "https://i6.imageban.ru/out/2025/10/24/ec428a0bc3e8cd06c23257acbde51932.jpg",
+    "coverUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/934700/library_600x900.jpg",
+    "bannerUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/934700/header.jpg",
     "shortDescription": "Repack oficial DODI para Dead Island 2: Ultimate Edition (+ Update v7.0.0.1244637+ All DLCs + Bonus Content + Online Multiplayer + MULTi14). Dual-source torrent com alta taxa de seeders.",
     "description": "Lançamento oficial da DODI Repacks para Dead Island 2: Ultimate Edition (+ Update v7.0.0.1244637+ All DLCs + Bonus Content + Online Multiplayer + MULTi14). Instalação ágil e sem perdas, suporte a múltiplos idiomas e crack pré-aplicado pronto para jogar.",
     "genres": [
@@ -184,7 +183,7 @@ const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
       }
     },
     "screenshots": [
-      "https://i6.imageban.ru/out/2025/10/24/ec428a0bc3e8cd06c23257acbde51932.jpg",
+      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/934700/header.jpg",
       "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80"
@@ -212,8 +211,8 @@ const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
     "id": "dodi-stronghold-crusader-definitive-edition-v2-8-2",
     "title": "Stronghold Crusader: Definitive Edition (v2.8.2 + All DLCs)",
     "slug": "stronghold-crusader-definitive-edition-v2-8-2-all-dlcs",
-    "coverUrl": "https://i6.imageban.ru/out/2025/07/15/e7f756addfc1bb5aef84274f275b85b6.jpg",
-    "bannerUrl": "https://i6.imageban.ru/out/2025/07/15/e7f756addfc1bb5aef84274f275b85b6.jpg",
+    "coverUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2328990/library_600x900.jpg",
+    "bannerUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2328990/header.jpg",
     "shortDescription": "Repack oficial DODI para Stronghold Crusader: Definitive Edition (v2.8.2 + All DLCs). Dual-source torrent com alta taxa de seeders.",
     "description": "Lançamento oficial da DODI Repacks para Stronghold Crusader: Definitive Edition (v2.8.2 + All DLCs). Instalação ágil e sem perdas, suporte a múltiplos idiomas e crack pré-aplicado pronto para jogar.",
     "genres": [
@@ -287,7 +286,7 @@ const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
       }
     },
     "screenshots": [
-      "https://i6.imageban.ru/out/2025/07/15/e7f756addfc1bb5aef84274f275b85b6.jpg",
+      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2328990/header.jpg",
       "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80"
@@ -315,8 +314,8 @@ const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
     "id": "dodi-halloween-the-game-deluxe-edition-v1-0-3-7139",
     "title": "Halloween: The Game – Deluxe Edition (v1.0.3.71395 + All DLCs + MULTi10)",
     "slug": "halloween-the-game-deluxe-edition-v1-0-3-71395-all-dlcs-multi10",
-    "coverUrl": "https://i5.imageban.ru/out/2026/09/05/b295b2eb1cb053e96d5b219fbe1f8b19.jpg",
-    "bannerUrl": "https://i5.imageban.ru/out/2026/09/05/b295b2eb1cb053e96d5b219fbe1f8b19.jpg",
+    "coverUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/228980/library_600x900.jpg",
+    "bannerUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/228980/header.jpg",
     "shortDescription": "Repack oficial DODI para Halloween: The Game – Deluxe Edition (v1.0.3.71395 + All DLCs + MULTi10). Dual-source torrent com alta taxa de seeders.",
     "description": "Lançamento oficial da DODI Repacks para Halloween: The Game – Deluxe Edition (v1.0.3.71395 + All DLCs + MULTi10). Instalação ágil e sem perdas, suporte a múltiplos idiomas e crack pré-aplicado pronto para jogar.",
     "genres": [
@@ -390,7 +389,7 @@ const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
       }
     },
     "screenshots": [
-      "https://i5.imageban.ru/out/2026/09/05/b295b2eb1cb053e96d5b219fbe1f8b19.jpg",
+      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/228980/header.jpg",
       "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80"
@@ -418,8 +417,8 @@ const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
     "id": "dodi-beast-of-reincarnation-deluxe-edition-v1-1-0-",
     "title": "Beast of Reincarnation: Deluxe Edition (v1.1.0 + All DLCs + MULTi11)",
     "slug": "beast-of-reincarnation-deluxe-edition-v1-1-0-all-dlcs-multi11",
-    "coverUrl": "https://i2.imageban.ru/out/2026/08/02/7f122d93f937fa8e9ddec3c3e89608f5.jpg",
-    "bannerUrl": "https://i2.imageban.ru/out/2026/08/02/7f122d93f937fa8e9ddec3c3e89608f5.jpg",
+    "coverUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2358720/library_600x900.jpg",
+    "bannerUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2358720/header.jpg",
     "shortDescription": "Repack oficial DODI para Beast of Reincarnation: Deluxe Edition (v1.1.0 + All DLCs + MULTi11). Dual-source torrent com alta taxa de seeders.",
     "description": "Lançamento oficial da DODI Repacks para Beast of Reincarnation: Deluxe Edition (v1.1.0 + All DLCs + MULTi11). Instalação ágil e sem perdas, suporte a múltiplos idiomas e crack pré-aplicado pronto para jogar.",
     "genres": [
@@ -493,7 +492,7 @@ const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
       }
     },
     "screenshots": [
-      "https://i2.imageban.ru/out/2026/08/02/7f122d93f937fa8e9ddec3c3e89608f5.jpg",
+      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2358720/header.jpg",
       "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80"
@@ -521,8 +520,8 @@ const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
     "id": "dodi-resonance-a-plague-tale-legacy-v1-3-0-0-herit",
     "title": "Resonance: A Plague Tale Legacy (v1.3.0.0 + Heritage Pack + MULTi17)",
     "slug": "resonance-a-plague-tale-legacy-v1-3-0-0-heritage-pack-multi17",
-    "coverUrl": "https://i8.imageban.ru/out/2026/08/21/d4962e5142ac86e31918063b2b823c57.jpg",
-    "bannerUrl": "https://i8.imageban.ru/out/2026/08/21/d4962e5142ac86e31918063b2b823c57.jpg",
+    "coverUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1182900/library_600x900.jpg",
+    "bannerUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1182900/header.jpg",
     "shortDescription": "Repack oficial DODI para Resonance: A Plague Tale Legacy (v1.3.0.0 + Heritage Pack + MULTi17). Dual-source torrent com alta taxa de seeders.",
     "description": "Lançamento oficial da DODI Repacks para Resonance: A Plague Tale Legacy (v1.3.0.0 + Heritage Pack + MULTi17). Instalação ágil e sem perdas, suporte a múltiplos idiomas e crack pré-aplicado pronto para jogar.",
     "genres": [
@@ -596,7 +595,7 @@ const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
       }
     },
     "screenshots": [
-      "https://i8.imageban.ru/out/2026/08/21/d4962e5142ac86e31918063b2b823c57.jpg",
+      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1182900/header.jpg",
       "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80"
@@ -624,8 +623,8 @@ const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
     "id": "dodi-gears-of-war-e-day-v4894958-build-25724756-al",
     "title": "Gears of War: E-Day (v4894958 – Build 25724756 + All DLCs + MULTi22)",
     "slug": "gears-of-war-e-day-v4894958-build-25724756-all-dlcs-multi22",
-    "coverUrl": "https://i7.imageban.ru/out/2026/10/07/0d872ba906a524c1ef8cfad4f0540af1.jpg",
-    "bannerUrl": "https://i7.imageban.ru/out/2026/10/07/0d872ba906a524c1ef8cfad4f0540af1.jpg",
+    "coverUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1097840/library_600x900.jpg",
+    "bannerUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1097840/header.jpg",
     "shortDescription": "Repack oficial DODI para Gears of War: E-Day (v4894958 – Build 25724756 + All DLCs + MULTi22). Dual-source torrent com alta taxa de seeders.",
     "description": "Lançamento oficial da DODI Repacks para Gears of War: E-Day (v4894958 – Build 25724756 + All DLCs + MULTi22). Instalação ágil e sem perdas, suporte a múltiplos idiomas e crack pré-aplicado pronto para jogar.",
     "genres": [
@@ -699,7 +698,7 @@ const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
       }
     },
     "screenshots": [
-      "https://i7.imageban.ru/out/2026/10/07/0d872ba906a524c1ef8cfad4f0540af1.jpg",
+      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1097840/header.jpg",
       "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80"
@@ -727,8 +726,8 @@ const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
     "id": "dodi-forza-horizon-6-premium-edition-v461-691-all-",
     "title": "Forza Horizon 6: Premium Edition (v461.691 + All DLCs + Multiplayer + MULTi23)",
     "slug": "forza-horizon-6-premium-edition-v461-691-all-dlcs-multiplayer-multi23",
-    "coverUrl": "https://i4.imageban.ru/out/2026/05/15/e7f68d534d8a0735438d055921cb845d.jpg",
-    "bannerUrl": "https://i4.imageban.ru/out/2026/05/15/e7f68d534d8a0735438d055921cb845d.jpg",
+    "coverUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1551360/library_600x900.jpg",
+    "bannerUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1551360/header.jpg",
     "shortDescription": "Repack oficial DODI para Forza Horizon 6: Premium Edition (v461.691 + All DLCs + Multiplayer + MULTi23). Dual-source torrent com alta taxa de seeders.",
     "description": "Lançamento oficial da DODI Repacks para Forza Horizon 6: Premium Edition (v461.691 + All DLCs + Multiplayer + MULTi23). Instalação ágil e sem perdas, suporte a múltiplos idiomas e crack pré-aplicado pronto para jogar.",
     "genres": [
@@ -802,7 +801,7 @@ const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
       }
     },
     "screenshots": [
-      "https://i4.imageban.ru/out/2026/05/15/e7f68d534d8a0735438d055921cb845d.jpg",
+      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1551360/header.jpg",
       "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80"
@@ -830,8 +829,8 @@ const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
     "id": "dodi-007-first-light-deluxe-edition-v1-3-1-all-dlc",
     "title": "007 First Light: Deluxe Edition (v1.3.1 + All DLCs + MULTi14) (Fast Install)",
     "slug": "007-first-light-deluxe-edition-v1-3-1-all-dlcs-multi14-fast-install",
-    "coverUrl": "https://i1.imageban.ru/out/2026/05/26/b23bbe15e8ca57877dc3320c3c444ab4.jpg",
-    "bannerUrl": "https://i1.imageban.ru/out/2026/05/26/b23bbe15e8ca57877dc3320c3c444ab4.jpg",
+    "coverUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1659040/library_600x900.jpg",
+    "bannerUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1659040/header.jpg",
     "shortDescription": "Repack oficial DODI para 007 First Light: Deluxe Edition (v1.3.1 + All DLCs + MULTi14) (Fast Install). Dual-source torrent com alta taxa de seeders.",
     "description": "Lançamento oficial da DODI Repacks para 007 First Light: Deluxe Edition (v1.3.1 + All DLCs + MULTi14) (Fast Install). Instalação ágil e sem perdas, suporte a múltiplos idiomas e crack pré-aplicado pronto para jogar.",
     "genres": [
@@ -905,7 +904,7 @@ const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
       }
     },
     "screenshots": [
-      "https://i1.imageban.ru/out/2026/05/26/b23bbe15e8ca57877dc3320c3c444ab4.jpg",
+      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1659040/header.jpg",
       "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80"
@@ -933,8 +932,8 @@ const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
     "id": "dodi-dead-space-remake-2023-digital-deluxe-edition",
     "title": "Dead Space Remake (2023) Digital Deluxe Edition",
     "slug": "dead-space-remake-2023-digital-deluxe-edition",
-    "coverUrl": "https://i4.imageban.ru/out/2026/01/12/0fa685ed65d9ff80f4e3859e8bc0dc22.jpg",
-    "bannerUrl": "https://i4.imageban.ru/out/2026/01/12/0fa685ed65d9ff80f4e3859e8bc0dc22.jpg",
+    "coverUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1693980/library_600x900.jpg",
+    "bannerUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1693980/header.jpg",
     "shortDescription": "Repack oficial DODI para Dead Space Remake (2023) Digital Deluxe Edition. Dual-source torrent com alta taxa de seeders.",
     "description": "Lançamento oficial da DODI Repacks para Dead Space Remake (2023) Digital Deluxe Edition. Instalação ágil e sem perdas, suporte a múltiplos idiomas e crack pré-aplicado pronto para jogar.",
     "genres": [
@@ -1008,7 +1007,7 @@ const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
       }
     },
     "screenshots": [
-      "https://i4.imageban.ru/out/2026/01/12/0fa685ed65d9ff80f4e3859e8bc0dc22.jpg",
+      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1693980/header.jpg",
       "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80"
@@ -1036,8 +1035,8 @@ const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
     "id": "fg-retrospace-deluxe-edition-build-6499-bonus-ar",
     "title": "RetroSpace: Deluxe Edition – Build 6499 + Bonus ArtBook",
     "slug": "retrospace-deluxe-edition-build-6499-bonus-artbook",
-    "coverUrl": "https://i4.imageban.ru/out/2026/10/06/75fbd3e5ce4246b549c3102d0dad9095.jpg",
-    "bannerUrl": "https://i4.imageban.ru/out/2026/10/06/75fbd3e5ce4246b549c3102d0dad9095.jpg",
+    "coverUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2067820/library_600x900.jpg",
+    "bannerUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2067820/header.jpg",
     "shortDescription": "Repack oficial FitGirl para RetroSpace: Deluxe Edition – Build 6499 + Bonus ArtBook. Descompactação sem perdas e instalação otimizada para PC.",
     "description": "Lançamento oficial da FitGirl Repacks para RetroSpace: Deluxe Edition – Build 6499 + Bonus ArtBook. Inclui compressão máxima de dados sem perdas de áudio ou vídeo, arquivos intactos verificados e crack pré-aplicado.",
     "genres": [
@@ -1106,7 +1105,7 @@ const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
       }
     },
     "screenshots": [
-      "https://i4.imageban.ru/out/2026/10/06/75fbd3e5ce4246b549c3102d0dad9095.jpg",
+      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2067820/header.jpg",
       "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80"
@@ -1129,8 +1128,8 @@ const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
     "id": "fg-dinobones-tidy-up-the-museum",
     "title": "DinoBones: Tidy Up the Museum",
     "slug": "dinobones-tidy-up-the-museum",
-    "coverUrl": "https://i7.imageban.ru/out/2026/10/06/f252a063c0c36dd9f5cc121c2e69abf3.jpg",
-    "bannerUrl": "https://i7.imageban.ru/out/2026/10/06/f252a063c0c36dd9f5cc121c2e69abf3.jpg",
+    "coverUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2635350/library_600x900.jpg",
+    "bannerUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2635350/header.jpg",
     "shortDescription": "Repack oficial FitGirl para DinoBones: Tidy Up the Museum. Descompactação sem perdas e instalação otimizada para PC.",
     "description": "Lançamento oficial da FitGirl Repacks para DinoBones: Tidy Up the Museum. Inclui compressão máxima de dados sem perdas de áudio ou vídeo, arquivos intactos verificados e crack pré-aplicado.",
     "genres": [
@@ -1224,8 +1223,8 @@ const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
     "id": "fg-false-hero",
     "title": "False Hero",
     "slug": "false-hero",
-    "coverUrl": "https://i8.imageban.ru/out/2026/10/06/99d6cc52a1c5a5f5afd6a66e5171f4f8.jpg",
-    "bannerUrl": "https://i8.imageban.ru/out/2026/10/06/99d6cc52a1c5a5f5afd6a66e5171f4f8.jpg",
+    "coverUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1627720/library_600x900.jpg",
+    "bannerUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1627720/header.jpg",
     "shortDescription": "Repack oficial FitGirl para False Hero. Descompactação sem perdas e instalação otimizada para PC.",
     "description": "Lançamento oficial da FitGirl Repacks para False Hero. Inclui compressão máxima de dados sem perdas de áudio ou vídeo, arquivos intactos verificados e crack pré-aplicado.",
     "genres": [
@@ -1319,8 +1318,8 @@ const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
     "id": "fg-land-of-glarefall",
     "title": "Land of Glarefall",
     "slug": "land-of-glarefall",
-    "coverUrl": "https://i3.imageban.ru/out/2026/10/06/07f04f492fb9a9c4dbf9324521e3c335.jpg",
-    "bannerUrl": "https://i3.imageban.ru/out/2026/10/06/07f04f492fb9a9c4dbf9324521e3c335.jpg",
+    "coverUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1245620/library_600x900.jpg",
+    "bannerUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1245620/header.jpg",
     "shortDescription": "Repack oficial FitGirl para Land of Glarefall. Descompactação sem perdas e instalação otimizada para PC.",
     "description": "Lançamento oficial da FitGirl Repacks para Land of Glarefall. Inclui compressão máxima de dados sem perdas de áudio ou vídeo, arquivos intactos verificados e crack pré-aplicado.",
     "genres": [
@@ -1414,8 +1413,8 @@ const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
     "id": "fg-gears-of-war-e-day",
     "title": "Gears of War: E-Day",
     "slug": "gears-of-war-e-day",
-    "coverUrl": "https://i3.imageban.ru/out/2026/10/07/e41dc66ece822ddd288b6036fefe15bf.jpg",
-    "bannerUrl": "https://i3.imageban.ru/out/2026/10/07/e41dc66ece822ddd288b6036fefe15bf.jpg",
+    "coverUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1097840/library_600x900.jpg",
+    "bannerUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1097840/header.jpg",
     "shortDescription": "Repack oficial FitGirl para Gears of War: E-Day. Descompactação sem perdas e instalação otimizada para PC.",
     "description": "Lançamento oficial da FitGirl Repacks para Gears of War: E-Day. Inclui compressão máxima de dados sem perdas de áudio ou vídeo, arquivos intactos verificados e crack pré-aplicado.",
     "genres": [
@@ -1509,8 +1508,8 @@ const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
     "id": "fg-mxgp-26-fox-holeshot-edition-2-dlcs",
     "title": "MXGP 26: Fox Holeshot Edition + 2 DLCs",
     "slug": "mxgp-26-fox-holeshot-edition-2-dlcs",
-    "coverUrl": "https://i5.imageban.ru/out/2026/10/07/320966fe6fcb7ea6356e541c8b24fbfa.jpg",
-    "bannerUrl": "https://i5.imageban.ru/out/2026/10/07/320966fe6fcb7ea6356e541c8b24fbfa.jpg",
+    "coverUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2563770/library_600x900.jpg",
+    "bannerUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2563770/header.jpg",
     "shortDescription": "Repack oficial FitGirl para MXGP 26: Fox Holeshot Edition + 2 DLCs. Descompactação sem perdas e instalação otimizada para PC.",
     "description": "Lançamento oficial da FitGirl Repacks para MXGP 26: Fox Holeshot Edition + 2 DLCs. Inclui compressão máxima de dados sem perdas de áudio ou vídeo, arquivos intactos verificados e crack pré-aplicado.",
     "genres": [
@@ -1604,8 +1603,8 @@ const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
     "id": "tlou-part-1-deluxe",
     "title": "The Last of Us Part I: Digital Deluxe",
     "slug": "the-last-of-us-part-1-deluxe-pkg-cusa",
-    "coverUrl": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80",
-    "bannerUrl": "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1600&q=80",
+    "coverUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1888930/library_600x900.jpg",
+    "bannerUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1888930/header.jpg",
     "shortDescription": "Reviva a inesquecível jornada de Joel e Ellie. Versão com dados originais TheZukoStore (PKG) e Torrent PC (Tapochek.net) com dublagem consagrada em PT-BR.",
     "description": "Em uma civilização devastada onde infectados e sobreviventes implacáveis estão à solta, o protagonista cansado da vida Joel é contratado para tirar uma garota de 14 anos, Ellie, de uma zona de quarentena militar.",
     "genres": [
@@ -1689,7 +1688,7 @@ const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
       }
     },
     "screenshots": [
-      "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80"
@@ -1709,10 +1708,4 @@ const RAW_SUPABASE_SYNCED_GAMES: Game[] = [
     "imdbRating": 9.7
   }
 ];
-
-export const SUPABASE_SYNCED_GAMES: Game[] = RAW_SUPABASE_SYNCED_GAMES.map(g => ({
-  ...g,
-  coverUrl: getGameCover(g),
-  bannerUrl: getGameBanner(g)
-}));
 

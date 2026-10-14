@@ -212,6 +212,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
           <img 
             src={getGameBanner(game)} 
             alt={game.title} 
+            referrerPolicy="no-referrer"
             onError={(e) => handleImageError(e, game)}
             className="w-full h-full object-cover filter brightness-[0.7] transform scale-105"
           />

@@ -105,6 +105,7 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
         <img
           src={getGameCover(game)}
           alt={game.title}
+          referrerPolicy="no-referrer"
           onError={(e) => handleImageError(e, game)}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"

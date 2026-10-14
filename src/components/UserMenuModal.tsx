@@ -738,6 +738,7 @@ export const UserMenuModal: React.FC<UserMenuModalProps> = ({ onClose }) => {
                         <img
                           src={getGameCover(game)}
                           alt={game.title}
+                          referrerPolicy="no-referrer"
                           onError={(e) => handleImageError(e, game)}
                           className="w-14 h-18 object-cover rounded-xl border border-slate-800 shrink-0 cursor-pointer hover:opacity-90"
                           onClick={() => {
@@ -877,6 +878,7 @@ export const UserMenuModal: React.FC<UserMenuModalProps> = ({ onClose }) => {
                           <img
                             src={getGameCover(item.game)}
                             alt={item.game.title}
+                            referrerPolicy="no-referrer"
                             onError={(e) => handleImageError(e, item.game)}
                             className="w-12 h-16 object-cover rounded-xl border border-slate-800 shrink-0 cursor-pointer"
                             onClick={() => {

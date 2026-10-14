@@ -183,6 +183,7 @@ export const UserLibraryView: React.FC<UserLibraryViewProps> = ({ onClose }) => 
                       <img
                         src={getGameCover(game)}
                         alt={game.title}
+                        referrerPolicy="no-referrer"
                         onError={(e) => handleImageError(e, game)}
                         className="w-20 h-28 object-cover rounded-xl border border-slate-800 shrink-0 cursor-pointer hover:opacity-90"
                         onClick={() => {

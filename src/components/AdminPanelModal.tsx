@@ -41,6 +41,7 @@ import { ZUKO_TAPOCHEK_PRESETS } from '../data/zukoTapochekPresets';
 import { createZukoTapochekGame, ZUKO_TAPOCHEK_SUPABASE_SCRIPT } from '../services/zukoTapochekService';
 import { SUPABASE_SCHEMA_SQL } from '../services/supabaseSchemaService';
 import { SUPABASE_URL, SUPABASE_ANON_KEY, testSupabaseConnection, upsertGameToSupabase } from '../services/supabaseClient';
+import { getGameCover, handleImageError } from '../utils/imageUtils';
 
 interface AdminPanelModalProps {
   onClose: () => void;
@@ -1289,7 +1290,13 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
                       .map(game => (
                         <tr key={game.id} className="hover:bg-slate-900/40 transition-colors">
                           <td className="p-3 flex items-center gap-3">
-                            <img src={game.coverUrl} alt={game.title} className="w-8 h-11 object-cover rounded border border-slate-800" />
+                            <img 
+                              src={getGameCover(game)} 
+                              alt={game.title} 
+                              referrerPolicy="no-referrer"
+                              onError={(e) => handleImageError(e, game)}
+                              className="w-8 h-11 object-cover rounded border border-slate-800" 
+                            />
                             <div>
                               <p className="font-bold text-white truncate max-w-xs">{game.title}</p>
                               <p className="text-[10px] text-slate-400">{game.releaseYear} • {game.developer}</p>

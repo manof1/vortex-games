@@ -7,7 +7,7 @@ const POPULAR_GAMES_DATABASE: IgdbSearchResult[] = [
   {
     id: 119277,
     name: "Grand Theft Auto VI",
-    coverUrl: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80",
+    coverUrl: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80",
     bannerUrl: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1600&q=80",
     summary: "Grand Theft Auto VI viaja até o estado de Leonida, lar das ruas banhadas em neon de Vice City e arredores, na maior e mais envolvente evolução da série Grand Theft Auto até hoje.",
     genres: ["Ação", "Mundo Aberto", "Aventura", "Crime"],
@@ -16,7 +16,7 @@ const POPULAR_GAMES_DATABASE: IgdbSearchResult[] = [
     developer: "Rockstar Studios",
     publisher: "Rockstar Games",
     screenshots: [
-      "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80"
     ],
     rating: 4.9
@@ -121,7 +121,7 @@ const POPULAR_GAMES_DATABASE: IgdbSearchResult[] = [
   {
     id: 144053,
     name: "Helldivers 2",
-    coverUrl: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80",
+    coverUrl: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80",
     bannerUrl: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=1600&q=80",
     summary: "A última linha de ataque da Galáxia. Aliste-se nos Helldivers e junte-se à luta pela liberdade em uma galáxia hostil em um frenético jogo de tiro em terceira pessoa.",
     genres: ["Tiro", "Ação", "Co-op", "Ficção Científica"],
@@ -130,7 +130,7 @@ const POPULAR_GAMES_DATABASE: IgdbSearchResult[] = [
     developer: "Arrowhead Game Studios",
     publisher: "PlayStation Publishing LLC",
     screenshots: [
-      "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80"
+      "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80"
     ],
     rating: 4.7
   }
@@ -151,7 +151,7 @@ export async function searchIgdbGames(query: string, apiKey?: string): Promise<I
           return data.results.map((item: any) => ({
             id: item.id,
             name: item.name,
-            coverUrl: item.background_image || "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80",
+            coverUrl: item.background_image || "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80",
             bannerUrl: item.background_image || "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1600&q=80",
             summary: item.description_raw || `Um emocionante jogo de ${item.genres?.map((g: any) => g.name).join(', ') || 'Ação'} repleto de desafios e alta imersão.`,
             genres: item.genres?.map((g: any) => g.name) || ['Ação', 'Aventura'],
@@ -184,7 +184,7 @@ export async function searchIgdbGames(query: string, apiKey?: string): Promise<I
     const fallbackResult: IgdbSearchResult = {
       id: Math.floor(Math.random() * 900000) + 100000,
       name: formattedTitle,
-      coverUrl: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80",
+      coverUrl: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80",
       bannerUrl: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1600&q=80",
       summary: `${formattedTitle} é uma grande experiência com mecânicas modernas de jogabilidade, narrativa envolvente e gráficos otimizados para PC com suporte a múltiplos idiomas e controles.`,
       genres: ["Ação", "Aventura", "RPG"],
@@ -193,7 +193,7 @@ export async function searchIgdbGames(query: string, apiKey?: string): Promise<I
       developer: "Studio Games",
       publisher: "Publishing Corp",
       screenshots: [
-        "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80",
         "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80"
       ],
       rating: 4.7
