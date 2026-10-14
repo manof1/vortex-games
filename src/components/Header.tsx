@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Gamepad2, 
   Search, 
-  Bookmark, 
   Sun, 
   Moon, 
   User, 
@@ -31,7 +30,6 @@ export const Header: React.FC = () => {
   const { 
     filters, 
     setFilters, 
-    library, 
     setActiveGame,
     setIsLibraryOpen, 
     setIsUserMenuOpen,
@@ -292,68 +290,44 @@ export const Header: React.FC = () => {
               <span className="hidden sm:inline">{t('header.requestGame', 'Pedir Jogo')}</span>
             </button>
 
-            {/* ÁREA UNIFICADA: BIBLIOTECA + MEMBRO / ENTRAR / CADASTRAR */}
-            <div className="flex items-center bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-0.5 shadow-sm">
-              
-              {/* Botão Biblioteca integrado */}
+            {/* Dados do Cadastrado OU Botão Entrar/Cadastrar */}
+            {isLoggedIn ? (
               <button
                 onClick={() => {
                   setActiveGame(null);
-                  setIsUserMenuOpen(false);
-                  setIsLibraryOpen(true);
+                  setIsLibraryOpen(false);
+                  setIsUserMenuOpen(true);
                 }}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-slate-700 dark:text-slate-200 hover:text-cyan-500 dark:hover:text-cyan-400 transition-all group cursor-pointer"
-                title="Minha Biblioteca de Favoritos e Downloads"
+                className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-800/80 text-slate-900 dark:text-slate-100 transition-all group cursor-pointer shadow-sm"
+                title="Menu do Usuário: Perfil, Minha Biblioteca e Configurações"
               >
-                <Bookmark className="w-4 h-4 text-cyan-500 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-bold hidden md:inline">{t('header.library', 'Biblioteca')}</span>
-                <span className="px-1.5 py-0.2 rounded-md bg-cyan-100 dark:bg-cyan-950 text-cyan-700 dark:text-cyan-400 text-[11px] font-bold border border-cyan-300 dark:border-cyan-800/50">
-                  {library.length}
-                </span>
+                <div className="relative">
+                  <img 
+                    src={userProfile.avatar} 
+                    alt={userProfile.name} 
+                    className="w-6 h-6 rounded-lg bg-cyan-950 border border-cyan-400 object-cover group-hover:scale-105 transition-transform" 
+                  />
+                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-400 rounded-full border border-white dark:border-slate-950" />
+                </div>
+                <div className="flex flex-col text-left hidden sm:flex">
+                  <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-cyan-400 transition-colors leading-tight">
+                    {userProfile.name.split(' ')[0]}
+                  </span>
+                  <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-semibold leading-tight flex items-center gap-0.5">
+                    <span>✓</span> VIP
+                  </span>
+                </div>
               </button>
-
-              <div className="w-[1px] h-5 bg-slate-300 dark:bg-slate-800 mx-0.5" />
-
-              {/* Dados do Cadastrado OU Botão Entrar/Cadastrar */}
-              {isLoggedIn ? (
-                <button
-                  onClick={() => {
-                    setActiveGame(null);
-                    setIsLibraryOpen(false);
-                    setIsUserMenuOpen(true);
-                  }}
-                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-slate-200/80 dark:hover:bg-slate-800/80 text-slate-900 dark:text-slate-100 transition-all group cursor-pointer"
-                  title="Menu do Usuário: Perfil, Nuvem e Configurações"
-                >
-                  <div className="relative">
-                    <img 
-                      src={userProfile.avatar} 
-                      alt={userProfile.name} 
-                      className="w-6 h-6 rounded-lg bg-cyan-950 border border-cyan-400 object-cover group-hover:scale-105 transition-transform" 
-                    />
-                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-400 rounded-full border border-white dark:border-slate-950" />
-                  </div>
-                  <div className="flex flex-col text-left hidden sm:flex">
-                    <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-cyan-400 transition-colors leading-tight">
-                      {userProfile.name.split(' ')[0]}
-                    </span>
-                    <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-semibold leading-tight flex items-center gap-0.5">
-                      <span>✓</span> VIP
-                    </span>
-                  </div>
-                </button>
-              ) : (
-                <button
-                  onClick={() => setIsAuthModalOpen(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs shadow-md shadow-cyan-500/20 transition-all cursor-pointer transform hover:scale-[1.02]"
-                  title="Cadastre-se ou Entre para liberar downloads em alta velocidade"
-                >
-                  <User className="w-3.5 h-3.5 stroke-[2.5]" />
-                  <span>{t('header.signIn', 'Entrar / Cadastrar')}</span>
-                </button>
-              )}
-
-            </div>
+            ) : (
+              <button
+                onClick={() => setIsAuthModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs shadow-md shadow-cyan-500/20 transition-all cursor-pointer transform hover:scale-[1.02]"
+                title="Cadastre-se ou Entre para liberar downloads em alta velocidade"
+              >
+                <User className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>{t('header.signIn', 'Entrar / Cadastrar')}</span>
+              </button>
+            )}
 
             {/* SELETOR DE IDIOMA NO TOPO DA PÁGINA (COM BANDEIRAS E NOMES NATIVOS) */}
             <LanguageSelector />
