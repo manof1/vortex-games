@@ -26,7 +26,9 @@ import {
   Volume2,
   FileArchive,
   Globe,
-  Lock
+  Lock,
+  Zap,
+  Package
 } from 'lucide-react';
 import { Game, LibraryStatus } from '../types';
 import { useGame } from '../context/GameContext';
@@ -64,9 +66,13 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
     setIsAuthModalOpen
   } = useGame();
 
-  const [activeTab, setActiveTab] = useState<'downloads' | 'specs' | 'screenshots' | 'instructions'>('downloads');
+  const [activeTab, setActiveTab] = useState<'downloads' | 'specs' | 'screenshots' | 'instructions' | 'cheats' | 'mods'>('downloads');
   const [copiedMagnet, setCopiedMagnet] = useState(false);
+  const [copiedCheatId, setCopiedCheatId] = useState<string | null>(null);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+
+  const hasCheats = Array.isArray(game.cheats) && game.cheats.length > 0;
+  const hasMods = (Array.isArray(game.mods) && game.mods.length > 0) || !!game.nexusModsUrl;
   
   const critic = getCriticScores(game);
   const metaBadge = getMetacriticBadgeColor(critic.metacritic);
@@ -257,6 +263,48 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                   <ShieldCheck className="w-3.5 h-3.5" />
                   {game.repackInfo.crackStatus}
                 </span>
+
+                {/* BOTÃO CHEATS: LIGADO se tiver cheats */}
+                {hasCheats ? (
+                  <button
+                    onClick={() => setActiveTab('cheats')}
+                    className="px-2.5 py-0.5 rounded-md text-xs font-black uppercase bg-amber-500/25 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-400/60 shadow-md shadow-amber-500/20 flex items-center gap-1 cursor-pointer transition-all animate-pulse"
+                    title="Este jogo possui Cheats do GameFAQs disponíveis! Clique para ver"
+                  >
+                    <Zap className="w-3.5 h-3.5 fill-amber-400" />
+                    <span>CHEATS (LIGADO) • {game.cheats?.length}</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setActiveTab('cheats')}
+                    className="px-2.5 py-0.5 rounded-md text-xs font-semibold text-slate-500 hover:text-slate-300 bg-slate-900 border border-slate-800 flex items-center gap-1 cursor-pointer transition-all"
+                    title="Ver página de Cheats do jogo no GameFAQs"
+                  >
+                    <Zap className="w-3.5 h-3.5 text-slate-600" />
+                    <span>Cheats (Desligado)</span>
+                  </button>
+                )}
+
+                {/* BOTÃO MODS: LIGADO se tiver mods */}
+                {hasMods ? (
+                  <button
+                    onClick={() => setActiveTab('mods')}
+                    className="px-2.5 py-0.5 rounded-md text-xs font-black uppercase bg-orange-500/25 hover:bg-orange-500 text-orange-300 hover:text-slate-950 border border-orange-400/60 shadow-md shadow-orange-500/20 flex items-center gap-1 cursor-pointer transition-all"
+                    title="Este jogo possui Mods do Nexus Mods disponíveis! Clique para ver"
+                  >
+                    <Package className="w-3.5 h-3.5 text-orange-400" />
+                    <span>NEXUS MODS (LIGADO)</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setActiveTab('mods')}
+                    className="px-2.5 py-0.5 rounded-md text-xs font-semibold text-slate-500 hover:text-slate-300 bg-slate-900 border border-slate-800 flex items-center gap-1 cursor-pointer transition-all"
+                    title="Buscar mods para este jogo no Nexus Mods"
+                  >
+                    <Package className="w-3.5 h-3.5 text-slate-600" />
+                    <span>Mods (Desligado)</span>
+                  </button>
+                )}
 
                 <span className="text-xs text-slate-300 font-mono flex items-center gap-1 bg-slate-950/60 px-2.5 py-1 rounded-lg border border-slate-800">
                   <Clock className="w-3.5 h-3.5 text-cyan-400" />
@@ -503,7 +551,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
           </button>
           <button
             onClick={() => setActiveTab('instructions')}
-            className={`py-3.5 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-all whitespace-nowrap ${
+            className={`py-3.5 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'instructions'
                 ? 'border-cyan-400 text-cyan-400 bg-cyan-500/5'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -511,6 +559,50 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
           >
             <AlertTriangle className="w-4 h-4 text-amber-400" />
             <span>Como Instalar & Dicas</span>
+          </button>
+
+          {/* TAB: CHEATS (GAMEFAQS) */}
+          <button
+            onClick={() => setActiveTab('cheats')}
+            className={`py-3.5 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
+              activeTab === 'cheats'
+                ? 'border-amber-400 text-amber-300 bg-amber-500/10'
+                : hasCheats
+                ? 'border-amber-400/40 text-amber-400 hover:text-amber-300'
+                : 'border-transparent text-slate-500 hover:text-slate-300'
+            }`}
+          >
+            <Zap className={`w-4 h-4 ${hasCheats ? 'fill-amber-400 text-amber-400' : 'text-slate-500'}`} />
+            <span>Cheats (GameFAQs)</span>
+            {hasCheats ? (
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono font-black bg-amber-500 text-slate-950">
+                {game.cheats?.length} ON
+              </span>
+            ) : (
+              <span className="text-[10px] text-slate-600">OFF</span>
+            )}
+          </button>
+
+          {/* TAB: MODS (NEXUS MODS) */}
+          <button
+            onClick={() => setActiveTab('mods')}
+            className={`py-3.5 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
+              activeTab === 'mods'
+                ? 'border-orange-400 text-orange-300 bg-orange-500/10'
+                : hasMods
+                ? 'border-orange-400/40 text-orange-400 hover:text-orange-300'
+                : 'border-transparent text-slate-500 hover:text-slate-300'
+            }`}
+          >
+            <Package className={`w-4 h-4 ${hasMods ? 'text-orange-400' : 'text-slate-500'}`} />
+            <span>Mods (NexusMods)</span>
+            {hasMods ? (
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono font-black bg-orange-500 text-slate-950">
+                {game.mods?.length || 1} ON
+              </span>
+            ) : (
+              <span className="text-[10px] text-slate-600">OFF</span>
+            )}
           </button>
         </div>
 
@@ -1059,6 +1151,194 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                 <li><strong className="text-white">Softwares Necessários:</strong> Certifique-se de possuir o DirectX atualizado e os pacotes <em>Visual C++ Redistributable (2015-2022)</em> instalados.</li>
                 <li><strong className="text-white">Executar como Administrador:</strong> Clique com botão direito no atalho criado e selecione "Executar como Administrador" para jogar.</li>
               </ol>
+            </div>
+          )}
+
+          {/* TAB: CHEATS (GAMEFAQS) */}
+          {activeTab === 'cheats' && (
+            <div className="space-y-6 animate-fadeIn">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-2xl bg-gradient-to-r from-amber-950/40 via-slate-900 to-amber-950/20 border border-amber-500/40">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-400 shrink-0">
+                    <Zap className="w-5 h-5 fill-amber-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black text-white uppercase tracking-wide flex items-center gap-2">
+                      <span>Cheats, Códigos e Macetes Oficiais (GameFAQs.gamespot.com)</span>
+                      {hasCheats && (
+                        <span className="text-[10px] px-2 py-0.5 rounded font-black bg-amber-500 text-slate-950">
+                          {game.cheats?.length} CÓDIGOS ATIVOS
+                        </span>
+                      )}
+                    </h4>
+                    <p className="text-xs text-slate-400">
+                      Códigos verificados pela comunidade do GameFAQs para desbloqueios, vidas, armas e seleção de níveis.
+                    </p>
+                  </div>
+                </div>
+
+                <a
+                  href={game.gamefaqsCheatsUrl || `https://gamefaqs.gamespot.com/search?game=${encodeURIComponent(game.title)}+cheats`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition-all flex items-center gap-1.5 shrink-0 shadow-md cursor-pointer"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Central de Cheats no GameFAQs</span>
+                </a>
+              </div>
+
+              {hasCheats ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {game.cheats!.map((cheat, idx) => (
+                    <div 
+                      key={cheat.id || idx}
+                      className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 hover:border-amber-500/50 transition-all space-y-3"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-black text-white">{cheat.title}</span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                          {cheat.category || 'Geral'}
+                        </span>
+                      </div>
+
+                      <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between gap-2">
+                        <span className="font-mono text-xs font-bold text-emerald-400 break-all select-all">
+                          {cheat.codeOrEffect}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(cheat.codeOrEffect);
+                            setCopiedCheatId(cheat.id || `${idx}`);
+                            setTimeout(() => setCopiedCheatId(null), 2500);
+                          }}
+                          className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-amber-500 hover:text-slate-950 text-slate-300 text-[10px] font-bold transition-all shrink-0 cursor-pointer"
+                        >
+                          {copiedCheatId === (cheat.id || `${idx}`) ? '✓ Copiado' : 'Copiar'}
+                        </button>
+                      </div>
+
+                      {cheat.description && (
+                        <p className="text-xs text-slate-400 leading-relaxed">{cheat.description}</p>
+                      )}
+
+                      <div className="text-[10px] text-slate-500 font-mono flex items-center justify-between pt-1 border-t border-slate-900">
+                        <span>Fonte: {cheat.source || 'GameFAQs'}</span>
+                        <span className="text-emerald-400 font-semibold">100% Funcional</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-8 rounded-2xl bg-slate-950/50 border border-slate-800 text-center space-y-3">
+                  <Zap className="w-10 h-10 text-slate-600 mx-auto" />
+                  <h4 className="text-sm font-bold text-white">Nenhum código cadastrado manualmente nesta versão</h4>
+                  <p className="text-xs text-slate-400 max-w-md mx-auto">
+                    Você pode consultar todos os cheats, macetes e guias de desbloqueio para <strong>{game.title}</strong> diretamente no GameFAQs:
+                  </p>
+                  <a
+                    href={`https://gamefaqs.gamespot.com/search?game=${encodeURIComponent(game.title)}+cheats`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition-all shadow-md"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    <span>Abrir Pesquisa de Cheats no GameFAQs</span>
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB: MODS (NEXUS MODS) */}
+          {activeTab === 'mods' && (
+            <div className="space-y-6 animate-fadeIn">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-2xl bg-gradient-to-r from-orange-950/40 via-slate-900 to-orange-950/20 border border-orange-500/40">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-orange-500/20 border border-orange-400/40 flex items-center justify-center text-orange-400 shrink-0">
+                    <Package className="w-5 h-5 text-orange-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black text-white uppercase tracking-wide flex items-center gap-2">
+                      <span>Mods & Traduções Oficiais (NexusMods.com)</span>
+                      {hasMods && (
+                        <span className="text-[10px] px-2 py-0.5 rounded font-black bg-orange-500 text-slate-950">
+                          COMUNIDADE NEXUS ATIVA
+                        </span>
+                      )}
+                    </h4>
+                    <p className="text-xs text-slate-400">
+                      Patches de 60 FPS, Widescreen, Texturas 4K HD e Localizações completas para Português do Brasil.
+                    </p>
+                  </div>
+                </div>
+
+                <a
+                  href={game.nexusModsUrl || `https://www.nexusmods.com/search/?gsearch=${encodeURIComponent(game.title)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3.5 py-2 rounded-xl bg-orange-500 hover:bg-orange-400 text-slate-950 font-bold text-xs transition-all flex items-center gap-1.5 shrink-0 shadow-md cursor-pointer"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Acessar Nexus Mods Oficial</span>
+                </a>
+              </div>
+
+              {game.mods && game.mods.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {game.mods.map((mod, idx) => (
+                    <div 
+                      key={mod.id || idx}
+                      className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 hover:border-orange-500/50 transition-all space-y-3 flex flex-col justify-between"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-black text-white">{mod.title}</span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-orange-500/20 text-orange-300 border border-orange-500/30">
+                            {mod.category || 'Gameplay'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-300 leading-relaxed">{mod.description}</p>
+                      </div>
+
+                      <div className="pt-3 border-t border-slate-900 flex items-center justify-between">
+                        <div className="text-[11px] text-slate-400">
+                          {mod.author && <span>Por: <strong className="text-slate-200">{mod.author}</strong></span>}
+                          {mod.downloadsCount && <span className="ml-2 font-mono text-cyan-400">• {mod.downloadsCount} downloads</span>}
+                        </div>
+
+                        <a
+                          href={mod.nexusUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-orange-500 hover:text-slate-950 text-orange-300 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          <span>Baixar no Nexus</span>
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-8 rounded-2xl bg-slate-950/50 border border-slate-800 text-center space-y-3">
+                  <Package className="w-10 h-10 text-slate-600 mx-auto" />
+                  <h4 className="text-sm font-bold text-white">Explore os Mods Criados pela Comunidade no Nexus Mods</h4>
+                  <p className="text-xs text-slate-400 max-w-md mx-auto">
+                    Confira mods de melhoria gráfica, dublagens em português e correções de desempenho disponíveis para <strong>{game.title}</strong>:
+                  </p>
+                  <a
+                    href={game.nexusModsUrl || `https://www.nexusmods.com/search/?gsearch=${encodeURIComponent(game.title)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-slate-950 font-bold text-xs transition-all shadow-md"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    <span>Ver Mods deste Jogo no NexusMods.com</span>
+                  </a>
+                </div>
+              )}
             </div>
           )}
 

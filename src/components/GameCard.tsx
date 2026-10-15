@@ -6,7 +6,9 @@ import {
   Bookmark, 
   Check, 
   Sparkles,
-  Lock
+  Lock,
+  Zap,
+  Package
 } from 'lucide-react';
 import { Game } from '../types';
 import { useGame } from '../context/GameContext';
@@ -36,6 +38,8 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
   const openBadge = getOpenCriticTierColor(critic.opencriticTier);
   
   const libraryStatus = isInLibrary(game.id);
+  const hasGameCheats = Array.isArray(game.cheats) && game.cheats.length > 0;
+  const hasGameMods = (Array.isArray(game.mods) && game.mods.length > 0) || !!game.nexusModsUrl;
 
   const handleLibraryToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -218,6 +222,30 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
           <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors line-clamp-1 font-display">
             {game.title}
           </h3>
+
+          {/* Cheats & Mods Indicators (Ligado se disponível) */}
+          {(hasGameCheats || hasGameMods) && (
+            <div className="flex items-center gap-1.5 mt-1.5">
+              {hasGameCheats && (
+                <span 
+                  className="inline-flex items-center gap-1 text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30"
+                  title={`${game.cheats?.length} Cheats GameFAQs disponíveis!`}
+                >
+                  <Zap className="w-2.5 h-2.5 fill-amber-500 text-amber-500" />
+                  <span>Cheats ON</span>
+                </span>
+              )}
+              {hasGameMods && (
+                <span 
+                  className="inline-flex items-center gap-1 text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-orange-500/15 text-orange-700 dark:text-orange-300 border border-orange-500/30"
+                  title="Mods do Nexus Mods recomendados para este jogo"
+                >
+                  <Package className="w-2.5 h-2.5 text-orange-500" />
+                  <span>Mods ON</span>
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Genre list */}
           <div className="flex flex-wrap gap-1 mt-2">

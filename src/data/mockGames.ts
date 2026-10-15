@@ -111,7 +111,47 @@ export const INITIAL_GAMES: Game[] = [
     sourceOrigin: 'TheZukoStore',
     originalTrackerUrl: 'https://thezukostore.com',
     dlcIncluded: ['The Old Hunters DLC Expansion', 'Top Hat Hunter Skin', '60 FPS Unlocked Patch v1.09'],
-    languages: ['Português (Brasil) Dublado', 'Inglês', 'Japonês', 'Espanhol']
+    languages: ['Português (Brasil) Dublado', 'Inglês', 'Japonês', 'Espanhol'],
+    gamefaqsCheatsUrl: 'https://gamefaqs.gamespot.com/ps4/805577-bloodborne/cheats',
+    nexusModsUrl: 'https://www.nexusmods.com/bloodborne',
+    cheats: [
+      {
+        id: 'bb-cheat-1',
+        title: 'Cálice Secreto de Ecos Infinitos (cummmfpk)',
+        codeOrEffect: 'Digite o glifo cummmfpk no Altar dos Cálices em Sonho do Caçador para farmar 143.000 Ecos a cada 10 segundos',
+        category: 'Dinheiro',
+        description: 'Dungeon gerada pela comunidade que concede centenas de milhares de ecos de sangue de forma segura no início da aventura.',
+        source: 'GameFAQs'
+      },
+      {
+        id: 'bb-cheat-2',
+        title: 'Glitch de Pular a Cerca em Iosefka Clinic',
+        codeOrEffect: 'Salte sobre a grade do portão trancado da clínica usando o caixão de madeira para acessar os Bosques Proibidos no início',
+        category: 'Segredos',
+        description: 'Permite acesso imediato a itens avançados e à carta de Cainhurst logo após o primeiro chefe.',
+        source: 'GameFAQs'
+      }
+    ],
+    mods: [
+      {
+        id: 'bb-mod-1',
+        title: 'ShadPS4 60FPS & 1440p High Resolution Patch',
+        description: 'Desbloqueia os 60 quadros por segundo fluidos e resolução de renderização 1440p/4K para PC via emulador.',
+        nexusUrl: 'https://www.nexusmods.com/bloodborne/mods/1',
+        category: 'Fix/FPS',
+        author: 'FromSoftwarePC_Group',
+        downloadsCount: '142k'
+      },
+      {
+        id: 'bb-mod-2',
+        title: 'Tradução PT-BR Aprimorada & Fontes Nítidas',
+        description: 'Restaura termos do lore oficial com legendas mais legíveis em monitores ultrawide.',
+        nexusUrl: 'https://www.nexusmods.com/bloodborne/mods/3',
+        category: 'Tradução',
+        author: 'VortexBrasilTeam',
+        downloadsCount: '88k'
+      }
+    ]
   },
   {
     id: 'cyberpunk-2077',
@@ -217,7 +257,64 @@ export const INITIAL_GAMES: Game[] = [
     sourceOrigin: 'TheZukoStore',
     originalTrackerUrl: 'https://thezukostore.com',
     dlcIncluded: ['Phantom Liberty', 'Bonus In-Game Jackets & Weapons', 'OST Soundtrack FLAC', 'Digital Artbook'],
-    languages: ['Português (Brasil) Dublado', 'Inglês', 'Espanhol', 'Francês', 'Alemão', 'Japonês']
+    languages: ['Português (Brasil) Dublado', 'Inglês', 'Espanhol', 'Francês', 'Alemão', 'Japonês'],
+    gamefaqsCheatsUrl: 'https://gamefaqs.gamespot.com/pc/778998-cyberpunk-2077/cheats',
+    nexusModsUrl: 'https://www.nexusmods.com/cyberpunk2077',
+    cheats: [
+      {
+        id: 'cp-cheat-1',
+        title: 'Eurodólares Infinitos (Cyber Engine Tweaks)',
+        codeOrEffect: 'Game.AddToInventory("Items.money", 1000000)',
+        category: 'Dinheiro',
+        description: 'Adiciona 1 milhão de eddies instantaneamente à sua carteira no console CET.',
+        source: 'GameFAQs'
+      },
+      {
+        id: 'cp-cheat-2',
+        title: 'Nível Máximo de V & Pontos de Vantagem',
+        codeOrEffect: 'Game.SetLevel("Level", 60) e Game.GiveDevPoints("Attribute", 20)',
+        category: 'Geral',
+        description: 'Eleva V imediatamente ao nível 60 com 20 pontos de atributos para desbloquear qualquer build.',
+        source: 'GameFAQs'
+      },
+      {
+        id: 'cp-cheat-3',
+        title: 'Todas as Armas Icônicas Lendárias',
+        codeOrEffect: 'Game.AddToInventory("Items.Preset_Silverhand_3516", 1)',
+        category: 'Armas',
+        description: 'Adiciona a icônica pistola Malorian Arms 3516 de Johnny Silverhand com dano máximo.',
+        source: 'GameFAQs'
+      }
+    ],
+    mods: [
+      {
+        id: 'cp-mod-1',
+        title: 'Cyber Engine Tweaks (CET Framework Oficial)',
+        description: 'Framework indispensável para habilitar console de comandos, atalhos e suporte a scripts de mods.',
+        nexusUrl: 'https://www.nexusmods.com/cyberpunk2077/mods/107',
+        category: 'Gameplay',
+        author: 'Yamashi / CET Team',
+        downloadsCount: '4.8M'
+      },
+      {
+        id: 'cp-mod-2',
+        title: 'Ultra Plus Better Path Tracing & Performance Boost',
+        description: 'Otimização avançada de iluminação por ray tracing que reduz ruído e melhora a taxa de FPS.',
+        nexusUrl: 'https://www.nexusmods.com/cyberpunk2077/mods/10490',
+        category: 'Fix/FPS',
+        author: 'CyanPancake',
+        downloadsCount: '320k'
+      },
+      {
+        id: 'cp-mod-3',
+        title: 'Let There Be Flight (Carros Voadores em Night City)',
+        description: 'Adiciona propulsores de voo realistas aos veículos para sobrevoar todos os arranha-céus de Night City.',
+        nexusUrl: 'https://www.nexusmods.com/cyberpunk2077/mods/5208',
+        category: 'Gameplay',
+        author: 'JackTheSpook',
+        downloadsCount: '890k'
+      }
+    ]
   },
   {
     id: 'elden-ring',

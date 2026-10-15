@@ -77,6 +77,27 @@ export interface CriticReviewData {
   gamefaqsUrl: string;
 }
 
+export interface GameCheat {
+  id: string;
+  title: string;
+  codeOrEffect: string; // Ex: Códigos de botões, comandos de console ou trapaças
+  category?: 'Geral' | 'Armas' | 'Veículos' | 'Vidas/Energia' | 'Dinheiro' | 'Segredos' | 'Desbloqueáveis';
+  description?: string;
+  source?: 'GameFAQs' | 'Manual' | 'Comunidade';
+}
+
+export interface GameMod {
+  id: string;
+  title: string;
+  description: string;
+  nexusUrl: string; // URL oficial do mod no Nexus Mods: https://www.nexusmods.com/...
+  author?: string;
+  category?: 'Tradução' | 'Gráficos/4K' | 'Gameplay' | 'Fix/FPS' | 'Skins' | 'ReShade';
+  downloadsCount?: string;
+  likesCount?: string;
+  imageUrl?: string;
+}
+
 export interface Game {
   id: string;
   title: string;
@@ -115,6 +136,10 @@ export interface Game {
   titleId?: string; // Ex: CUSA-34388 (ZukoStore CUSA ID)
   sourceOrigin?: 'TheZukoStore' | 'Tapochek.net' | 'FitGirl' | 'Scene' | 'Multi-Tracker';
   originalTrackerUrl?: string; // Link da fonte original (Tapochek / ZukoStore)
+  cheats?: GameCheat[]; // Códigos e cheats puxados do GameFAQs
+  mods?: GameMod[]; // Mods populares do Nexus Mods (https://www.nexusmods.com/)
+  gamefaqsCheatsUrl?: string; // Link direto para a página de cheats do GameFAQs
+  nexusModsUrl?: string; // Link da central do jogo no Nexus Mods
 }
 
 export type LibraryStatus = 'wishlist' | 'playing' | 'completed' | 'backlog' | 'downloaded';

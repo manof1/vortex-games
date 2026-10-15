@@ -1,3 +1,5 @@
+import { GameCheat, GameMod } from '../types';
+
 export interface PkgGame {
   id: string;
   title: string;
@@ -23,6 +25,10 @@ export interface PkgGame {
   zukoStorePageUrl: string;
   gamefaqsPageUrl: string;
   tags: string[];
+  cheats?: GameCheat[]; // Códigos de trapaça e cheats puxados do GameFAQs
+  mods?: GameMod[]; // Mods e patches recomendados do Nexus Mods
+  gamefaqsCheatsUrl?: string; // Link da página de Cheats no GameFAQs
+  nexusModsUrl?: string; // Link do jogo no Nexus Mods
 }
 
 export const INITIAL_PKG_GAMES: PkgGame[] = [
@@ -56,7 +62,35 @@ export const INITIAL_PKG_GAMES: PkgGame[] = [
     ptBrSupport: true,
     zukoStorePageUrl: 'https://thezukostore.com/ps1-pkg-castlevania-symphony-of-the-night',
     gamefaqsPageUrl: 'https://gamefaqs.gamespot.com/ps/196885-castlevania-symphony-of-the-night',
-    tags: ['Metroidvania', 'Alucard', 'Dracula', 'Dublado / Legendado PT-BR', 'PS1 Classics']
+    gamefaqsCheatsUrl: 'https://gamefaqs.gamespot.com/ps/196885-castlevania-symphony-of-the-night/cheats',
+    nexusModsUrl: 'https://www.nexusmods.com/castlevaniasotn',
+    tags: ['Metroidvania', 'Alucard', 'Dracula', 'Dublado / Legendado PT-BR', 'PS1 Classics'],
+    cheats: [
+      {
+        id: 'pkg-sotn-cheat-1',
+        title: 'Jogar com Richter Belmont',
+        codeOrEffect: 'Digite o nome RICHTER ao iniciar um novo jogo após zerar',
+        category: 'Desbloqueáveis',
+        source: 'GameFAQs'
+      },
+      {
+        id: 'pkg-sotn-cheat-2',
+        title: 'Alucard com Sorte 99 (99 LCK)',
+        codeOrEffect: 'Digite o nome X-X!V\'\'Q ao iniciar novo jogo',
+        category: 'Geral',
+        source: 'GameFAQs'
+      }
+    ],
+    mods: [
+      {
+        id: 'pkg-sotn-mod-1',
+        title: 'Castlevania SOTN Widescreen & Color Fix',
+        description: 'Renderização 16:9 sem esticar e correção de paleta de cores 32-bit.',
+        nexusUrl: 'https://www.nexusmods.com/castlevaniasotn/mods/1',
+        category: 'Fix/FPS',
+        author: 'Aero_Modding'
+      }
+    ]
   },
   {
     id: 'pkg-ps1-silent-hill',
@@ -87,7 +121,35 @@ export const INITIAL_PKG_GAMES: PkgGame[] = [
     ptBrSupport: true,
     zukoStorePageUrl: 'https://thezukostore.com/ps1-pkg-silent-hill',
     gamefaqsPageUrl: 'https://gamefaqs.gamespot.com/ps/198641-silent-hill',
-    tags: ['Survival Horror', 'Harry Mason', 'Team Silent', 'Tradução PT-BR']
+    gamefaqsCheatsUrl: 'https://gamefaqs.gamespot.com/ps/198641-silent-hill/cheats',
+    nexusModsUrl: 'https://www.nexusmods.com/silenthill',
+    tags: ['Survival Horror', 'Harry Mason', 'Team Silent', 'Tradução PT-BR'],
+    cheats: [
+      {
+        id: 'pkg-sh-cheat-1',
+        title: 'Munição em Dobro na Opções',
+        codeOrEffect: 'L1 + R1 + L2 + R2 na tela de Opções para Bullet Multiplier x2 a x6',
+        category: 'Armas',
+        source: 'GameFAQs'
+      },
+      {
+        id: 'pkg-sh-cheat-2',
+        title: 'Chainsaw e Rock Drill no Next Fear',
+        codeOrEffect: 'Terminar o jogo uma vez em qualquer final para destravar armas especiais',
+        category: 'Desbloqueáveis',
+        source: 'GameFAQs'
+      }
+    ],
+    mods: [
+      {
+        id: 'pkg-sh-mod-1',
+        title: 'Silent Hill Widescreen & 60FPS Enhancement Patch',
+        description: 'Remove bordas 4:3 e melhora taxa de quadros.',
+        nexusUrl: 'https://www.nexusmods.com/silenthill/mods/1',
+        category: 'Fix/FPS',
+        author: 'Aero_Modding'
+      }
+    ]
   },
   {
     id: 'pkg-ps1-resident-evil-2-dualshock',
@@ -438,4 +500,21 @@ export const resetPkgGamesToDefault = (): PkgGame[] => {
     console.error('Failed to reset PKG games', e);
   }
   return INITIAL_PKG_GAMES;
+};
+
+export const updateStoredPkgGame = (updatedGame: PkgGame): PkgGame[] => {
+  const current = getStoredPkgGames();
+  const exists = current.some(g => g.id === updatedGame.id);
+  const updatedList = exists 
+    ? current.map(g => g.id === updatedGame.id ? updatedGame : g)
+    : [updatedGame, ...current];
+  savePkgGames(updatedList);
+  return updatedList;
+};
+
+export const deleteStoredPkgGame = (gameId: string): PkgGame[] => {
+  const current = getStoredPkgGames();
+  const filtered = current.filter(g => g.id !== gameId);
+  savePkgGames(filtered);
+  return filtered;
 };
