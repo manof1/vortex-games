@@ -465,7 +465,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const openCreatorLab = () => {
     const isVerified = localStorage.getItem('vortex_creator_verified') === 'true';
     const email = (userProfile.email || '').toLowerCase().trim();
-    if (isVerified || email === 'manof1@gmail.com' || email === 'vigilanciabcu@gmail.com') {
+    const name = (userProfile.name || '').toLowerCase().trim();
+    const isManof = isVerified || 
+                    email === 'manof1@gmail.com' || 
+                    email === 'vigilanciabcu@gmail.com' || 
+                    name.includes('manof1');
+
+    if (isManof) {
       setIsPkgLabOpen(true);
     } else {
       setIsCreatorAuthOpen(true);
@@ -486,17 +492,29 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       a.name?.toLowerCase() === clean.toLowerCase()
     );
 
-    const userName = found ? found.name : clean.split('@')[0];
+    const isManof = clean.toLowerCase() === 'manof1' || 
+                    clean.toLowerCase() === 'manof1@gmail.com' || 
+                    found?.email?.toLowerCase() === 'manof1@gmail.com' ||
+                    found?.name?.toLowerCase() === 'manof1';
+
+    const userName = found ? found.name : (isManof ? 'manof1 (Criador)' : clean.split('@')[0]);
     const userTag = found ? found.tag : `BR${Math.floor(10 + Math.random() * 89)}`;
+    const userEmail = found?.email || (clean.includes('@') ? clean : (isManof ? 'manof1@gmail.com' : `${clean.toLowerCase()}@vortex.gg`));
     
     const updatedProfile: UserProfile = {
       ...userProfile,
-      id: found?.id || `usr-${Date.now()}`,
+      id: found?.id || (isManof ? 'usr-manof1-creator' : `usr-${Date.now()}`),
       name: userName,
+      email: userEmail,
       tag: userTag,
-      joinedDate: found?.joinedDate || 'Membro Ativo',
+      joinedDate: found?.joinedDate || (isManof ? 'Criador do Vortex Games' : 'Membro Ativo'),
       totalDownloads: userProfile.totalDownloads || 0
     };
+
+    if (isManof) {
+      localStorage.setItem('vortex_creator_verified', 'true');
+      localStorage.setItem('vortex_creator_email', 'manof1@gmail.com');
+    }
 
     setUserProfile(updatedProfile);
     localStorage.setItem('vortex_user_profile', JSON.stringify(updatedProfile));
