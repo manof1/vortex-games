@@ -10,6 +10,8 @@ import { UserLibraryView } from './components/UserLibraryView';
 import { UserMenuModal } from './components/UserMenuModal';
 import { AuthModal } from './components/AuthModal';
 import { GameRequestModal } from './components/GameRequestModal';
+import { PkgTestLabModal } from './components/PkgTestLabModal';
+import { CreatorAuthModal } from './components/CreatorAuthModal';
 import { SidebarBanners } from './components/SidebarBanners';
 import { Footer } from './components/Footer';
 import { SearchX, Sparkles, Flame } from 'lucide-react';
@@ -28,7 +30,11 @@ const MainContent: React.FC = () => {
     isAuthModalOpen,
     setIsAuthModalOpen,
     isGameRequestOpen,
-    setIsGameRequestOpen
+    setIsGameRequestOpen,
+    isPkgLabOpen,
+    setIsPkgLabOpen,
+    isCreatorAuthOpen,
+    setIsCreatorAuthOpen
   } = useGame();
   const { t } = useLanguage();
 
@@ -223,6 +229,22 @@ const MainContent: React.FC = () => {
       <GameRequestModal 
         isOpen={isGameRequestOpen} 
         onClose={() => setIsGameRequestOpen(false)} 
+      />
+
+      {/* Laboratório de Testes PKG Exclusivo para o Criador (manof1@gmail.com) */}
+      <PkgTestLabModal
+        isOpen={isPkgLabOpen}
+        onClose={() => setIsPkgLabOpen(false)}
+      />
+
+      {/* Modal de Confirmação de Acesso do Criador */}
+      <CreatorAuthModal
+        isOpen={isCreatorAuthOpen}
+        onClose={() => setIsCreatorAuthOpen(false)}
+        onSuccess={() => {
+          setIsCreatorAuthOpen(false);
+          setIsPkgLabOpen(true);
+        }}
       />
     </div>
   );

@@ -34,6 +34,12 @@ interface GameContextType {
   setIsUserMenuOpen: (open: boolean) => void;
   isGameRequestOpen: boolean;
   setIsGameRequestOpen: (open: boolean) => void;
+  // Creator PKG Test Lab (manof1@gmail.com)
+  isPkgLabOpen: boolean;
+  setIsPkgLabOpen: (open: boolean) => void;
+  isCreatorAuthOpen: boolean;
+  setIsCreatorAuthOpen: (open: boolean) => void;
+  openCreatorLab: () => void;
   userProfile: UserProfile;
   updateUserProfile: (profile: Partial<UserProfile>) => void;
   // Member authentication system
@@ -419,6 +425,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isSupabaseGuideOpen, setIsSupabaseGuideOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isPkgLabOpen, setIsPkgLabOpen] = useState(false);
+  const [isCreatorAuthOpen, setIsCreatorAuthOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
     return localStorage.getItem('vortex_is_logged_in') === 'true';
   });
@@ -452,6 +460,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('vortex_user_profile', JSON.stringify(updated));
       return updated;
     });
+  };
+
+  const openCreatorLab = () => {
+    const isVerified = localStorage.getItem('vortex_creator_verified') === 'true';
+    const email = (userProfile.email || '').toLowerCase().trim();
+    if (isVerified || email === 'manof1@gmail.com' || email === 'vigilanciabcu@gmail.com') {
+      setIsPkgLabOpen(true);
+    } else {
+      setIsCreatorAuthOpen(true);
+    }
   };
 
   const login = (usernameOrEmail: string, _password?: string) => {
@@ -897,6 +915,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsUserMenuOpen,
         isGameRequestOpen,
         setIsGameRequestOpen,
+        isPkgLabOpen,
+        setIsPkgLabOpen,
+        isCreatorAuthOpen,
+        setIsCreatorAuthOpen,
+        openCreatorLab,
         userProfile,
         updateUserProfile,
         isLoggedIn,

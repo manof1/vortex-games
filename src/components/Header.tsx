@@ -15,7 +15,6 @@ import {
 } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { useLanguage } from '../context/LanguageContext';
-import { LanguageSelector } from './LanguageSelector';
 
 const POPULAR_SEARCHES = [
   'Resident Evil 4',
@@ -37,6 +36,7 @@ export const Header: React.FC = () => {
     isLoggedIn,
     setIsAuthModalOpen,
     setIsGameRequestOpen,
+    openCreatorLab,
     theme, 
     toggleTheme 
   } = useGame();
@@ -329,9 +329,6 @@ export const Header: React.FC = () => {
               </button>
             )}
 
-            {/* SELETOR DE IDIOMA NO TOPO DA PÁGINA (COM BANDEIRAS E NOMES NATIVOS) */}
-            <LanguageSelector />
-
             {/* Alternador de Tema (Claro & Escuro) */}
             <button
               onClick={toggleTheme}
@@ -339,6 +336,17 @@ export const Header: React.FC = () => {
               title={theme === 'dark' ? t('header.lightMode', 'Ativar Modo Claro') : t('header.darkMode', 'Ativar Modo Escuro')}
             >
               {theme === 'dark' ? <Moon className="w-4 h-4 text-indigo-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
+            </button>
+
+            {/* Bolinha Discreta no canto do cabeçalho: Ambiente de Testes PKG do Criador (manof1@gmail.com) */}
+            <button
+              type="button"
+              onClick={openCreatorLab}
+              className="group relative p-2 rounded-xl text-slate-400 hover:text-cyan-400 hover:bg-slate-100 dark:hover:bg-slate-900 transition-all cursor-pointer flex items-center justify-center"
+              title="Ambiente de Testes PKG • TheZukoStore + GameFAQs (Criador)"
+            >
+              <span className="w-2.5 h-2.5 rounded-full bg-cyan-500/80 group-hover:bg-cyan-400 group-hover:scale-125 transition-all shadow-[0_0_8px_rgba(6,182,212,0.6)]" />
+              <span className="sr-only">Ambiente de Testes PKG</span>
             </button>
           </div>
 
