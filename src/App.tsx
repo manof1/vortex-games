@@ -14,7 +14,8 @@ import { PkgTestLabModal } from './components/PkgTestLabModal';
 import { CreatorAuthModal } from './components/CreatorAuthModal';
 import { SidebarBanners } from './components/SidebarBanners';
 import { Footer } from './components/Footer';
-import { SearchX, Sparkles, Flame } from 'lucide-react';
+import { SearchX, Sparkles, Flame, Trophy, X, Star, Medal, Users, Eye, Download } from 'lucide-react';
+import { TOP_OPTIONS } from './components/Header';
 
 const MainContent: React.FC = () => {
   const { 
@@ -114,11 +115,28 @@ const MainContent: React.FC = () => {
           case 'popular':
             return b.viewsCount - a.viewsCount;
           case 'rating':
+          case 'top_rating':
             if (b.totalVotes > 0 && a.totalVotes === 0) return 1;
             if (a.totalVotes > 0 && b.totalVotes === 0) return -1;
+            if (b.rating !== a.rating) return b.rating - a.rating;
+            return (b.totalVotes || 0) - (a.totalVotes || 0);
+          case 'top_critic': {
+            const bMeta = b.criticScores?.metacritic || b.criticScores?.opencritic || 0;
+            const aMeta = a.criticScores?.metacritic || a.criticScores?.opencritic || 0;
+            if (bMeta !== aMeta) return bMeta - aMeta;
             return b.rating - a.rating;
+          }
+          case 'top_user': {
+            const bUser = b.criticScores?.metacriticUser ? b.criticScores.metacriticUser * 10 : (b.rating * 20);
+            const aUser = a.criticScores?.metacriticUser ? a.criticScores.metacriticUser * 10 : (a.rating * 20);
+            if (bUser !== aUser) return bUser - aUser;
+            return b.rating - a.rating;
+          }
+          case 'top_views':
+            return (b.viewsCount || 0) - (a.viewsCount || 0);
           case 'downloads':
-            return b.downloadsCount - a.downloadsCount;
+          case 'top_downloads':
+            return (b.downloadsCount || 0) - (a.downloadsCount || 0);
           case 'sizeAsc':
             return parseFloat(a.repackInfo.repackSize) - parseFloat(b.repackInfo.repackSize);
           case 'sizeDesc':
@@ -158,11 +176,83 @@ const MainContent: React.FC = () => {
             {/* Advanced Filter Bar */}
             <FilterBar />
 
+            {/* TOP Rankings Spotlight Banner (Quando qualquer modo TOP estiver ativado) */}
+            {filters.sortBy.startsWith('top_') && (() => {
+              const activeTop = TOP_OPTIONS.find(o => o.key === filters.sortBy) || TOP_OPTIONS[0];
+              return (
+                <div className="mb-6 p-4 sm:p-6 rounded-3xl bg-gradient-to-r from-amber-500/15 via-slate-900 to-yellow-500/10 border-2 border-amber-500/40 shadow-xl shadow-amber-500/10 space-y-4 animate-fadeIn">
+                  <div className="flex items-center justify-between flex-wrap gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center text-slate-950 font-black shadow-lg shadow-amber-500/30">
+                        <Trophy className="w-6 h-6 fill-slate-950 stroke-[2.5]" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-amber-500 text-slate-950">
+                            RANKING OFICIAL
+                          </span>
+                          <span className="text-xs text-amber-400 font-bold">
+                            {filteredGames.length} Jogos Ranqueados
+                          </span>
+                        </div>
+                        <h3 className="text-lg sm:text-2xl font-black text-white font-display flex items-center gap-2 mt-0.5">
+                          <span>{activeTop.icon}</span>
+                          <span>{activeTop.label}</span>
+                        </h3>
+                        <p className="text-xs text-slate-300">
+                          {activeTop.description}
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setFilters(prev => ({ ...prev, sortBy: 'latest' }))}
+                      className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border border-slate-700"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                      <span>Voltar à Ordem Padrão</span>
+                    </button>
+                  </div>
+
+                  {/* Quick Switcher Tabs para alternar entre os 5 TOPs com 1 clique */}
+                  <div className="pt-2 border-t border-amber-500/20 flex items-center gap-2 overflow-x-auto scrollbar-none pb-1">
+                    <span className="text-[11px] font-bold text-amber-400 uppercase tracking-wider shrink-0 mr-1">
+                      Alternar Critério:
+                    </span>
+                    {TOP_OPTIONS.map(opt => {
+                      const isCur = filters.sortBy === opt.key;
+                      return (
+                        <button
+                          key={opt.key}
+                          type="button"
+                          onClick={() => setFilters(prev => ({ ...prev, sortBy: opt.key }))}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+                            isCur
+                              ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/30 ring-1 ring-amber-300'
+                              : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-800'
+                          }`}
+                        >
+                          <span>{opt.icon}</span>
+                          <span>{opt.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* Section Header */}
             <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-300 dark:border-slate-800/80">
               <div className="flex items-center gap-2.5">
                 <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-display flex items-center gap-2">
-                  {filters.search ? (
+                  {filters.sortBy.startsWith('top_') ? (
+                    <>
+                      <Trophy className="w-6 h-6 text-amber-500 fill-amber-400" />
+                      <span>TOP Rankings: {TOP_OPTIONS.find(o => o.key === filters.sortBy)?.label}</span>
+                    </>
+                  ) : filters.search ? (
                     <span>{t('catalog.resultsFor', 'Resultados para')} "{filters.search}"</span>
                   ) : filters.category !== 'Todos' ? (
                     <span>{filters.category}</span>
@@ -208,8 +298,12 @@ const MainContent: React.FC = () => {
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 sm:gap-6 pb-12">
-                {filteredGames.map(game => (
-                  <GameCard key={game.id} game={game} />
+                {filteredGames.map((game, index) => (
+                  <GameCard 
+                    key={game.id} 
+                    game={game} 
+                    rank={filters.sortBy.startsWith('top_') ? index + 1 : undefined}
+                  />
                 ))}
               </div>
             )}

@@ -213,6 +213,11 @@ export const FilterBar: React.FC = () => {
             >
               <option value="latest" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{t('filter.sortLatest', 'Mais Recentes')}</option>
               <option value="popular" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{t('filter.sortPopular', 'Mais Vistos')}</option>
+              <option value="top_rating" className="bg-white dark:bg-slate-900 text-amber-500 dark:text-amber-400 font-bold">⭐ TOP: Mais Bem Avaliados (Geral)</option>
+              <option value="top_critic" className="bg-white dark:bg-slate-900 text-amber-500 dark:text-amber-400 font-bold">🎖️ TOP: Melhores Notas da Crítica (Metascore)</option>
+              <option value="top_user" className="bg-white dark:bg-slate-900 text-amber-500 dark:text-amber-400 font-bold">👥 TOP: Melhores Notas dos Usuários</option>
+              <option value="top_views" className="bg-white dark:bg-slate-900 text-amber-500 dark:text-amber-400 font-bold">🔥 TOP: Os Mais Acessados</option>
+              <option value="top_downloads" className="bg-white dark:bg-slate-900 text-amber-500 dark:text-amber-400 font-bold">📥 TOP: Os Mais Baixados</option>
               <option value="rating" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{t('filter.sortRating', 'Melhor Avaliados (Notas)')}</option>
               <option value="downloads" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{t('filter.sortDownloads', 'Mais Baixados')}</option>
               <option value="sizeAsc" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{t('filter.sortSizeAsc', 'Menor Tamanho (Leves)')}</option>

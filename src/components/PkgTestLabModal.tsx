@@ -39,7 +39,12 @@ import {
   pullGameDataFromSources, 
   convertScrapedToPkgGame, 
   ScrapedGameResult,
-  KNOWN_SCRAPED_GAMES 
+  KNOWN_SCRAPED_GAMES,
+  extractCleanGameTitle,
+  importCheatsFromGameFaqs,
+  fetchNexusModsForGame,
+  fetchGameFaqsBoxes,
+  fetchGameFaqsImages
 } from '../services/pkgScraperService';
 import { GameCheat, GameMod } from '../types';
 
@@ -114,7 +119,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
   // Modo no editor: 'form' | 'preview'
   const [editorSubTab, setEditorSubTab] = useState<'form' | 'preview'>('form');
 
-  const [selectedPlatform, setSelectedPlatform] = useState<'ALL' | 'PS1' | 'PS2' | 'PS3'>('ALL');
+  const [selectedPlatform, setSelectedPlatform] = useState<'ALL' | 'PS1' | 'PS2' | 'PS3' | 'PS4' | 'PS5' | 'PSP' | 'PS Vita' | string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGame, setSelectedGame] = useState<PkgGame | null>(null);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
@@ -125,17 +130,25 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
   // ---- ESTADOS DO EDITOR / CRIADOR DE PUBLICAÇÃO ----
   const [editingGameId, setEditingGameId] = useState<string | null>(null);
   const [scraperInput, setScraperInput] = useState('');
-  const [scraperPlatform, setScraperPlatform] = useState<'PS1' | 'PS2' | 'PS3'>('PS2');
+  const [scraperPlatform, setScraperPlatform] = useState<string>('PS2');
   const [isScraping, setIsScraping] = useState(false);
+  const [isImportingCheats, setIsImportingCheats] = useState(false);
+  const [isSyncingMods, setIsSyncingMods] = useState(false);
+  const [isFetchingBoxes, setIsFetchingBoxes] = useState(false);
+  const [isFetchingImages, setIsFetchingImages] = useState(false);
+  const [cheatCategoryFilter, setCheatCategoryFilter] = useState<string>('ALL');
 
   // Campos do formulário
   const [formTitle, setFormTitle] = useState('');
-  const [formPlatform, setFormPlatform] = useState<'PS1' | 'PS2' | 'PS3'>('PS2');
+  const [formPlatform, setFormPlatform] = useState<string>('PS2');
   const [formTitleId, setFormTitleId] = useState('');
   const [formDownloadUrl, setFormDownloadUrl] = useState('');
+  const [formFormat, setFormFormat] = useState<string>('PKG');
   const [formFileSize, setFormFileSize] = useState('1.5 GB');
   const [formCoverUrl, setFormCoverUrl] = useState('');
   const [coverCandidates, setCoverCandidates] = useState<string[]>([]);
+  const [formGamefaqsBoxesUrl, setFormGamefaqsBoxesUrl] = useState<string>('');
+  const [formGamefaqsImagesUrl, setFormGamefaqsImagesUrl] = useState<string>('');
   // 4 fotos da postagem
   const [formScreenshots, setFormScreenshots] = useState<string[]>([
     'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1000&q=80',
@@ -159,7 +172,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
   // Novo cheat manual
   const [newCheatTitle, setNewCheatTitle] = useState('');
   const [newCheatCode, setNewCheatCode] = useState('');
-  const [newCheatCategory, setNewCheatCategory] = useState<'Geral' | 'Armas' | 'Veículos' | 'Vidas/Energia' | 'Segredos' | 'Desbloqueáveis'>('Geral');
+  const [newCheatCategory, setNewCheatCategory] = useState<string>('Geral');
 
   // Novo mod manual
   const [newModTitle, setNewModTitle] = useState('');
@@ -223,11 +236,14 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
         setFormPlatform(result.platform);
         setFormTitleId(result.titleId);
         setFormDownloadUrl(result.fileUrl);
+        setFormFormat(result.format || 'PKG');
         setFormFileSize(result.fileSize);
         setFormCoverUrl(result.coverUrl);
         setCoverCandidates(result.coverOptions || [result.coverUrl]);
+        setFormGamefaqsBoxesUrl(result.gamefaqsBoxesUrl || '');
         setFormScreenshots(result.screenshots?.slice(0, 4) || []);
         setScreenshotCandidates(result.screenshotOptions || result.screenshots || []);
+        setFormGamefaqsImagesUrl(result.gamefaqsImagesUrl || '');
         setFormDescription(result.description);
         setFormDeveloper(result.developer);
         setFormPublisher(result.publisher);
@@ -240,7 +256,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
         setFormMods(result.mods || []);
         setFormNexusModsUrl(result.nexusModsUrl || `https://www.nexusmods.com/search/?gsearch=${encodeURIComponent(result.title)}`);
 
-        showNotification(`✓ Dados puxados com sucesso! Ficha, Capa, 4 Screenshots e Cheats do GameFAQs • Link do TheZukoStore • Mods do Nexus.`);
+        showNotification(`✓ Dados puxados com sucesso! Ficha, Capa da aba Boxes, 4 Screenshots da aba Images e Cheats do GameFAQs.`);
       } else {
         showNotification('Nenhum dado encontrado para a busca. Preencha manualmente ou ajuste o termo.');
       }
@@ -251,6 +267,120 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
     }
   };
 
+  // Buscar Capas da Seção Boxes do GameFAQs (gamefaqs.com/<console>/<jogo>/boxes)
+  const handleFetchBoxesDirectly = async () => {
+    const target = formGamefaqsBoxesUrl || formTitle || scraperInput;
+    if (!target.trim()) {
+      showNotification('Informe o título do jogo ou o link da seção Boxes no GameFAQs.');
+      return;
+    }
+    setIsFetchingBoxes(true);
+    try {
+      const res = await fetchGameFaqsBoxes(target, formPlatform);
+      if (res && res.covers && res.covers.length > 0) {
+        setCoverCandidates(res.covers);
+        setFormCoverUrl(res.covers[0]);
+        setFormGamefaqsBoxesUrl(res.boxesUrl);
+        showNotification(`📦 ${res.covers.length} Capas e Boxes autênticos puxados da seção Media > Boxes do GameFAQs!`);
+      } else {
+        showNotification('Nenhuma capa encontrada na seção Boxes do GameFAQs.');
+      }
+    } catch {
+      showNotification('Falha ao conectar com a seção Boxes do GameFAQs.');
+    } finally {
+      setIsFetchingBoxes(false);
+    }
+  };
+
+  // Buscar Fotos da Seção Images do GameFAQs (gamefaqs.com/<console>/<jogo>/images)
+  const handleFetchImagesDirectly = async () => {
+    const target = formGamefaqsImagesUrl || formTitle || scraperInput;
+    if (!target.trim()) {
+      showNotification('Informe o título do jogo ou o link da seção Images no GameFAQs.');
+      return;
+    }
+    setIsFetchingImages(true);
+    try {
+      const res = await fetchGameFaqsImages(target, formPlatform);
+      if (res && res.screenshots && res.screenshots.length > 0) {
+        setScreenshotCandidates(res.screenshots);
+        setFormGamefaqsImagesUrl(res.imagesUrl);
+        showNotification(`📸 ${res.screenshots.length} Screenshots reais de gameplay puxados da seção Media > Images do GameFAQs!`);
+      } else {
+        showNotification('Nenhuma imagem encontrada na seção Images do GameFAQs.');
+      }
+    } catch {
+      showNotification('Falha ao conectar com a seção Images do GameFAQs.');
+    } finally {
+      setIsFetchingImages(false);
+    }
+  };
+
+  // Preencher os 4 slots de fotos automaticamente com as primeiras imagens da galeria do GameFAQs
+  const handleAutoFillScreenshots = () => {
+    const pool = screenshotCandidates.length > 0 ? screenshotCandidates : [
+      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d2.jpg',
+      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d3.jpg',
+      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d4.jpg',
+      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d5.jpg'
+    ];
+    setFormScreenshots([
+      pool[0] || '',
+      pool[1] || pool[0] || '',
+      pool[2] || pool[0] || '',
+      pool[3] || pool[0] || ''
+    ]);
+    showNotification('✓ Os 4 slots de fotos da postagem foram preenchidos com fotos do GameFAQs!');
+  };
+
+  // Importar Cheats Direto do GameFAQs (com limpeza de versões e subtítulos)
+  const handleImportCheatsDirectly = async () => {
+    const targetTitle = formTitle || scraperInput;
+    if (!targetTitle.trim()) {
+      showNotification('Digite ou informe o nome do jogo antes de importar cheats.');
+      return;
+    }
+    setIsImportingCheats(true);
+    try {
+      const res = await importCheatsFromGameFaqs(targetTitle);
+      if (res && res.cheats && res.cheats.length > 0) {
+        setFormCheats(res.cheats);
+        setFormGamefaqsCheatsUrl(res.gamefaqsCheatsUrl);
+        showNotification(`⚡ ${res.cheats.length} Cheats e códigos completos importados direto do GameFAQs para "${res.queryUsed}"!`);
+      } else {
+        showNotification('Nenhum cheat encontrado no GameFAQs para este título.');
+      }
+    } catch {
+      showNotification('Falha ao importar cheats do GameFAQs.');
+    } finally {
+      setIsImportingCheats(false);
+    }
+  };
+
+  // Sincronizar Mods do Nexus Mods (seguindo a regra do nome limpo)
+  const handleSyncNexusModsDirectly = async () => {
+    const targetTitle = formTitle || scraperInput;
+    if (!targetTitle.trim()) {
+      showNotification('Digite ou informe o nome do jogo antes de buscar mods.');
+      return;
+    }
+    setIsSyncingMods(true);
+    try {
+      const res = await fetchNexusModsForGame(targetTitle);
+      if (res && res.mods && res.mods.length > 0) {
+        setFormMods(res.mods);
+        setFormNexusModsUrl(res.nexusModsUrl);
+        showNotification(`🧩 ${res.mods.length} Mods populares sincronizados do Nexus Mods para "${res.queryUsed}"!`);
+      } else {
+        showNotification('Nenhum mod encontrado no Nexus Mods.');
+      }
+    } catch {
+      showNotification('Falha ao buscar mods no Nexus Mods.');
+    } finally {
+      setIsSyncingMods(false);
+    }
+  };
+
   // Iniciar criação de novo jogo do zero
   const handleStartNewGame = () => {
     setEditingGameId(null);
@@ -258,28 +388,31 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
     setFormPlatform('PS2');
     setFormTitleId('SCUS-' + Math.floor(10000 + Math.random() * 89999));
     setFormDownloadUrl('');
+    setFormFormat('PKG');
     setFormFileSize('2.5 GB');
-    setFormCoverUrl('https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=600&q=80');
+    setFormCoverUrl('https://images.igdb.com/igdb/image/upload/t_cover_big/co2044.jpg');
     setCoverCandidates([
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80'
+      'https://images.igdb.com/igdb/image/upload/t_cover_big/co2044.jpg',
+      'https://images.igdb.com/igdb/image/upload/t_cover_big/co1v6b.jpg',
+      'https://images.igdb.com/igdb/image/upload/t_cover_big/co1t9c.jpg',
+      'https://images.igdb.com/igdb/image/upload/t_cover_big/co1xbu.jpg'
     ]);
+    setFormGamefaqsBoxesUrl('');
     setFormScreenshots([
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1000&q=80'
+      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d2.jpg',
+      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d3.jpg',
+      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d4.jpg',
+      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d5.jpg'
     ]);
     setScreenshotCandidates([
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1000&q=80'
+      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d2.jpg',
+      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d3.jpg',
+      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d4.jpg',
+      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d5.jpg',
+      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc8p9f.jpg'
     ]);
-    setFormDescription('Sinopse GameFAQs: Digite ou puxe a sinopse do jogo...');
+    setFormGamefaqsImagesUrl('');
+    setFormDescription('');
     setFormDeveloper('PlayStation Scene');
     setFormPublisher('TheZukoStore Archive');
     setFormReleaseYear(2004);
@@ -302,12 +435,15 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
     setFormPlatform(game.platform);
     setFormTitleId(game.titleId);
     setFormDownloadUrl(game.fileUrl);
+    setFormFormat(game.format || 'PKG');
     setFormFileSize(game.fileSize);
     setFormCoverUrl(game.coverUrl);
-    setCoverCandidates([game.coverUrl, game.bannerUrl].filter(Boolean));
+    setCoverCandidates(game.coverOptions && game.coverOptions.length > 0 ? game.coverOptions : [game.coverUrl, game.bannerUrl].filter(Boolean));
+    setFormGamefaqsBoxesUrl(game.gamefaqsBoxesUrl || '');
     setFormScreenshots(game.screenshots?.slice(0, 4) || []);
     setScreenshotCandidates(game.screenshots || []);
-    setFormDescription(game.description);
+    setFormGamefaqsImagesUrl(game.gamefaqsImagesUrl || '');
+    setFormDescription(game.description.replace(/^Sinopse GameFAQs:\s*/i, ''));
     setFormDeveloper(game.developer || '');
     setFormPublisher(game.publisher || '');
     setFormReleaseYear(game.releaseYear || 2000);
@@ -348,14 +484,17 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
       return;
     }
 
-    const targetId = editingGameId || `pkg-${formPlatform.toLowerCase()}-${Date.now()}`;
+    const cleanPlatform = formPlatform.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const targetId = editingGameId || `pkg-${cleanPlatform}-${Date.now()}`;
     const cleanScreenshots = formScreenshots.filter(s => s && s.trim().startsWith('http'));
     const finalScreenshots = cleanScreenshots.length >= 3 ? cleanScreenshots.slice(0, 4) : [
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1000&q=80'
+      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d2.jpg',
+      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d3.jpg',
+      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d4.jpg',
+      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d5.jpg'
     ];
+
+    const cleanDesc = formDescription.replace(/^Sinopse GameFAQs:\s*/i, '').trim();
 
     const savedGame: PkgGame = {
       id: targetId,
@@ -364,13 +503,14 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
       titleId: formTitleId.trim() || `${formPlatform}-00000`,
       fileUrl: formDownloadUrl.trim(),
       fileSize: formFileSize.trim() || '1.0 GB',
-      format: 'PKG',
-      firmware: `PS3 CFW / HEN 4.90+ (${formPlatform} PKG)`,
+      format: formFormat.trim().toUpperCase() || 'PKG',
+      firmware: `${formPlatform} CFW / HEN / Oficial`,
       region: 'NTSC-U',
-      coverUrl: formCoverUrl.trim() || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=600&q=80',
+      coverUrl: formCoverUrl.trim() || 'https://images.igdb.com/igdb/image/upload/t_cover_big/co2044.jpg',
+      coverOptions: coverCandidates.length > 0 ? coverCandidates : undefined,
       bannerUrl: formScreenshots[0] || formCoverUrl.trim(),
       screenshots: finalScreenshots,
-      description: formDescription.trim() || `Sinopse GameFAQs: ${formTitle} em formato PKG do TheZukoStore.`,
+      description: cleanDesc || `${formTitle} em formato ${formFormat || 'PKG'} para ${formPlatform}.`,
       releaseYear: formReleaseYear,
       releaseDate: `${formReleaseYear}`,
       developer: formDeveloper.trim() || 'PlayStation Scene',
@@ -380,10 +520,12 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
       gamefaqsDifficulty: 'Just Right',
       ptBrSupport: formPtBrSupport,
       zukoStorePageUrl: formDownloadUrl.trim(),
-      gamefaqsPageUrl: `https://gamefaqs.gamespot.com/${formPlatform.toLowerCase()}/search?game=${encodeURIComponent(formTitle)}`,
-      gamefaqsCheatsUrl: formGamefaqsCheatsUrl.trim() || `https://gamefaqs.gamespot.com/${formPlatform.toLowerCase()}/search?game=${encodeURIComponent(formTitle)}+cheats`,
+      gamefaqsPageUrl: `https://gamefaqs.gamespot.com/${cleanPlatform}/search?game=${encodeURIComponent(formTitle)}`,
+      gamefaqsBoxesUrl: formGamefaqsBoxesUrl.trim() || undefined,
+      gamefaqsImagesUrl: formGamefaqsImagesUrl.trim() || undefined,
+      gamefaqsCheatsUrl: formGamefaqsCheatsUrl.trim() || `https://gamefaqs.gamespot.com/${cleanPlatform}/search?game=${encodeURIComponent(formTitle)}+cheats`,
       nexusModsUrl: formNexusModsUrl.trim() || `https://www.nexusmods.com/search/?gsearch=${encodeURIComponent(formTitle)}`,
-      tags: [formPlatform, 'PKG', 'TheZukoStore', 'GameFAQs'],
+      tags: [formPlatform, formFormat || 'PKG', 'TheZukoStore', 'GameFAQs'],
       cheats: formCheats,
       mods: formMods
     };
@@ -461,7 +603,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
     downloadAnchor.remove();
   };
 
-  const getPlatformBadge = (platform: 'PS1' | 'PS2' | 'PS3') => {
+  const getPlatformBadge = (platform: string) => {
     switch (platform) {
       case 'PS1':
         return 'bg-gradient-to-r from-sky-600 to-blue-700 text-white border-sky-400/30';
@@ -469,8 +611,16 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
         return 'bg-gradient-to-r from-blue-700 to-indigo-900 text-amber-300 border-indigo-400/30';
       case 'PS3':
         return 'bg-gradient-to-r from-rose-700 to-red-900 text-white border-red-400/30';
+      case 'PS4':
+        return 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white border-blue-400/30';
+      case 'PS5':
+        return 'bg-gradient-to-r from-slate-200 to-slate-400 text-slate-950 font-black border-white/60';
+      case 'PSP':
+        return 'bg-gradient-to-r from-teal-600 to-emerald-700 text-white border-emerald-400/30';
+      case 'PS Vita':
+        return 'bg-gradient-to-r from-purple-600 to-indigo-800 text-white border-purple-400/30';
       default:
-        return 'bg-slate-800 text-white';
+        return 'bg-slate-800 text-white border-slate-700';
     }
   };
 
@@ -691,7 +841,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                     type="text"
                     value={scraperInput}
                     onChange={e => setScraperInput(e.target.value)}
-                    placeholder="Digite o nome do jogo (ex: Resident Evil 4, God of War, Silent Hill, Tekken 3...)"
+                    placeholder="Digite o nome do jogo (ex: Grim Dawn: Definitive Edition, Resident Evil 4, God of War...)"
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
                   />
                 </div>
@@ -699,12 +849,16 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                 <div className="sm:col-span-2">
                   <select
                     value={scraperPlatform}
-                    onChange={e => setScraperPlatform(e.target.value as any)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-cyan-500 cursor-pointer"
+                    onChange={e => setScraperPlatform(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-cyan-500 cursor-pointer font-medium"
                   >
-                    <option value="PS1">PS1 PKG</option>
-                    <option value="PS2">PS2 PKG</option>
-                    <option value="PS3">PS3 PKG</option>
+                    <option value="PS1">PlayStation</option>
+                    <option value="PS2">PlayStation 2</option>
+                    <option value="PS3">PlayStation 3</option>
+                    <option value="PS4">PlayStation 4</option>
+                    <option value="PS5">PlayStation 5</option>
+                    <option value="PSP">PlayStation Portable (PSP)</option>
+                    <option value="PS Vita">PlayStation Vita</option>
                   </select>
                 </div>
 
@@ -724,10 +878,66 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                 </div>
               </form>
 
+              {/* Box Inteligente de Detecção de Título Limpo (Regra Grim Dawn: Definitive Edition / Grim Dawn) */}
+              {(() => {
+                const detected = extractCleanGameTitle(scraperInput);
+                const hasNoise = detected.raw && (Boolean(detected.versionTag) || detected.primaryClean.toLowerCase() !== detected.raw.toLowerCase());
+                if (!hasNoise) return null;
+                return (
+                  <div className="p-3.5 rounded-xl bg-slate-900 border border-cyan-500/40 text-xs space-y-2 animate-fadeIn shadow-inner">
+                    <div className="flex items-center gap-2 text-cyan-300 font-bold flex-wrap">
+                      <Sparkles className="w-4 h-4 text-cyan-400 shrink-0" />
+                      <span>Filtro de Nome Limpo Ativado (Versão Removida):</span>
+                      {detected.versionTag && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 border border-rose-500/30 font-mono">
+                          Versão ignorada: {detected.versionTag}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      <span className="text-slate-400">Clique para buscar:</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setScraperInput(detected.primaryClean);
+                          handleAutoPull(undefined, detected.primaryClean);
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500 text-cyan-300 hover:text-slate-950 font-bold border border-cyan-500/40 transition-all cursor-pointer flex items-center gap-1.5"
+                        title="Buscar pelo nome do jogo e edição sem versão"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                        <span>1. Nome Limpo: <strong>"{detected.primaryClean}"</strong></span>
+                      </button>
+                      {detected.simplifiedClean !== detected.primaryClean && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setScraperInput(detected.simplifiedClean);
+                            handleAutoPull(undefined, detected.simplifiedClean);
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500 text-indigo-300 hover:text-white font-bold border border-indigo-500/40 transition-all cursor-pointer flex items-center gap-1.5"
+                          title="Buscar em último caso pelo nome base simplificado do jogo"
+                        >
+                          <Search className="w-3.5 h-3.5" />
+                          <span>2. Em último caso: <strong>"{detected.simplifiedClean}"</strong></span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* Sugestões Rápidas */}
               <div className="flex items-center gap-1.5 flex-wrap pt-1 text-xs">
-                <span className="text-[10px] font-bold text-slate-500 uppercase mr-1">Sugestões:</span>
-                {['Silent Hill', 'Castlevania SOTN', 'Grand Theft Auto San Andreas', 'God of War II', 'The Last of Us', 'Resident Evil 2'].map(sug => (
+                <span className="text-[10px] font-bold text-slate-500 uppercase mr-1">Sugestões de Teste:</span>
+                {[
+                  'Grim Dawn: Definitive Edition (v1.3.1.1 + All DLCs + Bonus Content + MULTi13)',
+                  'Grim Dawn',
+                  'Silent Hill',
+                  'Castlevania SOTN',
+                  'God of War II',
+                  'The Last of Us'
+                ].map(sug => (
                   <button
                     key={sug}
                     type="button"
@@ -737,7 +947,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                     }}
                     className="px-2.5 py-0.5 rounded-lg bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-cyan-400 text-[11px] transition-all cursor-pointer border border-slate-700/60"
                   >
-                    {sug}
+                    {sug.length > 35 ? sug.slice(0, 32) + '...' : sug}
                   </button>
                 ))}
               </div>
@@ -763,23 +973,64 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                         type="text"
                         value={formTitle}
                         onChange={e => setFormTitle(e.target.value)}
-                        placeholder="Ex: Resident Evil 4 (PS2 PKG)"
+                        placeholder="Ex: Grim Dawn: Definitive Edition, Resident Evil 4..."
                         className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white font-semibold focus:outline-none focus:border-cyan-500"
                       />
+                      {(() => {
+                        const ftClean = extractCleanGameTitle(formTitle);
+                        const hasExtOrVersion = ftClean.raw && (Boolean(ftClean.versionTag) || Boolean(ftClean.fileExtension) || ftClean.primaryClean.toLowerCase() !== ftClean.raw.toLowerCase());
+                        if (!hasExtOrVersion) return null;
+                        return (
+                          <div className="mt-1.5 flex items-center gap-1.5 flex-wrap text-[11px] text-cyan-300">
+                            <span className="text-slate-400">Usar nome sem extensão:</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFormTitle(ftClean.primaryClean);
+                                if (!formDownloadUrl && ftClean.fileExtension) {
+                                  // Mantém extensão associada
+                                }
+                              }}
+                              className="px-2 py-0.5 rounded bg-cyan-500/20 hover:bg-cyan-500 text-cyan-300 hover:text-slate-950 font-bold border border-cyan-500/30 transition-all cursor-pointer"
+                              title="Remover extensão e versão do título para manter limpo"
+                            >
+                              "{ftClean.primaryClean}"
+                            </button>
+                            {ftClean.fileExtension && (
+                              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                Extensão detectada: {ftClean.fileExtension} (informada no arquivo de download)
+                              </span>
+                            )}
+                            {ftClean.simplifiedClean !== ftClean.primaryClean && (
+                              <button
+                                type="button"
+                                onClick={() => setFormTitle(ftClean.simplifiedClean)}
+                                className="px-2 py-0.5 rounded bg-indigo-500/20 hover:bg-indigo-500 text-indigo-300 hover:text-white font-bold border border-indigo-500/30 transition-all cursor-pointer"
+                              >
+                                (Último caso: "{ftClean.simplifiedClean}")
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     <div>
                       <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">
-                        Plataforma
+                        Console PlayStation
                       </label>
                       <select
                         value={formPlatform}
-                        onChange={e => setFormPlatform(e.target.value as any)}
-                        className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-cyan-500 cursor-pointer"
+                        onChange={e => setFormPlatform(e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-cyan-500 cursor-pointer font-medium"
                       >
-                        <option value="PS1">PlayStation 1 (PS1 PKG)</option>
-                        <option value="PS2">PlayStation 2 (PS2 PKG)</option>
-                        <option value="PS3">PlayStation 3 (PS3 PKG)</option>
+                        <option value="PS1">PlayStation</option>
+                        <option value="PS2">PlayStation 2</option>
+                        <option value="PS3">PlayStation 3</option>
+                        <option value="PS4">PlayStation 4</option>
+                        <option value="PS5">PlayStation 5</option>
+                        <option value="PSP">PlayStation Portable (PSP)</option>
+                        <option value="PS Vita">PlayStation Vita</option>
                       </select>
                     </div>
 
@@ -796,19 +1047,32 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                       />
                     </div>
 
-                    {/* CAMPO DEDICADO DO LINK DE DOWNLOAD */}
-                    <div className="sm:col-span-3">
-                      <label className="block text-[10px] font-bold text-emerald-400 uppercase mb-1 flex items-center justify-between">
-                        <span>Link de Download do Arquivo (TheZukoStore PKG, Torrent, Google Drive, Direto) *</span>
-                        {formDownloadUrl && (
-                          <span className="text-[10px] text-slate-400 font-normal">Link pronto para teste</span>
-                        )}
+                    {/* CAMPO DEDICADO DO LINK DE DOWNLOAD COM INFORMAÇÃO DA EXTENSÃO AO LADO */}
+                    <div className="sm:col-span-2">
+                      <label className="block text-[10px] font-bold text-emerald-400 uppercase mb-1 flex items-center justify-between flex-wrap gap-1">
+                        <span>Link de Download do Arquivo *</span>
+                        {(() => {
+                          const urlExtMatch = formDownloadUrl.match(/\.(pkg|iso|bin|cue|rar|zip|7z|torrent|cso|chd)\b/i);
+                          const detectedExt = urlExtMatch ? `.${urlExtMatch[1].toUpperCase()}` : (extractCleanGameTitle(formTitle || scraperInput).fileExtension || `.${formFormat.toUpperCase()}`);
+                          return (
+                            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                              [Detectado: {detectedExt}]
+                            </span>
+                          );
+                        })()}
                       </label>
                       <div className="flex gap-2">
                         <input
                           type="url"
                           value={formDownloadUrl}
-                          onChange={e => setFormDownloadUrl(e.target.value)}
+                          onChange={e => {
+                            const val = e.target.value;
+                            setFormDownloadUrl(val);
+                            const m = val.match(/\.(pkg|iso|bin|cue|rar|zip|7z|torrent|cso|chd)\b/i);
+                            if (m) {
+                              setFormFormat(m[1].toUpperCase());
+                            }
+                          }}
                           placeholder="https://thezukostore.com/ps2-pkg-exemplo.pkg ou link direto"
                           className="flex-1 px-3 py-2 rounded-xl bg-slate-900 border border-emerald-500/50 text-emerald-300 font-mono text-xs focus:outline-none focus:border-emerald-400"
                         />
@@ -825,6 +1089,51 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                           </a>
                         )}
                       </div>
+                      <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1.5 flex-wrap">
+                        <span className="text-emerald-400 font-bold">✓ Padrão Recomendado:</span>
+                        <span>O nome do jogo não contém extensões. O formato (.PKG, .ISO, etc.) é informado ao lado.</span>
+                      </p>
+                    </div>
+
+                    {/* FORMATO DO ARQUIVO (ENTRE LINK DE DOWNLOAD E TAMANHO DO ARQUIVO) */}
+                    <div>
+                      <label className="block text-[10px] font-bold text-indigo-400 uppercase mb-1 flex items-center justify-between">
+                        <span>Formato do Arquivo *</span>
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 font-bold">
+                          .{formFormat.toUpperCase()}
+                        </span>
+                      </label>
+                      <select
+                        value={formFormat}
+                        onChange={e => setFormFormat(e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-indigo-500/50 text-white font-bold text-xs focus:outline-none focus:border-indigo-400 cursor-pointer"
+                      >
+                        <option value="PKG">PKG (.pkg - Pacote PlayStation)</option>
+                        <option value="ISO">ISO (.iso - Imagem de Disco)</option>
+                        <option value="RAR">WinRAR / RAR (.rar - Compactado)</option>
+                        <option value="TORRENT">Torrent (.torrent / Magnet)</option>
+                        <option value="7Z">7-Zip (.7z - Compactação Ultra)</option>
+                        <option value="ZIP">ZIP (.zip - Arquivo Compactado)</option>
+                        <option value="BIN/CUE">BIN / CUE (.bin / .cue - CD/DVD)</option>
+                        <option value="CSO">CSO (.cso - Imagem Comprimida PSP)</option>
+                        <option value="CHD">CHD (.chd - Imagem Comprimida PS1/PS2)</option>
+                      </select>
+                      <div className="mt-1 flex items-center gap-1 flex-wrap">
+                        {['PKG', 'ISO', 'RAR', 'TORRENT', '7Z', 'ZIP'].map(fmt => (
+                          <button
+                            key={fmt}
+                            type="button"
+                            onClick={() => setFormFormat(fmt)}
+                            className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold transition-all cursor-pointer ${
+                              formFormat.toUpperCase() === fmt
+                                ? 'bg-indigo-500 text-white shadow-sm'
+                                : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'
+                            }`}
+                          >
+                            .{fmt}
+                          </button>
+                        ))}
+                      </div>
                     </div>
 
                     <div>
@@ -836,94 +1145,214 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                         value={formFileSize}
                         onChange={e => setFormFileSize(e.target.value)}
                         placeholder="Ex: 4.2 GB"
-                        className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-cyan-500"
+                        className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-cyan-500 font-semibold"
                       />
                     </div>
                   </div>
                 </div>
 
-                {/* 2. ESCOLHA DA FOTO DA CAPA */}
+                {/* 2. ESCOLHA DA FOTO DA CAPA (COVER DO GAMEFAQS - ABA MEDIA > BOXES) */}
                 <div className="p-5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-4">
                   <div className="flex items-center justify-between flex-wrap gap-2">
-                    <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2 text-cyan-400">
-                      <ImageIcon className="w-4 h-4" />
-                      2. Escolha da Foto da Capa (Cover do GameFAQs)
-                    </h3>
-                    <span className="text-xs text-slate-400">
-                      Clique em uma das opções abaixo ou cole a URL da imagem desejada
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <ImageIcon className="w-4 h-4 text-cyan-400" />
+                      <h3 className="text-sm font-black text-white uppercase tracking-wider text-cyan-400">
+                        2. Escolha da Foto da Capa (Cover do GameFAQs - Aba Media &gt; Boxes)
+                      </h3>
+                    </div>
+                    {formGamefaqsBoxesUrl && (
+                      <a
+                        href={formGamefaqsBoxesUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-semibold"
+                        title="Ver todas as capas e boxes no GameFAQs"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>Abrir Seção Media &gt; Boxes no GameFAQs</span>
+                      </a>
+                    )}
+                  </div>
+
+                  {/* Input direto do endereço de Boxes do GameFAQs */}
+                  <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+                    <div className="flex items-center justify-between flex-wrap gap-2 text-xs">
+                      <label className="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
+                        <span>Endereço do Jogo no GameFAQs (Aba Media &gt; Boxes):</span>
+                      </label>
+                      <span className="text-[10px] text-cyan-400 font-mono">gamefaqs.gamespot.com/&lt;console&gt;/&lt;jogo&gt;/boxes</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="url"
+                        value={formGamefaqsBoxesUrl}
+                        onChange={e => setFormGamefaqsBoxesUrl(e.target.value)}
+                        placeholder={`https://gamefaqs.gamespot.com/${formPlatform.toLowerCase()}/915010-god-of-war-ii/boxes`}
+                        className="flex-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleFetchBoxesDirectly}
+                        disabled={isFetchingBoxes || (!formGamefaqsBoxesUrl.trim() && !formTitle.trim() && !scraperInput.trim())}
+                        className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-950 font-black text-xs transition-all cursor-pointer flex items-center gap-1.5 shadow-md"
+                      >
+                        {isFetchingBoxes ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <ImageIcon className="w-3.5 h-3.5" />}
+                        <span>{isFetchingBoxes ? 'Buscando...' : 'Buscar Boxes no GameFAQs'}</span>
+                      </button>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
                     {/* Preview da Capa Selecionada */}
-                    <div className="md:col-span-3 flex flex-col items-center p-3 rounded-2xl bg-slate-900 border border-slate-700 text-center">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase mb-2">Capa Atualmente Escolhida</span>
-                      <img
-                        src={formCoverUrl || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=600&q=80'}
-                        alt="Capa do Jogo"
-                        className="w-36 aspect-[3/4] object-cover rounded-xl border-2 border-cyan-500 shadow-xl"
-                      />
+                    <div className="md:col-span-3 flex flex-col items-center p-3.5 rounded-2xl bg-slate-900 border border-cyan-500/30 text-center">
+                      <span className="text-[10px] font-bold text-cyan-300 uppercase mb-2">Capa Atualmente Escolhida</span>
+                      <div className="relative w-36 aspect-[3/4] rounded-xl overflow-hidden border-2 border-cyan-500 shadow-xl bg-slate-950">
+                        <img
+                          src={formCoverUrl || 'https://images.igdb.com/igdb/image/upload/t_cover_big/co2044.jpg'}
+                          alt="Capa do Jogo"
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute top-2 right-2 p-1 rounded-full bg-cyan-500 text-slate-950 font-bold">
+                          <Check className="w-3 h-3 stroke-[3]" />
+                        </div>
+                      </div>
+                      <span className="text-[10px] text-slate-400 mt-2 font-mono truncate max-w-[140px]">
+                        {formCoverUrl.split('/').pop()?.slice(0, 20)}...
+                      </span>
                     </div>
 
-                    {/* Opções de Capa para Clicar e Escolher + Input Manual */}
+                    {/* Opções de Capas Extraídas da seção Boxes do GameFAQs */}
                     <div className="md:col-span-9 space-y-3">
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">
-                          Opções de Capas Extraídas do GameFAQs (Clique para selecionar):
-                        </label>
-                        <div className="flex items-center gap-3 overflow-x-auto pb-2">
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="text-[10px] font-bold text-slate-300 uppercase">
+                            Opções de Capas da Seção Boxes do GameFAQs (Clique para selecionar):
+                          </label>
+                          <span className="text-[10px] text-slate-400">
+                            {coverCandidates.length} opções disponíveis
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                           {(coverCandidates.length > 0 ? coverCandidates : [
-                            'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=600&q=80',
-                            'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80',
-                            'https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?auto=format&fit=crop&w=600&q=80',
-                            'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80'
-                          ]).map((cand, idx) => (
-                            <div
-                              key={idx}
-                              onClick={() => setFormCoverUrl(cand)}
-                              className={`relative shrink-0 w-24 aspect-[3/4] rounded-xl overflow-hidden cursor-pointer border-2 transition-all ${
-                                formCoverUrl === cand 
-                                  ? 'border-cyan-400 ring-2 ring-cyan-400/50 scale-105' 
-                                  : 'border-slate-700 hover:border-slate-500 opacity-70 hover:opacity-100'
-                              }`}
-                            >
-                              <img src={cand} alt={`Opção de capa ${idx + 1}`} className="w-full h-full object-cover" />
-                              {formCoverUrl === cand && (
-                                <div className="absolute top-1 right-1 p-1 rounded-full bg-cyan-500 text-slate-950 font-bold">
-                                  <Check className="w-3 h-3 stroke-[3]" />
+                            'https://images.igdb.com/igdb/image/upload/t_cover_big/co1v6b.jpg',
+                            'https://images.igdb.com/igdb/image/upload/t_cover_big/co2044.jpg',
+                            'https://images.igdb.com/igdb/image/upload/t_cover_big/co1t9c.jpg',
+                            'https://images.igdb.com/igdb/image/upload/t_cover_big/co1xbu.jpg'
+                          ]).map((cand, idx) => {
+                            const boxLabels = [
+                              'Frontal US (NTSC-U)',
+                              'Frontal Europa (PAL)',
+                              'Frontal Japão (NTSC-J)',
+                              'Verso da Caixa (Back Box)',
+                              'Edição Especial'
+                            ];
+                            const label = boxLabels[idx] || `Box Art #${idx + 1}`;
+                            const isSelected = formCoverUrl === cand;
+                            return (
+                              <div
+                                key={idx}
+                                onClick={() => setFormCoverUrl(cand)}
+                                className={`group relative flex flex-col items-center p-2 rounded-xl bg-slate-900 border-2 cursor-pointer transition-all ${
+                                  isSelected 
+                                    ? 'border-cyan-400 ring-2 ring-cyan-400/50 scale-[1.02] shadow-lg shadow-cyan-500/20' 
+                                    : 'border-slate-800 hover:border-slate-600 opacity-80 hover:opacity-100'
+                                }`}
+                              >
+                                <div className="relative w-full aspect-[3/4] rounded-lg overflow-hidden mb-1.5 bg-slate-950">
+                                  <img src={cand} alt={label} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                  {isSelected && (
+                                    <div className="absolute top-1.5 right-1.5 p-1 rounded-full bg-cyan-500 text-slate-950 font-black shadow-md">
+                                      <Check className="w-3 h-3 stroke-[3]" />
+                                    </div>
+                                  )}
                                 </div>
-                              )}
-                            </div>
-                          ))}
+                                <span className={`text-[10px] font-bold text-center leading-tight ${isSelected ? 'text-cyan-300' : 'text-slate-400'}`}>
+                                  {label}
+                                </span>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
 
                       <div>
                         <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">
-                          Ou Digite / Cole a URL da Capa Personalizada
+                          Ou Cole a URL Direta da Capa Desejada
                         </label>
                         <input
                           type="url"
                           value={formCoverUrl}
                           onChange={e => setFormCoverUrl(e.target.value)}
                           placeholder="https://gamefaqs.gamespot.com/.../boxart.jpg"
-                          className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-cyan-500"
+                          className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono"
                         />
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* 3. ESCOLHA DAS 4 FOTOS DA POSTAGEM (SCREENSHOTS DE GAMEPLAY) */}
+                {/* 3. ESCOLHA DAS 4 FOTOS DA POSTAGEM (SCREENSHOTS GAMEFAQS - ABA MEDIA > IMAGES) */}
                 <div className="p-5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-4">
                   <div className="flex items-center justify-between flex-wrap gap-2">
-                    <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2 text-cyan-400">
-                      <Tv className="w-4 h-4" />
-                      3. Escolha das 4 Fotos da Postagem (Screenshots GameFAQs)
-                    </h3>
-                    <span className="text-xs text-slate-400">
-                      Você pode definir a URL de cada foto ou clicar nas sugestões abaixo
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <Tv className="w-4 h-4 text-cyan-400" />
+                      <h3 className="text-sm font-black text-white uppercase tracking-wider text-cyan-400">
+                        3. Escolha das 4 Fotos da Postagem (Screenshots GameFAQs - Aba Media &gt; Images)
+                      </h3>
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={handleAutoFillScreenshots}
+                        className="px-3 py-1.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500 text-cyan-300 hover:text-slate-950 border border-cyan-500/40 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                        title="Preencher os 4 slots de fotos automaticamente com as melhores imagens"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Preencher 4 Slots Automaticamente</span>
+                      </button>
+
+                      {formGamefaqsImagesUrl && (
+                        <a
+                          href={formGamefaqsImagesUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-semibold"
+                          title="Ver todas as fotos de gameplay no GameFAQs"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          <span>Abrir Seção Media &gt; Images no GameFAQs</span>
+                        </a>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Input do endereço da seção Media > Images no GameFAQs */}
+                  <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+                    <div className="flex items-center justify-between flex-wrap gap-2 text-xs">
+                      <label className="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
+                        <span>Endereço do Jogo no GameFAQs (Aba Media &gt; Images):</span>
+                      </label>
+                      <span className="text-[10px] text-cyan-400 font-mono">gamefaqs.gamespot.com/&lt;console&gt;/&lt;jogo&gt;/images</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="url"
+                        value={formGamefaqsImagesUrl}
+                        onChange={e => setFormGamefaqsImagesUrl(e.target.value)}
+                        placeholder={`https://gamefaqs.gamespot.com/${formPlatform.toLowerCase()}/915010-god-of-war-ii/images`}
+                        className="flex-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleFetchImagesDirectly}
+                        disabled={isFetchingImages || (!formGamefaqsImagesUrl.trim() && !formTitle.trim() && !scraperInput.trim())}
+                        className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-950 font-black text-xs transition-all cursor-pointer flex items-center gap-1.5 shadow-md"
+                      >
+                        {isFetchingImages ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Tv className="w-3.5 h-3.5" />}
+                        <span>{isFetchingImages ? 'Buscando...' : 'Buscar Fotos no GameFAQs'}</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* 4 Slots de Fotos da Postagem */}
@@ -933,10 +1362,17 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                       return (
                         <div key={slotIdx} className="p-3 rounded-2xl bg-slate-900 border border-slate-700/80 space-y-2">
                           <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-black uppercase text-cyan-400">
-                              Foto {slotIdx + 1} da Postagem
+                            <span className="text-[11px] font-black uppercase text-cyan-400 flex items-center gap-1">
+                              <span>Foto #{slotIdx + 1}</span>
+                              {photoUrl && <Check className="w-3 h-3 text-emerald-400" />}
                             </span>
-                            <span className="text-[10px] text-slate-500 font-mono">Slot #{slotIdx + 1}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateScreenshotSlot(slotIdx, '')}
+                              className="text-[10px] text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
+                            >
+                              Limpar
+                            </button>
                           </div>
 
                           <div 
@@ -944,7 +1380,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                             className="aspect-video rounded-xl overflow-hidden border border-slate-800 bg-slate-950 relative group cursor-zoom-in"
                           >
                             <img
-                              src={photoUrl || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1000&q=80'}
+                              src={photoUrl || 'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d2.jpg'}
                               alt={`Foto ${slotIdx + 1}`}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                             />
@@ -958,41 +1394,53 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                             value={photoUrl}
                             onChange={e => handleUpdateScreenshotSlot(slotIdx, e.target.value)}
                             placeholder={`URL da Foto ${slotIdx + 1}`}
-                            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-[11px] text-white focus:outline-none focus:border-cyan-500"
+                            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-[11px] text-white focus:outline-none focus:border-cyan-500 font-mono"
                           />
                         </div>
                       );
                     })}
                   </div>
 
-                  {/* Galeria de Opções Extras para Selecionar com 1 Clique */}
+                  {/* Galeria de Fotos Extras Encontradas no GameFAQs Images */}
                   {screenshotCandidates.length > 0 && (
                     <div className="pt-2 border-t border-slate-800/80 space-y-2">
-                      <span className="text-[11px] font-bold text-slate-400 block uppercase">
-                        Fotos de Gameplay Adicionais Encontradas no GameFAQs:
-                      </span>
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <span className="text-[11px] font-bold text-slate-300 block uppercase">
+                          Fotos de Gameplay Encontradas na Seção Images do GameFAQs:
+                        </span>
+                        <span className="text-[10px] text-slate-400">
+                          Clique em um dos botões (1, 2, 3, 4) para definir o slot
+                        </span>
+                      </div>
                       <div className="flex items-center gap-2 overflow-x-auto pb-2">
                         {screenshotCandidates.map((cand, idx) => (
                           <div
                             key={idx}
-                            className="shrink-0 group relative aspect-video w-32 rounded-xl overflow-hidden border border-slate-700 bg-slate-900"
+                            className="shrink-0 group relative aspect-video w-36 rounded-xl overflow-hidden border border-slate-700 bg-slate-900 shadow-md"
                           >
                             <img src={cand} alt={`Opção de Screenshot ${idx + 1}`} className="w-full h-full object-cover" />
-                            <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 p-1">
-                              <span className="text-[9px] font-bold text-white uppercase">Usar no Slot:</span>
+                            <div className="absolute inset-0 bg-slate-950/80 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1.5 p-1">
+                              <span className="text-[9px] font-bold text-cyan-300 uppercase">Definir como:</span>
                               <div className="flex gap-1">
                                 {[0, 1, 2, 3].map(s => (
                                   <button
                                     key={s}
                                     type="button"
                                     onClick={() => handleUpdateScreenshotSlot(s, cand)}
-                                    className="px-1.5 py-0.5 rounded bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-[10px]"
-                                    title={`Definir como Foto ${s + 1}`}
+                                    className="w-6 h-6 rounded bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-[11px] flex items-center justify-center shadow cursor-pointer"
+                                    title={`Definir como Foto ${s + 1} da Postagem`}
                                   >
                                     {s + 1}
                                   </button>
                                 ))}
                               </div>
+                              <button
+                                type="button"
+                                onClick={() => setLightboxImage(cand)}
+                                className="text-[9px] text-slate-300 hover:text-white underline cursor-pointer"
+                              >
+                                Ampliar
+                              </button>
                             </div>
                           </div>
                         ))}
@@ -1014,32 +1462,78 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                       </span>
                     </div>
 
-                    {formGamefaqsCheatsUrl && (
-                      <a
-                        href={formGamefaqsCheatsUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1"
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        type="button"
+                        disabled={isImportingCheats || (!formTitle.trim() && !scraperInput.trim())}
+                        onClick={handleImportCheatsDirectly}
+                        className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 disabled:opacity-50 text-slate-950 font-black text-xs transition-all cursor-pointer shadow-md flex items-center gap-1.5"
+                        title="Buscar e importar todos os cheats, códigos, senhas e segredos disponíveis no GameFAQs"
                       >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                        <span>Abrir Seção de Cheats no GameFAQs</span>
-                      </a>
-                    )}
+                        {isImportingCheats ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5 fill-current" />}
+                        <span>{isImportingCheats ? 'Buscando todos no GameFAQs...' : '⚡ Buscar TODOS os Cheats do GameFAQs'}</span>
+                      </button>
+
+                      {formGamefaqsCheatsUrl && (
+                        <a
+                          href={formGamefaqsCheatsUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1 font-semibold"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          <span>Abrir Seção Cheats no GameFAQs</span>
+                        </a>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Lista de Cheats Existentes */}
+                  {/* Filtro por Categorias de Cheats */}
+                  {formCheats.length > 0 && (
+                    <div className="flex items-center gap-1.5 flex-wrap pt-1 pb-1 border-b border-slate-800">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase mr-1">Filtrar Categoria:</span>
+                      {['ALL', 'Geral', 'Armas', 'Vidas/Energia', 'Dinheiro', 'Desbloqueáveis', 'Segredos', 'Glitches', 'Senhas'].map(cat => {
+                        const count = cat === 'ALL' 
+                          ? formCheats.length 
+                          : formCheats.filter(c => (c.category || 'Geral').toLowerCase() === cat.toLowerCase()).length;
+                        if (cat !== 'ALL' && count === 0) return null;
+                        const isSelected = cheatCategoryFilter === cat;
+                        return (
+                          <button
+                            key={cat}
+                            type="button"
+                            onClick={() => setCheatCategoryFilter(cat)}
+                            className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
+                              isSelected
+                                ? 'bg-amber-500 text-slate-950 shadow-sm'
+                                : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800'
+                            }`}
+                          >
+                            {cat === 'ALL' ? 'Todos' : cat} ({count})
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Lista de Cheats Existentes Filtrada */}
                   <div className="space-y-2">
                     {formCheats.length === 0 ? (
                       <div className="p-4 rounded-xl bg-slate-900 text-center text-xs text-slate-400">
-                        Nenhum cheat adicionado ainda. Puxe do GameFAQs acima ou adicione manualmente abaixo.
+                        Nenhum cheat adicionado ainda. Clique em "Buscar TODOS os Cheats do GameFAQs" acima para puxar os códigos e segredos completos.
                       </div>
                     ) : (
-                      formCheats.map((ch, idx) => (
+                      formCheats
+                        .filter(ch => {
+                          if (cheatCategoryFilter === 'ALL') return true;
+                          return (ch.category || 'Geral').toLowerCase() === cheatCategoryFilter.toLowerCase();
+                        })
+                        .map((ch, idx) => (
                         <div key={ch.id || idx} className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-start justify-between gap-3">
                           <div className="space-y-1 flex-1">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-xs font-bold text-white">{ch.title}</span>
-                              <span className="text-[10px] px-2 py-0.2 rounded-md font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                              <span className="text-[10px] px-2 py-0.5 rounded-md font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
                                 {ch.category || 'Geral'}
                               </span>
                               <span className="text-[10px] text-slate-500 font-mono">Fonte: {ch.source || 'GameFAQs'}</span>
@@ -1099,8 +1593,11 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                           <option value="Armas">Armas</option>
                           <option value="Veículos">Veículos</option>
                           <option value="Vidas/Energia">Vidas/Energia</option>
+                          <option value="Dinheiro">Dinheiro</option>
                           <option value="Segredos">Segredos</option>
                           <option value="Desbloqueáveis">Desbloqueáveis</option>
+                          <option value="Glitches">Glitches</option>
+                          <option value="Senhas">Senhas</option>
                         </select>
                       </div>
                       <div className="sm:col-span-1">
@@ -1130,15 +1627,28 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                       </span>
                     </div>
 
-                    <a
-                      href={formNexusModsUrl || 'https://www.nexusmods.com'}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1"
-                    >
-                      <ExternalLink className="w-3.5 h-3.5" />
-                      <span>Visitar Nexus Mods Oficial</span>
-                    </a>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        type="button"
+                        disabled={isSyncingMods || (!formTitle.trim() && !scraperInput.trim())}
+                        onClick={handleSyncNexusModsDirectly}
+                        className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-400 hover:to-amber-500 disabled:opacity-50 text-slate-950 font-black text-xs transition-all cursor-pointer shadow-md flex items-center gap-1.5"
+                        title="Buscar e sincronizar mods recomendados no Nexus Mods para este título"
+                      >
+                        {isSyncingMods ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Package className="w-3.5 h-3.5" />}
+                        <span>{isSyncingMods ? 'Sincronizando do Nexus...' : '🧩 Sincronizar Mods do Nexus Mods'}</span>
+                      </button>
+
+                      <a
+                        href={formNexusModsUrl || 'https://www.nexusmods.com'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>Visitar Nexus Mods Oficial</span>
+                      </a>
+                    </div>
                   </div>
 
                   {/* Lista de Mods */}
@@ -1445,7 +1955,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                         ))}
                       </div>
 
-                      {/* Botões de Download da Prévia */}
+                      {/* Botões de Download da Prévia com Informação da Extensão ao Lado */}
                       <div className="pt-2 flex flex-wrap items-center gap-3">
                         <a
                           href={formDownloadUrl || '#'}
@@ -1454,8 +1964,25 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                           className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs shadow-lg shadow-cyan-500/25 transition-all cursor-pointer transform hover:scale-[1.02]"
                         >
                           <Download className="w-4 h-4" />
-                          <span>Baixar PKG (TheZukoStore • {formFileSize})</span>
+                          <span>Baixar {formFormat || 'PKG'} (TheZukoStore • {formFileSize})</span>
                         </a>
+
+                        {/* Extensão e Informações do Arquivo informadas ao lado do download */}
+                        {(() => {
+                          const urlExtMatch = formDownloadUrl.match(/\.(pkg|iso|bin|cue|rar|zip|7z|torrent|cso|chd)\b/i);
+                          const detectedExt = urlExtMatch ? `.${urlExtMatch[1].toUpperCase()}` : (extractCleanGameTitle(formTitle || scraperInput).fileExtension || `.${formFormat.toUpperCase()}`);
+                          return (
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="px-2.5 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-mono font-bold flex items-center gap-1.5 shadow-sm" title="Extensão identificada para o arquivo de download">
+                                <span className="text-slate-400 font-sans text-[10px] uppercase">Extensão:</span>
+                                <strong>{detectedExt}</strong>
+                              </span>
+                              <span className="px-2.5 py-1.5 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-xs font-semibold">
+                                Formato: .{formFormat.toUpperCase()} ({formPlatform})
+                              </span>
+                            </div>
+                          );
+                        })()}
 
                         <button
                           type="button"
@@ -1591,7 +2118,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                 <div className="p-6 rounded-3xl bg-slate-950/60 border border-slate-800 space-y-2">
                   <h4 className="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-2">
                     <Info className="w-3.5 h-3.5" />
-                    Sinopse Oficial GameFAQs
+                    Sinopse Oficial do Jogo
                   </h4>
                   <p className="text-xs sm:text-sm text-slate-300 leading-relaxed whitespace-pre-line">
                     {formDescription || 'Sem sinopse cadastrada.'}
@@ -1751,7 +2278,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                         ))}
                       </div>
 
-                      {/* Ações de Download e Links */}
+                      {/* Ações de Download e Links com Extensão ao Lado */}
                       <div className="pt-2 flex flex-wrap items-center gap-3">
                         <a
                           href={selectedGame.fileUrl}
@@ -1762,6 +2289,17 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                           <Download className="w-4 h-4" />
                           <span>Baixar PKG (TheZukoStore • {selectedGame.fileSize})</span>
                         </a>
+
+                        {/* Extensão Informada ao Lado do Arquivo de Download */}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="px-2.5 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-mono font-bold flex items-center gap-1.5 shadow-sm">
+                            <span className="text-slate-400 font-sans text-[10px] uppercase">Extensão:</span>
+                            <strong>.{selectedGame.format || 'PKG'}</strong>
+                          </span>
+                          <span className="px-2.5 py-1.5 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-xs font-semibold">
+                            {selectedGame.platform} PKG Direct
+                          </span>
+                        </div>
 
                         <button
                           onClick={() => handleCopy(selectedGame.fileUrl)}
@@ -1942,7 +2480,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                   <div className="lg:col-span-2 p-6 rounded-3xl bg-slate-950/60 border border-slate-800 space-y-3">
                     <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 text-cyan-400">
                       <Info className="w-4 h-4" />
-                      Sinopse & Análise Oficial (GameFAQs.gamespot.com)
+                      Sinopse do Jogo
                     </h3>
                     <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-sans whitespace-pre-line">
                       {selectedGame.description}
@@ -1976,7 +2514,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                       </div>
                       <div className="flex justify-between py-1.5 border-b border-slate-800/60">
                         <span className="text-slate-400">Formato:</span>
-                        <strong className="text-emerald-400">.PKG Instalável</strong>
+                        <strong className="text-emerald-400 font-mono">.{(selectedGame.format || 'PKG').toUpperCase()} ({selectedGame.platform})</strong>
                       </div>
                       <div className="flex justify-between py-1.5 border-b border-slate-800/60">
                         <span className="text-slate-400">Origem Arquivo:</span>
@@ -2011,46 +2549,28 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                   
                   {/* Abas de Plataforma */}
                   <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-950 border border-slate-800 w-full sm:w-auto overflow-x-auto">
-                    <button
-                      onClick={() => setSelectedPlatform('ALL')}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                        selectedPlatform === 'ALL'
-                          ? 'bg-cyan-500 text-slate-950 shadow-md'
-                          : 'text-slate-400 hover:text-white'
-                      }`}
-                    >
-                      Todos ({games.length})
-                    </button>
-                    <button
-                      onClick={() => setSelectedPlatform('PS1')}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                        selectedPlatform === 'PS1'
-                          ? 'bg-sky-600 text-white shadow-md'
-                          : 'text-slate-400 hover:text-white'
-                      }`}
-                    >
-                      PS1 Classics ({games.filter(g => g && g.platform === 'PS1').length})
-                    </button>
-                    <button
-                      onClick={() => setSelectedPlatform('PS2')}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                        selectedPlatform === 'PS2'
-                          ? 'bg-indigo-700 text-amber-300 shadow-md'
-                          : 'text-slate-400 hover:text-white'
-                      }`}
-                    >
-                      PS2 Classics ({games.filter(g => g && g.platform === 'PS2').length})
-                    </button>
-                    <button
-                      onClick={() => setSelectedPlatform('PS3')}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                        selectedPlatform === 'PS3'
-                          ? 'bg-rose-700 text-white shadow-md'
-                          : 'text-slate-400 hover:text-white'
-                      }`}
-                    >
-                      PS3 PKG ({games.filter(g => g && g.platform === 'PS3').length})
-                    </button>
+                    {[
+                      { id: 'ALL', label: `Todos (${games.length})`, activeCls: 'bg-cyan-500 text-slate-950 shadow-md' },
+                      { id: 'PS1', label: `PlayStation (${games.filter(g => g && g.platform === 'PS1').length})`, activeCls: 'bg-sky-600 text-white shadow-md' },
+                      { id: 'PS2', label: `PlayStation 2 (${games.filter(g => g && g.platform === 'PS2').length})`, activeCls: 'bg-indigo-700 text-amber-300 shadow-md' },
+                      { id: 'PS3', label: `PlayStation 3 (${games.filter(g => g && g.platform === 'PS3').length})`, activeCls: 'bg-rose-700 text-white shadow-md' },
+                      { id: 'PS4', label: `PlayStation 4 (${games.filter(g => g && g.platform === 'PS4').length})`, activeCls: 'bg-blue-600 text-white shadow-md' },
+                      { id: 'PS5', label: `PlayStation 5 (${games.filter(g => g && g.platform === 'PS5').length})`, activeCls: 'bg-slate-300 text-slate-950 shadow-md' },
+                      { id: 'PSP', label: `PSP (${games.filter(g => g && g.platform === 'PSP').length})`, activeCls: 'bg-teal-700 text-white shadow-md' },
+                      { id: 'PS Vita', label: `PS Vita (${games.filter(g => g && g.platform === 'PS Vita').length})`, activeCls: 'bg-purple-700 text-white shadow-md' },
+                    ].map(tab => (
+                      <button
+                        key={tab.id}
+                        onClick={() => setSelectedPlatform(tab.id)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                          selectedPlatform === tab.id
+                            ? tab.activeCls
+                            : 'text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
                   </div>
 
                   {/* Barra de Busca + Botão Nova Publicação */}
@@ -2118,7 +2638,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                           
                           {/* Selo da Plataforma */}
                           <span className={`absolute top-2 left-2 px-2 py-0.5 rounded-lg text-[10px] font-black shadow-md border ${getPlatformBadge(game.platform)}`}>
-                            {game.platform} PKG
+                            {game.platform} {game.format || 'PKG'}
                           </span>
 
                           {/* Title ID Chip */}
@@ -2204,10 +2724,16 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                               href={game.fileUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="w-full py-2 px-3 rounded-xl bg-cyan-500/20 hover:bg-cyan-500 text-cyan-300 hover:text-slate-950 text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 border border-cyan-500/30"
+                              className="w-full py-2 px-3 rounded-xl bg-cyan-500/20 hover:bg-cyan-500 text-cyan-300 hover:text-slate-950 text-xs font-black transition-all cursor-pointer flex items-center justify-between gap-1.5 border border-cyan-500/30"
+                              title={`Baixar arquivo .${game.format || 'PKG'} no TheZukoStore`}
                             >
-                              <Download className="w-3.5 h-3.5" />
-                              <span>Baixar PKG</span>
+                              <div className="flex items-center gap-1.5">
+                                <Download className="w-3.5 h-3.5" />
+                                <span>Baixar PKG</span>
+                              </div>
+                              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-950/80 text-emerald-300 border border-emerald-500/30">
+                                .{game.format || 'PKG'}
+                              </span>
                             </a>
                           </div>
 

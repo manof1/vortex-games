@@ -317,6 +317,174 @@ export const INITIAL_GAMES: Game[] = [
     ]
   },
   {
+    id: 'grim-dawn-definitive-edition',
+    title: 'Grim Dawn: Definitive Edition',
+    slug: 'grim-dawn-definitive-edition',
+    coverUrl: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80',
+    bannerUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80',
+    shortDescription: 'O aclamado ARPG sombrio da Crate Entertainment em sua edição definitiva com todas as expansões (Ashes of Malmouth e Forgotten Gods), tradução PT-BR, Cheats GameFAQs e Mods Nexus ativos.',
+    description: 'Entre em um mundo de fantasia sombrio e apocalíptico onde a humanidade está à beira da extinção. Grim Dawn é o aclamado ARPG espiritual do clássico Titan Quest, combinando árvores de habilidades duplas, centenas de itens épicos e um universo devastado pelo Éter. A Definitive Edition inclui as expansões Ashes of Malmouth e Forgotten Gods, além de suporte nativo a controle e legendas em português.',
+    genres: ['RPG', 'ARPG', 'Hack and Slash', 'Fantasia Sombria'],
+    categories: ['AAA', 'Mais Populares', 'Destaques'],
+    releaseYear: 2016,
+    releaseDate: '25/02/2016',
+    developer: 'Crate Entertainment',
+    publisher: 'Crate Entertainment',
+    repackInfo: {
+      repacker: 'DODI / FitGirl Repack',
+      version: 'v1.3.1.1 + All DLCs + Bonus Content + MULTi13',
+      repackSize: '11.8 GB',
+      originalSize: '16.5 GB',
+      crackStatus: 'DRM Free',
+      crackGroup: 'GOG'
+    },
+    downloadLinks: [
+      {
+        id: 'dl-gd-pc-torrent',
+        type: 'magnet',
+        format: 'torrent',
+        platform: 'PC',
+        label: 'Torrent PC Magnet (Grim Dawn Definitive Edition v1.3.1.1)',
+        url: 'magnet:?xt=urn:btih:8923481239847120938471029384710293847102&dn=Grim.Dawn.Definitive.Edition.v1.3.1.1-Tapochek&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce',
+        seeders: 4210,
+        leechers: 380,
+        size: '11.8 GB',
+        isPtBrSubs: true,
+        hostName: 'Tapochek.net'
+      },
+      {
+        id: 'dl-gd-pkg-ps3',
+        type: 'pkg',
+        format: 'pkg',
+        platform: 'PS3',
+        label: 'Arquivo PKG PlayStation (TheZukoStore Servidor)',
+        url: 'https://thezukostore.com/pc-pkg-grim-dawn-definitive-edition.pkg',
+        size: '11.8 GB',
+        titleId: 'BLUS-31622',
+        firmware: 'FW 4.90+ HEN/CFW',
+        isPtBrSubs: true,
+        hostName: 'TheZukoStore'
+      }
+    ],
+    systemRequirements: {
+      minimum: {
+        os: 'Windows 7 / 8 / 10 / 11 64-bit',
+        processor: 'Intel Core 2 Duo 2.4 GHz ou AMD Athlon 64 X2',
+        memory: '4 GB RAM',
+        graphics: 'NVIDIA GeForce 6800 ou AMD Radeon X800 512MB',
+        storage: '15 GB de espaço livre',
+        directx: 'Versão 11'
+      },
+      recommended: {
+        os: 'Windows 10 / 11 64-bit',
+        processor: 'Intel Core i5-6500 ou AMD Ryzen 5 1600',
+        memory: '8 GB RAM',
+        graphics: 'NVIDIA GeForce GTX 1060 ou AMD Radeon RX 580',
+        storage: '15 GB SSD de alta velocidade',
+        directx: 'Versão 11'
+      }
+    },
+    rating: 0,
+    totalVotes: 0,
+    imdbRating: 9.4,
+    screenshots: [
+      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80'
+    ],
+    trailerYoutubeId: 'v12345',
+    tags: ['Grim Dawn', 'Definitive Edition', 'ARPG', 'Crate Entertainment', 'GameFAQs', 'Nexus Mods', 'Dublado PT-BR', 'PKG', 'Torrent'],
+    downloadsCount: 78500,
+    viewsCount: 224000,
+    createdAt: '2024-02-15T10:00:00Z',
+    isFeatured: true,
+    isTrending: true,
+    hasPtBrAudio: false,
+    hasPtBrSubs: true,
+    hasPkgFormat: true,
+    hasPcTorrent: true,
+    titleId: 'BLUS-31622',
+    sourceOrigin: 'TheZukoStore',
+    originalTrackerUrl: 'https://thezukostore.com',
+    dlcIncluded: ['Ashes of Malmouth Expansion', 'Forgotten Gods Expansion', 'Crucible Mode DLC', 'Loyalist Items Pack 1 & 2'],
+    languages: ['Português (Brasil) Legendado', 'Inglês', 'Espanhol', 'Francês', 'Alemão'],
+    gamefaqsCheatsUrl: 'https://gamefaqs.gamespot.com/pc/995472-grim-dawn/cheats',
+    nexusModsUrl: 'https://www.nexusmods.com/grimdawn',
+    cheats: [
+      {
+        id: 'gd-cheat-1',
+        title: 'Modo Deus / Invulnerabilidade Total (Console)',
+        codeOrEffect: 'Pressione ` (til) ou F1 para abrir o console e digite: game.god true',
+        category: 'Vidas/Energia',
+        description: 'Torna o herói 100% imune a qualquer dano de monstros, chefes e poças de éter radioativo.',
+        source: 'GameFAQs'
+      },
+      {
+        id: 'gd-cheat-2',
+        title: 'Adicionar 1.000.000 de Iron Bits (Dinheiro)',
+        codeOrEffect: 'No console de comandos: game.give IronBits 1000000',
+        category: 'Dinheiro',
+        description: 'Deposita instantaneamente um milhão de moedas no inventário para compras imediatas.',
+        source: 'GameFAQs'
+      },
+      {
+        id: 'gd-cheat-3',
+        title: 'Desbloquear Todos os 55 Pontos de Devoção',
+        codeOrEffect: 'No console de comandos: character.grantpow 55',
+        category: 'Desbloqueáveis',
+        description: 'Concede todos os 55 pontos máximos de Devoção para completar constelações celestiais.',
+        source: 'GameFAQs'
+      },
+      {
+        id: 'gd-cheat-4',
+        title: 'Revelar Todo o Mapa de Cairn',
+        codeOrEffect: 'No console de comandos: game.revealmap true',
+        category: 'Segredos',
+        description: 'Dissipa toda a névoa do mapa revelando passagens secretas, altares e masmorras.',
+        source: 'GameFAQs'
+      }
+    ],
+    mods: [
+      {
+        id: 'gd-mod-1',
+        title: 'Grim Internals (Auto-Loot, DPS & Teleporte Rápido)',
+        description: 'Ferramenta indispensável da comunidade com coleta automática de componentes, estatísticas de dano em tempo real e atalhos rápidos.',
+        nexusUrl: 'https://www.nexusmods.com/grimdawn/mods/40',
+        category: 'Gameplay',
+        author: 'GlockenGerda',
+        downloadsCount: '340k'
+      },
+      {
+        id: 'gd-mod-2',
+        title: 'Reign of Terror (Diablo 2 Total Conversion)',
+        description: 'Recriação completa do lendário Diablo II e Lord of Destruction dentro da engine do Grim Dawn com todas as classes clássicas.',
+        nexusUrl: 'https://www.nexusmods.com/grimdawn/mods/144',
+        category: 'Total Conversion',
+        author: 'Ram & RoT Team',
+        downloadsCount: '280k'
+      },
+      {
+        id: 'gd-mod-3',
+        title: 'Grim Dawn Item Assistant (Armazenamento Infinito)',
+        description: 'Gerenciador externo seguro que permite guardar itens ilimitados sem depender do baú pequeno do jogo.',
+        nexusUrl: 'https://www.nexusmods.com/grimdawn/mods/4',
+        category: 'Utilitário',
+        author: 'SlipperyPete',
+        downloadsCount: '410k'
+      },
+      {
+        id: 'gd-mod-4',
+        title: 'Dawn of Masteries (Mais de 30 Novas Classes)',
+        description: 'Mega mod que funde classes do Titan Quest, Diablo 3, Zenith e Cataclysm no Grim Dawn com balanceamento refinado.',
+        nexusUrl: 'https://www.nexusmods.com/grimdawn/mods/82',
+        category: 'Classes/Gameplay',
+        author: 'mamba',
+        downloadsCount: '190k'
+      }
+    ]
+  },
+  {
     id: 'elden-ring',
     title: 'Elden Ring: Shadow of the Erdtree',
     slug: 'elden-ring-shadow-of-the-erdtree',

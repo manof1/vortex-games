@@ -11,10 +11,45 @@ import {
   Sparkles, 
   MessageSquarePlus, 
   Flame, 
-  X 
+  X,
+  Trophy,
+  ChevronDown
 } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { useLanguage } from '../context/LanguageContext';
+
+export const TOP_OPTIONS = [
+  {
+    key: 'top_rating' as const,
+    label: 'Mais Bem Avaliados (Geral)',
+    icon: '⭐',
+    description: 'Maior nota e pontuação agregada da comunidade'
+  },
+  {
+    key: 'top_critic' as const,
+    label: 'Melhores Notas da Crítica (Metascore)',
+    icon: '🎖️',
+    description: 'Maiores notas da imprensa no Metacritic & OpenCritic'
+  },
+  {
+    key: 'top_user' as const,
+    label: 'Melhores Notas dos Usuários',
+    icon: '👥',
+    description: 'User Score do Metacritic e notas GameFAQs'
+  },
+  {
+    key: 'top_views' as const,
+    label: 'Os Mais Acessados',
+    icon: '🔥',
+    description: 'Recordistas em acessos e buscas'
+  },
+  {
+    key: 'top_downloads' as const,
+    label: 'Os Mais Baixados',
+    icon: '📥',
+    description: 'Campeões absolutos de downloads e torrents'
+  }
+];
 
 const POPULAR_SEARCHES = [
   'Resident Evil 4',
@@ -54,7 +89,9 @@ export const Header: React.FC = () => {
     return ['Resident Evil', 'God of War', 'Cyberpunk', 'Silent Hill'];
   });
 
+  const [isTopMenuOpen, setIsTopMenuOpen] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
+  const topDropdownRef = useRef<HTMLDivElement>(null);
 
   // Sync recent searches to localStorage
   useEffect(() => {
@@ -65,16 +102,36 @@ export const Header: React.FC = () => {
     }
   }, [recentSearches]);
 
-  // Close search dropdown on click outside
+  // Close search dropdown and TOP menu on click outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
         setIsSearchFocused(false);
       }
+      if (topDropdownRef.current && !topDropdownRef.current.contains(e.target as Node)) {
+        setIsTopMenuOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const handleSelectTop = (sortKey: typeof TOP_OPTIONS[number]['key']) => {
+    setActiveGame(null);
+    setIsLibraryOpen(false);
+    setIsUserMenuOpen(false);
+    setIsTopMenuOpen(false);
+    setFilters(prev => ({
+      ...prev,
+      sortBy: sortKey,
+      search: '',
+      category: 'Todos'
+    }));
+    const el = document.getElementById('catalogo-section');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   const addSearchToHistory = (term: string) => {
     const clean = term.trim();
@@ -255,6 +312,78 @@ export const Header: React.FC = () => {
           {/* Action buttons */}
           <div className="flex items-center gap-2 sm:gap-3">
             
+            {/* BOTÃO TOP (RANKING DOS MELHORES JOGOS) */}
+            <div ref={topDropdownRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setIsTopMenuOpen(prev => !prev)}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shadow-sm ${
+                  filters.sortBy.startsWith('top_')
+                    ? 'bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 shadow-amber-500/30 ring-2 ring-amber-400 font-extrabold'
+                    : 'bg-gradient-to-r from-amber-500/15 via-yellow-500/10 to-amber-500/15 hover:from-amber-500/25 hover:to-yellow-500/25 text-amber-500 dark:text-amber-400 border border-amber-500/30 hover:border-amber-500/50'
+                }`}
+                title="TOP Rankings: Mais Bem Avaliados, Melhores Notas da Crítica, Melhores Notas dos Usuários, Mais Acessados e Mais Baixados"
+              >
+                <Trophy className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
+                <span className="tracking-wide">TOP</span>
+                <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isTopMenuOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Dropdown com as 5 Categorias TOP solicitadas pelo usuário */}
+              {isTopMenuOpen && (
+                <div className="absolute right-0 sm:left-0 sm:right-auto top-full mt-2 w-72 sm:w-80 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-2.5 z-50 animate-fadeIn">
+                  <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800 mb-1">
+                    <div className="flex items-center gap-2">
+                      <Trophy className="w-4 h-4 text-amber-500 fill-amber-400" />
+                      <span className="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white">
+                        TOP Rankings Vortex
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                      Explore os recordistas e melhores jogos do acervo:
+                    </p>
+                  </div>
+
+                  <div className="space-y-1">
+                    {TOP_OPTIONS.map(opt => {
+                      const isActive = filters.sortBy === opt.key;
+                      return (
+                        <button
+                          key={opt.key}
+                          type="button"
+                          onClick={() => handleSelectTop(opt.key)}
+                          className={`w-full flex items-start gap-2.5 p-2 rounded-xl text-left transition-all cursor-pointer ${
+                            isActive
+                              ? 'bg-amber-500/20 border border-amber-500/40 text-amber-600 dark:text-amber-300 font-bold'
+                              : 'hover:bg-slate-100 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-300'
+                          }`}
+                        >
+                          <span className="text-lg shrink-0 w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                            {opt.icon}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-black text-slate-900 dark:text-white">
+                                {opt.label}
+                              </span>
+                              {isActive && (
+                                <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-500 text-slate-950">
+                                  ATIVO
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">
+                              {opt.description}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* BOTÃO CATÁLOGO (MANTIDO E RESTAURADO) */}
             <button
               onClick={() => {

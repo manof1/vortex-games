@@ -81,7 +81,7 @@ export interface GameCheat {
   id: string;
   title: string;
   codeOrEffect: string; // Ex: Códigos de botões, comandos de console ou trapaças
-  category?: 'Geral' | 'Armas' | 'Veículos' | 'Vidas/Energia' | 'Dinheiro' | 'Segredos' | 'Desbloqueáveis';
+  category?: 'Geral' | 'Armas' | 'Veículos' | 'Vidas/Energia' | 'Dinheiro' | 'Segredos' | 'Desbloqueáveis' | 'Glitches' | 'Senhas' | string;
   description?: string;
   source?: 'GameFAQs' | 'Manual' | 'Comunidade';
 }
@@ -92,7 +92,7 @@ export interface GameMod {
   description: string;
   nexusUrl: string; // URL oficial do mod no Nexus Mods: https://www.nexusmods.com/...
   author?: string;
-  category?: 'Tradução' | 'Gráficos/4K' | 'Gameplay' | 'Fix/FPS' | 'Skins' | 'ReShade';
+  category?: 'Tradução' | 'Gráficos/4K' | 'Gameplay' | 'Fix/FPS' | 'Skins' | 'ReShade' | 'Total Conversion' | 'Utilitário' | 'QoL' | 'Classes/Gameplay' | 'Áudio' | string;
   downloadsCount?: string;
   likesCount?: string;
   imageUrl?: string;
@@ -194,7 +194,7 @@ export interface FilterState {
   year: string;
   repacker: string;
   sizeRange: string;
-  sortBy: 'latest' | 'popular' | 'rating' | 'downloads' | 'sizeAsc' | 'sizeDesc';
+  sortBy: 'latest' | 'popular' | 'rating' | 'downloads' | 'sizeAsc' | 'sizeDesc' | 'top_rating' | 'top_critic' | 'top_user' | 'top_views' | 'top_downloads';
   minRating: number;
   onlyPtBr?: boolean; // Exibir apenas jogos dublados ou legendados em PT-BR
   formatFilter?: 'all' | 'torrent' | 'pkg'; // Filtrar por formato específico (Torrent PC vs PKG Console)

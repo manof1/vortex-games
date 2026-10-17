@@ -8,7 +8,9 @@ import {
   Sparkles,
   Lock,
   Zap,
-  Package
+  Package,
+  Trophy,
+  Medal
 } from 'lucide-react';
 import { Game } from '../types';
 import { useGame } from '../context/GameContext';
@@ -19,9 +21,10 @@ import { getGameCover, handleImageError } from '../utils/imageUtils';
 
 interface GameCardProps {
   game: Game;
+  rank?: number;
 }
 
-export const GameCard: React.FC<GameCardProps> = ({ game }) => {
+export const GameCard: React.FC<GameCardProps> = ({ game, rank }) => {
   const { 
     setActiveGame, 
     isInLibrary, 
@@ -120,10 +123,39 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
 
         {/* Top Badges overlay */}
         <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-1 z-10 pointer-events-none">
-          {/* Repacker badge */}
-          <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md border backdrop-blur-md shadow-sm ${getRepackerColor(game.repackInfo.repacker)}`}>
-            {game.repackInfo.repacker.replace(' Repack', '')}
-          </span>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {/* TOP Ranking Rank Badge (ex: #1, #2, #3, ...) */}
+            {rank !== undefined && (
+              <span className="flex items-center gap-1 shadow-xl">
+                {rank === 1 ? (
+                  <span className="flex items-center gap-1 text-[10px] font-black text-slate-950 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 px-2 py-0.5 rounded-md shadow-lg shadow-amber-500/40 border border-yellow-200 animate-pulse">
+                    <Trophy className="w-3 h-3 fill-slate-950 stroke-[2.5]" />
+                    <span>#1 TOP</span>
+                  </span>
+                ) : rank === 2 ? (
+                  <span className="flex items-center gap-1 text-[10px] font-black text-slate-950 bg-gradient-to-r from-slate-200 via-slate-100 to-slate-300 px-1.5 py-0.5 rounded-md shadow-md border border-white">
+                    <Medal className="w-3 h-3 fill-slate-950" />
+                    <span>#2 TOP</span>
+                  </span>
+                ) : rank === 3 ? (
+                  <span className="flex items-center gap-1 text-[10px] font-black text-amber-100 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 px-1.5 py-0.5 rounded-md shadow-md border border-amber-500/50">
+                    <Medal className="w-3 h-3 fill-amber-300 text-amber-300" />
+                    <span>#3 TOP</span>
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-0.5 text-[10px] font-mono font-black text-amber-400 bg-slate-950/90 px-1.5 py-0.5 rounded-md border border-amber-500/40">
+                    <span>#</span>
+                    <span>{rank}</span>
+                  </span>
+                )}
+              </span>
+            )}
+
+            {/* Repacker badge */}
+            <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md border backdrop-blur-md shadow-sm ${getRepackerColor(game.repackInfo.repacker)}`}>
+              {game.repackInfo.repacker.replace(' Repack', '')}
+            </span>
+          </div>
 
           {/* PT-BR Badge - Dublado ou Legendado */}
           {(game.hasPtBrAudio || game.hasPtBrSubs) && (
