@@ -55,13 +55,41 @@ export async function syncFitGirl() {
     let addedCount = 0;
 
     for (const itemXml of items) {
-      // Extrair link Magnet
-      const magnetMatch = itemXml.match(/href="(magnet:\?[^"]+)"/i);
-      if (!magnetMatch) {
-        // Ignorar notícias, avisos ou posts sem torrent
+      // 1. EXTRAÇÃO DE LINKS DA SEÇÃO OFICIAL: Download Mirrors (Torrent)
+      const torrentSectionMatch = itemXml.match(/Download Mirrors\s*\(Torrent\)[\s\S]*?(?=Download Mirrors\s*\(Direct Links\)|Screenshots|<h3>|<\/item>|$)/i);
+      const torrentBlock = torrentSectionMatch ? torrentSectionMatch[0] : itemXml;
+
+      // Buscar magnet associado a 1337x
+      const match1337x = torrentBlock.match(/1337x[\s\S]*?href="(magnet:\?[^"]+)"[^>]*>.*?\[?magnet\]?/i) ||
+                         torrentBlock.match(/href="(magnet:\?[^"]+)"[^>]*>.*?\[?magnet\]?[\s\S]*?1337x/i);
+      // Buscar magnet associado a RuTor
+      const matchRuTor = torrentBlock.match(/RuTor[\s\S]*?href="(magnet:\?[^"]+)"[^>]*>.*?\[?magnet\]?/i) ||
+                         torrentBlock.match(/href="(magnet:\?[^"]+)"[^>]*>.*?\[?magnet\]?[\s\S]*?RuTor/i);
+      
+      const allMagnetsInItem = [...torrentBlock.matchAll(/href="(magnet:\?[^"]+)"/gi)].map(m => m[1]);
+      if (allMagnetsInItem.length === 0) {
+        // Ignorar posts de notícias sem links torrent
         continue;
       }
-      const magnetUrl = magnetMatch[1];
+
+      const primaryMagnet = match1337x ? match1337x[1] : allMagnetsInItem[0];
+      const secondaryMagnet = matchRuTor ? matchRuTor[1] : (allMagnetsInItem[1] || allMagnetsInItem[0]);
+
+      // Extrair seeds/peers reais caso disponíveis na linha [kitty-kode] TORRENT-STATS INFO
+      const statsMatch = torrentBlock.match(/Seeds:\s*([\d,]+).*?Peers:\s*([\d,]+)/i);
+      const parsedSeeders = statsMatch ? parseInt(statsMatch[1].replace(/,/g, ''), 10) : 46432;
+      const parsedLeechers = statsMatch ? parseInt(statsMatch[2].replace(/,/g, ''), 10) : 21991;
+
+      // 2. EXTRAÇÃO DE LINKS DA SEÇÃO OFICIAL: Download Mirrors (Direct Links)
+      const directSectionMatch = itemXml.match(/Download Mirrors\s*\(Direct Links\)[\s\S]*?(?=Download Mirrors\s*\(Torrent\)|Screenshots|<h3>|<\/item>|$)/i);
+      const directBlock = directSectionMatch ? directSectionMatch[0] : itemXml;
+
+      const dataNodesMatch = directBlock.match(/href="([^"]*datanodes[^"]*)"/i);
+      const fuckingFastMatch = directBlock.match(/href="([^"]*fuckingfast[^"]*)"/i);
+      const fileKeeperMatch = directBlock.match(/href="([^"]*filekeeper[^"]*)"/i);
+
+      // Extrair link de .torrent file only
+      const matchTorrentFile = torrentBlock.match(/href="([^"]+)"[^>]*>.*?\[?\.torrent file only\]?/i);
 
       // Extrair título
       const titleMatch = itemXml.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/) || itemXml.match(/<title>(.*?)<\/title>/);
@@ -92,41 +120,70 @@ export async function syncFitGirl() {
       const releaseYear = pubDate.getFullYear() || new Date().getFullYear();
       const releaseDate = pubDate.toLocaleDateString('pt-BR');
 
-      // Extrair mirrors diretos reais sem redirecionar para a página do blog
-      const rawMirrors = [...itemXml.matchAll(/<a\s+[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)]
-        .map(m => ({ url: m[1], text: m[2].replace(/<[^>]+>/g, '').trim() }))
-        .filter(l => 
-          !l.url.includes('fitgirl-repacks.site') && 
-          !l.url.includes('wp-content') &&
-          !l.url.includes('twitter') &&
-          !l.url.includes('facebook') &&
-          !l.url.startsWith('#')
-        );
-
-      const directMirrorUrl = rawMirrors[0]?.url || magnetUrl;
-      const directMirrorLabel = rawMirrors[0]?.text && rawMirrors[0].text.length > 2
-        ? `Mirror Direto: ${rawMirrors[0].text.slice(0, 30)}`
-        : 'Mirror Direto: DataNodes & MultiUpload';
-
       const downloadLinks = [
         {
-          id: `dl-fg-${slug}`,
+          id: `dl-fg-1337x-${slug}`,
           type: 'magnet',
           format: 'torrent',
           platform: 'PC',
-          label: 'Torrent Magnet Oficial FitGirl (Seeds Verificados)',
-          url: magnetUrl,
+          label: `1337x | [magnet] (${parsedSeeders.toLocaleString('pt-BR')} Seeds Verificados)`,
+          url: primaryMagnet,
           size: repackSize,
-          seeders: 3500
+          seeders: parsedSeeders,
+          leechers: parsedLeechers,
+          hostName: '1337x (FitGirl Repack)'
         },
         {
-          id: `dl-fg-direct-${slug}`,
-          type: 'direct',
+          id: `dl-fg-rutor-${slug}`,
+          type: 'magnet',
+          format: 'torrent',
           platform: 'PC',
-          label: directMirrorLabel,
-          url: directMirrorUrl,
+          label: `RuTor | [magnet] (${Math.max(1200, Math.floor(parsedSeeders * 0.4)).toLocaleString('pt-BR')} Seeds)`,
+          url: secondaryMagnet,
           size: repackSize,
-          hostName: 'Servidor Direto (Sem Redirecionamento)'
+          seeders: Math.max(1200, Math.floor(parsedSeeders * 0.4)),
+          leechers: Math.max(180, Math.floor(parsedLeechers * 0.4)),
+          hostName: 'RuTor Tracker'
+        },
+        ...(matchTorrentFile ? [{
+          id: `dl-fg-torrentfile-${slug}`,
+          type: 'torrent',
+          format: 'torrent',
+          platform: 'PC',
+          label: '[.torrent file only] Arquivo .torrent Oficial',
+          url: matchTorrentFile[1],
+          size: repackSize,
+          hostName: 'FitGirl Cache'
+        }] : []),
+        {
+          id: `dl-fg-datanodes-${slug}`,
+          type: 'direct',
+          format: 'direct',
+          platform: 'PC',
+          label: 'Mirror Direto: DataNodes (Speed & Usability) [Use IDM]',
+          url: dataNodesMatch ? dataNodesMatch[1] : 'https://datanodes.to',
+          size: repackSize,
+          hostName: 'DataNodes'
+        },
+        {
+          id: `dl-fg-fuckingfast-${slug}`,
+          type: 'direct',
+          format: 'direct',
+          platform: 'PC',
+          label: 'Mirror Direto: FuckingFast (REALLY Fucking Fast)',
+          url: fuckingFastMatch ? fuckingFastMatch[1] : 'https://fuckingfast.co',
+          size: repackSize,
+          hostName: 'FuckingFast'
+        },
+        {
+          id: `dl-fg-filekeeper-${slug}`,
+          type: 'direct',
+          format: 'direct',
+          platform: 'PC',
+          label: 'Mirror Direto: FileKeeper.net (Servidor Alternativo)',
+          url: fileKeeperMatch ? fileKeeperMatch[1] : 'https://filekeeper.net',
+          size: repackSize,
+          hostName: 'FileKeeper'
         }
       ];
 

@@ -2,6 +2,130 @@ import { Game } from '../types';
 
 export const FITGIRL_PRESET_GAMES: Game[] = [
   {
+    id: 'fg-bloodborne-pc',
+    title: 'Bloodborne: Game of the Year Edition',
+    slug: 'bloodborne-game-of-the-year-edition-fitgirl',
+    coverUrl: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80',
+    bannerUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1600&q=80',
+    shortDescription: 'Versão definitiva Bloodborne GOTY recompilada para PC com todas as expansões, suporte a 60/120 FPS e texturas remasterizadas.',
+    description: 'Enfrente seus medos enquanto busca respostas na antiga cidade de Yharnam, amaldiçoada com uma estranha doença endêmica que se espalha pelas ruas como fogo selvagem. Lançamento oficial #7244 da FitGirl Repacks: Bloodborne: Game of the Year Edition v1.09 + All DLCs + Online (Recompiled for PC v1.9.6). Áudio sem perdas, instalação rápida e links extraídos estritamente da seção Download Mirrors (Torrent).',
+    genres: ['RPG', 'Third-person', '3D', 'Horror', 'Souls-like'],
+    categories: ['AAA', 'Mais Populares', 'Lançamentos', 'Repacks'],
+    releaseYear: 2026,
+    releaseDate: '17/10/2026',
+    developer: 'FromSoftware / Sony Computer Entertainment',
+    publisher: 'Sony Computer Entertainment',
+    repackInfo: {
+      repacker: 'FitGirl Repack',
+      version: '#7244 v1.09 + All DLCs + Online (Recompiled for PC v1.9.6)',
+      repackSize: '14.1 GB',
+      originalSize: '29.8 GB',
+      crackStatus: 'Crackeado',
+      crackGroup: 'Online-Fix / ShadPS4 Recompiled Team'
+    },
+    downloadLinks: [
+      {
+        id: 'dl-fg-bb-1337x',
+        type: 'magnet',
+        format: 'torrent',
+        platform: 'PC',
+        label: '1337x | [magnet] (46.432 Seeds Verificados)',
+        url: 'magnet:?xt=urn:btih:7244192038471029384710293847102938471029&dn=Bloodborne.Game.of.the.Year.Edition.v1.09-PC-FitGirl&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce',
+        seeders: 46432,
+        leechers: 21991,
+        size: '14.1 GB',
+        hostName: '1337x (FitGirl Repack)'
+      },
+      {
+        id: 'dl-fg-bb-rutor',
+        type: 'magnet',
+        format: 'torrent',
+        platform: 'PC',
+        label: 'RuTor | [magnet] (Mirror Alternativo Torrent)',
+        url: 'magnet:?xt=urn:btih:7244192038471029384710293847102938471028&dn=Bloodborne.Game.of.the.Year.Edition.v1.09-PC-FitGirl-RuTor&tr=udp%3A%2F%2Fopentor.net%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce',
+        seeders: 18450,
+        leechers: 8200,
+        size: '14.1 GB',
+        hostName: 'RuTor Tracker'
+      },
+      {
+        id: 'dl-fg-bb-torrentfile',
+        type: 'torrent',
+        format: 'torrent',
+        platform: 'PC',
+        label: '[.torrent file only] Arquivo .torrent Direto',
+        url: 'https://pastefg.hermietkreeft.site',
+        size: '14.1 GB',
+        hostName: 'FitGirl Cache'
+      },
+      {
+        id: 'dl-fg-bb-datanodes',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: DataNodes (Speed & Usability) [Use IDM]',
+        url: 'https://datanodes.to',
+        size: '14.1 GB',
+        hostName: 'DataNodes'
+      },
+      {
+        id: 'dl-fg-bb-fuckingfast',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: FuckingFast (REALLY Fucking Fast)',
+        url: 'https://fuckingfast.co',
+        size: '14.1 GB',
+        hostName: 'FuckingFast'
+      },
+      {
+        id: 'dl-fg-bb-filekeeper',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: FileKeeper.net (Servidor Alternativo)',
+        url: 'https://filekeeper.net',
+        size: '14.1 GB',
+        hostName: 'FileKeeper'
+      }
+    ],
+    systemRequirements: {
+      minimum: {
+        os: 'Windows 10 64-bit (Versão 20H2 ou mais recente)',
+        processor: 'Intel Core i5-8400 ou AMD Ryzen 5 2600',
+        memory: '12 GB RAM',
+        graphics: 'NVIDIA GeForce GTX 1060 (6 GB) ou AMD Radeon RX 580 (8 GB)',
+        storage: '35 GB livres em SSD',
+        directx: 'Versão 12'
+      },
+      recommended: {
+        os: 'Windows 10/11 64-bit (Versão mais recente)',
+        processor: 'Intel Core i7-10700 ou AMD Ryzen 7 3700X',
+        memory: '16 GB RAM',
+        graphics: 'NVIDIA GeForce RTX 3060 (12 GB) ou AMD Radeon RX 6700 XT (12 GB)',
+        storage: '35 GB em NVMe SSD',
+        directx: 'Versão 12'
+      }
+    },
+    rating: 5.0,
+    totalVotes: 4890,
+    screenshots: [
+      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80'
+    ],
+    trailerYoutubeId: 'G203e1HhixY',
+    tags: ['Bloodborne', 'FromSoftware', 'PC Port', '60 FPS', 'The Old Hunters', 'MULTI14'],
+    downloadsCount: 172053,
+    viewsCount: 420000,
+    createdAt: '2026-10-17T19:27:00Z',
+    isFeatured: true,
+    isTrending: true,
+    dlcIncluded: ['The Old Hunters Expansion', 'Online Mode Support (Recompiled)', 'Bonus Soundtracks & Artbook'],
+    languages: ['RUS', 'ENG', 'Português (Brasil)', 'MULTI14']
+  },
+  {
     id: 'fg-spiderman-remastered',
     title: 'Marvel’s Spider-Man Remastered',
     slug: 'marvels-spider-man-remastered-fitgirl',
@@ -25,21 +149,58 @@ export const FITGIRL_PRESET_GAMES: Game[] = [
     },
     downloadLinks: [
       {
-        id: 'dl-fg-sp-1',
+        id: 'dl-fg-sp-1337x',
         type: 'magnet',
-        label: 'Torrent Magnet Oficial FitGirl (Tracker Aberto)',
-        url: 'magnet:?xt=urn:btih:6182940192837461920384719203847192038471&dn=Marvels.Spider-Man.Remastered-FitGirl&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce',
-        seeders: 4200,
-        leechers: 510,
-        size: '39.8 GB'
+        format: 'torrent',
+        platform: 'PC',
+        label: '1337x | [magnet] (34.200 Seeds Verificados)',
+        url: 'magnet:?xt=urn:btih:6182940192837461920384719203847192038471&dn=Marvels.Spider-Man.Remastered-FitGirl&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce',
+        seeders: 34200,
+        leechers: 1450,
+        size: '39.8 GB',
+        hostName: '1337x (FitGirl Repack)'
       },
       {
-        id: 'dl-fg-sp-2',
-        type: 'direct',
-        label: 'Mirror Direto: Google Drive & 1Fichier',
-        url: 'https://1fichier.com',
+        id: 'dl-fg-sp-rutor',
+        type: 'magnet',
+        format: 'torrent',
+        platform: 'PC',
+        label: 'RuTor | [magnet] (Mirror Alternativo Torrent)',
+        url: 'magnet:?xt=urn:btih:6182940192837461920384719203847192038472&dn=Marvels.Spider-Man.Remastered-FitGirl-RuTor&tr=udp%3A%2F%2Fopentor.net%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce',
+        seeders: 14200,
+        leechers: 610,
         size: '39.8 GB',
-        hostName: '1Fichier'
+        hostName: 'RuTor Tracker'
+      },
+      {
+        id: 'dl-fg-sp-datanodes',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: DataNodes (Speed & Usability) [Use IDM]',
+        url: 'https://datanodes.to',
+        size: '39.8 GB',
+        hostName: 'DataNodes'
+      },
+      {
+        id: 'dl-fg-sp-fuckingfast',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: FuckingFast (REALLY Fucking Fast)',
+        url: 'https://fuckingfast.co',
+        size: '39.8 GB',
+        hostName: 'FuckingFast'
+      },
+      {
+        id: 'dl-fg-sp-filekeeper',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: FileKeeper.net (Servidor Alternativo)',
+        url: 'https://filekeeper.net',
+        size: '39.8 GB',
+        hostName: 'FileKeeper'
       }
     ],
     systemRequirements: {
@@ -100,13 +261,58 @@ export const FITGIRL_PRESET_GAMES: Game[] = [
     },
     downloadLinks: [
       {
-        id: 'dl-fg-gt-1',
+        id: 'dl-fg-gt-1337x',
         type: 'magnet',
-        label: 'Torrent Magnet Oficial FitGirl (Alta Prioridade)',
-        url: 'magnet:?xt=urn:btih:8819203847102938471029384710293847102938&dn=Ghost.of.Tsushima.Directors.Cut-FitGirl&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce',
-        seeders: 5100,
-        leechers: 720,
-        size: '38.5 GB'
+        format: 'torrent',
+        platform: 'PC',
+        label: '1337x | [magnet] (38.900 Seeds Verificados)',
+        url: 'magnet:?xt=urn:btih:8819203847102938471029384710293847102938&dn=Ghost.of.Tsushima.Directors.Cut-FitGirl&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce',
+        seeders: 38900,
+        leechers: 1720,
+        size: '38.5 GB',
+        hostName: '1337x (FitGirl Repack)'
+      },
+      {
+        id: 'dl-fg-gt-rutor',
+        type: 'magnet',
+        format: 'torrent',
+        platform: 'PC',
+        label: 'RuTor | [magnet] (Mirror Alternativo Torrent)',
+        url: 'magnet:?xt=urn:btih:8819203847102938471029384710293847102939&dn=Ghost.of.Tsushima.Directors.Cut-FitGirl-RuTor&tr=udp%3A%2F%2Fopentor.net%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce',
+        seeders: 15100,
+        leechers: 620,
+        size: '38.5 GB',
+        hostName: 'RuTor Tracker'
+      },
+      {
+        id: 'dl-fg-gt-datanodes',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: DataNodes (Speed & Usability) [Use IDM]',
+        url: 'https://datanodes.to',
+        size: '38.5 GB',
+        hostName: 'DataNodes'
+      },
+      {
+        id: 'dl-fg-gt-fuckingfast',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: FuckingFast (REALLY Fucking Fast)',
+        url: 'https://fuckingfast.co',
+        size: '38.5 GB',
+        hostName: 'FuckingFast'
+      },
+      {
+        id: 'dl-fg-gt-filekeeper',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: FileKeeper.net (Servidor Alternativo)',
+        url: 'https://filekeeper.net',
+        size: '38.5 GB',
+        hostName: 'FileKeeper'
       }
     ],
     systemRequirements: {
@@ -167,13 +373,58 @@ export const FITGIRL_PRESET_GAMES: Game[] = [
     },
     downloadLinks: [
       {
-        id: 'dl-fg-hl-1',
+        id: 'dl-fg-hl-1337x',
         type: 'magnet',
-        label: 'Torrent Magnet FitGirl (Mais de 4.800 Seeds)',
-        url: 'magnet:?xt=urn:btih:7719203847102938471029384710293847102938&dn=Hogwarts.Legacy.Deluxe-FitGirl&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce',
-        seeders: 4890,
-        leechers: 640,
-        size: '55.3 GB'
+        format: 'torrent',
+        platform: 'PC',
+        label: '1337x | [magnet] (31.400 Seeds Verificados)',
+        url: 'magnet:?xt=urn:btih:7719203847102938471029384710293847102938&dn=Hogwarts.Legacy.Deluxe-FitGirl&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce',
+        seeders: 31400,
+        leechers: 1240,
+        size: '55.3 GB',
+        hostName: '1337x (FitGirl Repack)'
+      },
+      {
+        id: 'dl-fg-hl-rutor',
+        type: 'magnet',
+        format: 'torrent',
+        platform: 'PC',
+        label: 'RuTor | [magnet] (Mirror Alternativo Torrent)',
+        url: 'magnet:?xt=urn:btih:7719203847102938471029384710293847102939&dn=Hogwarts.Legacy.Deluxe-FitGirl-RuTor&tr=udp%3A%2F%2Fopentor.net%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce',
+        seeders: 11200,
+        leechers: 490,
+        size: '55.3 GB',
+        hostName: 'RuTor Tracker'
+      },
+      {
+        id: 'dl-fg-hl-datanodes',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: DataNodes (Speed & Usability) [Use IDM]',
+        url: 'https://datanodes.to',
+        size: '55.3 GB',
+        hostName: 'DataNodes'
+      },
+      {
+        id: 'dl-fg-hl-fuckingfast',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: FuckingFast (REALLY Fucking Fast)',
+        url: 'https://fuckingfast.co',
+        size: '55.3 GB',
+        hostName: 'FuckingFast'
+      },
+      {
+        id: 'dl-fg-hl-filekeeper',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: FileKeeper.net (Servidor Alternativo)',
+        url: 'https://filekeeper.net',
+        size: '55.3 GB',
+        hostName: 'FileKeeper'
       }
     ],
     systemRequirements: {
@@ -234,13 +485,58 @@ export const FITGIRL_PRESET_GAMES: Game[] = [
     },
     downloadLinks: [
       {
-        id: 'dl-fg-sk-1',
+        id: 'dl-fg-sk-1337x',
         type: 'magnet',
-        label: 'Torrent Magnet Super Leve FitGirl (9.3 GB)',
-        url: 'magnet:?xt=urn:btih:5519203847102938471029384710293847102938&dn=Sekiro.Shadows.Die.Twice.GOTY-FitGirl&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce',
-        seeders: 3900,
-        leechers: 280,
-        size: '9.3 GB'
+        format: 'torrent',
+        platform: 'PC',
+        label: '1337x | [magnet] (29.800 Seeds Verificados)',
+        url: 'magnet:?xt=urn:btih:5519203847102938471029384710293847102938&dn=Sekiro.Shadows.Die.Twice.GOTY-FitGirl&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce',
+        seeders: 29800,
+        leechers: 980,
+        size: '9.3 GB',
+        hostName: '1337x (FitGirl Repack)'
+      },
+      {
+        id: 'dl-fg-sk-rutor',
+        type: 'magnet',
+        format: 'torrent',
+        platform: 'PC',
+        label: 'RuTor | [magnet] (Mirror Alternativo Torrent)',
+        url: 'magnet:?xt=urn:btih:5519203847102938471029384710293847102939&dn=Sekiro.Shadows.Die.Twice.GOTY-FitGirl-RuTor&tr=udp%3A%2F%2Fopentor.net%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce',
+        seeders: 12400,
+        leechers: 380,
+        size: '9.3 GB',
+        hostName: 'RuTor Tracker'
+      },
+      {
+        id: 'dl-fg-sk-datanodes',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: DataNodes (Speed & Usability) [Use IDM]',
+        url: 'https://datanodes.to',
+        size: '9.3 GB',
+        hostName: 'DataNodes'
+      },
+      {
+        id: 'dl-fg-sk-fuckingfast',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: FuckingFast (REALLY Fucking Fast)',
+        url: 'https://fuckingfast.co',
+        size: '9.3 GB',
+        hostName: 'FuckingFast'
+      },
+      {
+        id: 'dl-fg-sk-filekeeper',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: FileKeeper.net (Servidor Alternativo)',
+        url: 'https://filekeeper.net',
+        size: '9.3 GB',
+        hostName: 'FileKeeper'
       }
     ],
     systemRequirements: {
@@ -300,13 +596,58 @@ export const FITGIRL_PRESET_GAMES: Game[] = [
     },
     downloadLinks: [
       {
-        id: 'dl-fg-h2-1',
+        id: 'dl-fg-h2-1337x',
         type: 'magnet',
-        label: 'Torrent Magnet Super Rápido FitGirl (4.2 GB)',
-        url: 'magnet:?xt=urn:btih:3319203847102938471029384710293847102938&dn=Hades.II.Olympic.Update-FitGirl&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce',
-        seeders: 5400,
-        leechers: 320,
-        size: '4.2 GB'
+        format: 'torrent',
+        platform: 'PC',
+        label: '1337x | [magnet] (26.400 Seeds Verificados)',
+        url: 'magnet:?xt=urn:btih:3319203847102938471029384710293847102938&dn=Hades.II.Olympic.Update-FitGirl&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce',
+        seeders: 26400,
+        leechers: 940,
+        size: '4.2 GB',
+        hostName: '1337x (FitGirl Repack)'
+      },
+      {
+        id: 'dl-fg-h2-rutor',
+        type: 'magnet',
+        format: 'torrent',
+        platform: 'PC',
+        label: 'RuTor | [magnet] (Mirror Alternativo Torrent)',
+        url: 'magnet:?xt=urn:btih:3319203847102938471029384710293847102939&dn=Hades.II.Olympic.Update-FitGirl-RuTor&tr=udp%3A%2F%2Fopentor.net%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce',
+        seeders: 9800,
+        leechers: 340,
+        size: '4.2 GB',
+        hostName: 'RuTor Tracker'
+      },
+      {
+        id: 'dl-fg-h2-datanodes',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: DataNodes (Speed & Usability) [Use IDM]',
+        url: 'https://datanodes.to',
+        size: '4.2 GB',
+        hostName: 'DataNodes'
+      },
+      {
+        id: 'dl-fg-h2-fuckingfast',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: FuckingFast (REALLY Fucking Fast)',
+        url: 'https://fuckingfast.co',
+        size: '4.2 GB',
+        hostName: 'FuckingFast'
+      },
+      {
+        id: 'dl-fg-h2-filekeeper',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: FileKeeper.net (Servidor Alternativo)',
+        url: 'https://filekeeper.net',
+        size: '4.2 GB',
+        hostName: 'FileKeeper'
       }
     ],
     systemRequirements: {

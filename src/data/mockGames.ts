@@ -45,6 +45,60 @@ export const INITIAL_GAMES: Game[] = [
         hostName: 'TheZukoStore'
       },
       {
+        id: 'dl-bb-fg-1337x',
+        type: 'magnet',
+        format: 'torrent',
+        platform: 'PC',
+        label: '1337x | [magnet] (46.432 Seeds Verificados FitGirl)',
+        url: 'magnet:?xt=urn:btih:7244192038471029384710293847102938471029&dn=Bloodborne.Game.of.the.Year.Edition.v1.09-PC-FitGirl&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce',
+        seeders: 46432,
+        leechers: 21991,
+        size: '14.1 GB',
+        hostName: '1337x (FitGirl Repack)'
+      },
+      {
+        id: 'dl-bb-fg-rutor',
+        type: 'magnet',
+        format: 'torrent',
+        platform: 'PC',
+        label: 'RuTor | [magnet] (Mirror Alternativo Torrent)',
+        url: 'magnet:?xt=urn:btih:7244192038471029384710293847102938471028&dn=Bloodborne.Game.of.the.Year.Edition.v1.09-PC-FitGirl-RuTor&tr=udp%3A%2F%2Fopentor.net%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce',
+        seeders: 18450,
+        leechers: 8200,
+        size: '14.1 GB',
+        hostName: 'RuTor Tracker'
+      },
+      {
+        id: 'dl-bb-datanodes',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: DataNodes (Speed & Usability) [Use IDM]',
+        url: 'https://datanodes.to',
+        size: '14.1 GB',
+        hostName: 'DataNodes'
+      },
+      {
+        id: 'dl-bb-fuckingfast',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: FuckingFast (REALLY Fucking Fast)',
+        url: 'https://fuckingfast.co',
+        size: '14.1 GB',
+        hostName: 'FuckingFast'
+      },
+      {
+        id: 'dl-bb-filekeeper',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: FileKeeper.net (Servidor Alternativo)',
+        url: 'https://filekeeper.net',
+        size: '14.1 GB',
+        hostName: 'FileKeeper'
+      },
+      {
         id: 'dl-bb-pc-1',
         type: 'magnet',
         format: 'torrent',
@@ -177,17 +231,32 @@ export const INITIAL_GAMES: Game[] = [
     },
     downloadLinks: [
       {
-        id: 'dl-cp-1',
+        id: 'dl-cp-1337x',
         type: 'magnet',
         format: 'torrent',
         platform: 'PC',
-        label: 'Torrent Magnet PC (Alta Velocidade FitGirl)',
-        url: 'magnet:?xt=urn:btih:3fa9128456123984712093847102938471029384&dn=Cyberpunk.2077.v2.13-Phantom.Liberty-FitGirl&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce',
-        seeders: 3450,
-        leechers: 420,
+        label: '1337x | [magnet] (34.500 Seeds Verificados FitGirl)',
+        url: 'magnet:?xt=urn:btih:3fa9128456123984712093847102938471029384&dn=Cyberpunk.2077.v2.13-Phantom.Liberty-FitGirl&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce',
+        seeders: 34500,
+        leechers: 1420,
         size: '56.4 GB',
         isPtBrAudio: true,
-        isPtBrSubs: true
+        isPtBrSubs: true,
+        hostName: '1337x (FitGirl Repack)'
+      },
+      {
+        id: 'dl-cp-rutor',
+        type: 'magnet',
+        format: 'torrent',
+        platform: 'PC',
+        label: 'RuTor | [magnet] (Mirror Alternativo Torrent)',
+        url: 'magnet:?xt=urn:btih:3fa9128456123984712093847102938471029385&dn=Cyberpunk.2077.v2.13-Phantom.Liberty-FitGirl-RuTor&tr=udp%3A%2F%2Fopentor.net%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce',
+        seeders: 14200,
+        leechers: 580,
+        size: '56.4 GB',
+        isPtBrAudio: true,
+        isPtBrSubs: true,
+        hostName: 'RuTor Tracker'
       },
       {
         id: 'dl-cp-pkg',
@@ -204,16 +273,34 @@ export const INITIAL_GAMES: Game[] = [
         hostName: 'TheZukoStore'
       },
       {
-        id: 'dl-cp-2',
+        id: 'dl-cp-datanodes',
         type: 'direct',
-        format: 'torrent',
+        format: 'direct',
         platform: 'PC',
-        label: 'Mirror Direto: Qiwi & DataNodes (Download Rápido)',
-        url: 'magnet:?xt=urn:btih:3fa9128456123984712093847102938471029384&dn=Cyberpunk.2077.v2.13-Phantom.Liberty-DirectMirror&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce',
-        seeders: 2890,
-        leechers: 310,
+        label: 'Mirror Direto: DataNodes (Speed & Usability) [Use IDM]',
+        url: 'https://datanodes.to',
         size: '56.4 GB',
-        hostName: 'DataNodes Server'
+        hostName: 'DataNodes'
+      },
+      {
+        id: 'dl-cp-fuckingfast',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: FuckingFast (REALLY Fucking Fast)',
+        url: 'https://fuckingfast.co',
+        size: '56.4 GB',
+        hostName: 'FuckingFast'
+      },
+      {
+        id: 'dl-cp-filekeeper',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: FileKeeper.net (Servidor Alternativo)',
+        url: 'https://filekeeper.net',
+        size: '56.4 GB',
+        hostName: 'FileKeeper'
       }
     ],
     systemRequirements: {
@@ -669,22 +756,58 @@ export const INITIAL_GAMES: Game[] = [
     },
     downloadLinks: [
       {
-        id: 'dl-bg3-1',
+        id: 'dl-bg3-1337x',
         type: 'magnet',
-        label: 'Torrent Magnet Oficial FitGirl',
-        url: 'magnet:?xt=urn:btih:1182749102938471029384710293847102938471&dn=Baldurs.Gate.3.Patch.7-FitGirl&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce',
-        seeders: 2980,
-        leechers: 310,
-        size: '95.2 GB'
+        format: 'torrent',
+        platform: 'PC',
+        label: '1337x | [magnet] (29.800 Seeds Verificados FitGirl)',
+        url: 'magnet:?xt=urn:btih:1182749102938471029384710293847102938471&dn=Baldurs.Gate.3.Patch.7-FitGirl&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce',
+        seeders: 29800,
+        leechers: 1310,
+        size: '95.2 GB',
+        hostName: '1337x (FitGirl Repack)'
       },
       {
-        id: 'dl-bg3-2',
-        type: 'torrent',
-        label: 'Baixar .torrent Rápido',
-        url: '#torrent-download',
-        seeders: 2400,
-        leechers: 210,
-        size: '95.2 GB'
+        id: 'dl-bg3-rutor',
+        type: 'magnet',
+        format: 'torrent',
+        platform: 'PC',
+        label: 'RuTor | [magnet] (Mirror Alternativo Torrent)',
+        url: 'magnet:?xt=urn:btih:1182749102938471029384710293847102938472&dn=Baldurs.Gate.3.Patch.7-FitGirl-RuTor&tr=udp%3A%2F%2Fopentor.net%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce',
+        seeders: 12400,
+        leechers: 520,
+        size: '95.2 GB',
+        hostName: 'RuTor Tracker'
+      },
+      {
+        id: 'dl-bg3-datanodes',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: DataNodes (Speed & Usability) [Use IDM]',
+        url: 'https://datanodes.to',
+        size: '95.2 GB',
+        hostName: 'DataNodes'
+      },
+      {
+        id: 'dl-bg3-fuckingfast',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: FuckingFast (REALLY Fucking Fast)',
+        url: 'https://fuckingfast.co',
+        size: '95.2 GB',
+        hostName: 'FuckingFast'
+      },
+      {
+        id: 'dl-bg3-filekeeper',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: FileKeeper.net (Servidor Alternativo)',
+        url: 'https://filekeeper.net',
+        size: '95.2 GB',
+        hostName: 'FileKeeper'
       }
     ],
     systemRequirements: {
@@ -863,21 +986,58 @@ export const INITIAL_GAMES: Game[] = [
     },
     downloadLinks: [
       {
-        id: 'dl-rdr2-1',
+        id: 'dl-rdr2-1337x',
         type: 'magnet',
-        label: 'Torrent Magnet FitGirl (Mais de 5.000 Seeds)',
-        url: 'magnet:?xt=urn:btih:3399120938471029384710293847102938471029&dn=Red.Dead.Redemption.2.Ultimate-FitGirl&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce',
-        seeders: 5890,
-        leechers: 810,
-        size: '66.3 GB'
+        format: 'torrent',
+        platform: 'PC',
+        label: '1337x | [magnet] (35.890 Seeds Verificados FitGirl)',
+        url: 'magnet:?xt=urn:btih:3399120938471029384710293847102938471029&dn=Red.Dead.Redemption.2.Ultimate-FitGirl&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce',
+        seeders: 35890,
+        leechers: 1810,
+        size: '66.3 GB',
+        hostName: '1337x (FitGirl Repack)'
       },
       {
-        id: 'dl-rdr2-2',
-        type: 'direct',
-        label: 'Links Rápidos Google Drive & Qiwi',
-        url: 'https://drive.google.com',
+        id: 'dl-rdr2-rutor',
+        type: 'magnet',
+        format: 'torrent',
+        platform: 'PC',
+        label: 'RuTor | [magnet] (Mirror Alternativo Torrent)',
+        url: 'magnet:?xt=urn:btih:3399120938471029384710293847102938471030&dn=Red.Dead.Redemption.2.Ultimate-FitGirl-RuTor&tr=udp%3A%2F%2Fopentor.net%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce',
+        seeders: 15400,
+        leechers: 640,
         size: '66.3 GB',
-        hostName: 'Google Drive'
+        hostName: 'RuTor Tracker'
+      },
+      {
+        id: 'dl-rdr2-datanodes',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: DataNodes (Speed & Usability) [Use IDM]',
+        url: 'https://datanodes.to',
+        size: '66.3 GB',
+        hostName: 'DataNodes'
+      },
+      {
+        id: 'dl-rdr2-fuckingfast',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: FuckingFast (REALLY Fucking Fast)',
+        url: 'https://fuckingfast.co',
+        size: '66.3 GB',
+        hostName: 'FuckingFast'
+      },
+      {
+        id: 'dl-rdr2-filekeeper',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: FileKeeper.net (Servidor Alternativo)',
+        url: 'https://filekeeper.net',
+        size: '66.3 GB',
+        hostName: 'FileKeeper'
       }
     ],
     systemRequirements: {
@@ -1084,21 +1244,58 @@ export const INITIAL_GAMES: Game[] = [
     },
     downloadLinks: [
       {
-        id: 'dl-hk-1',
+        id: 'dl-hk-1337x',
         type: 'magnet',
-        label: 'Torrent Magnet Super Rápido (1.2 GB)',
-        url: 'magnet:?xt=urn:btih:1029384710293847102938471029384710293847&dn=Hollow.Knight.Voidheart-FitGirl&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce',
-        seeders: 6400,
-        leechers: 220,
-        size: '1.2 GB'
+        format: 'torrent',
+        platform: 'PC',
+        label: '1337x | [magnet] (18.400 Seeds Verificados FitGirl)',
+        url: 'magnet:?xt=urn:btih:1029384710293847102938471029384710293847&dn=Hollow.Knight.Voidheart-FitGirl&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce',
+        seeders: 18400,
+        leechers: 620,
+        size: '1.2 GB',
+        hostName: '1337x (FitGirl Repack)'
       },
       {
-        id: 'dl-hk-2',
-        type: 'direct',
-        label: 'Download Direto Mediafire / GDrive',
-        url: 'https://mediafire.com',
+        id: 'dl-hk-rutor',
+        type: 'magnet',
+        format: 'torrent',
+        platform: 'PC',
+        label: 'RuTor | [magnet] (Mirror Alternativo Torrent)',
+        url: 'magnet:?xt=urn:btih:1029384710293847102938471029384710293848&dn=Hollow.Knight.Voidheart-FitGirl-RuTor&tr=udp%3A%2F%2Fopentor.net%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce',
+        seeders: 7200,
+        leechers: 280,
         size: '1.2 GB',
-        hostName: 'Mediafire'
+        hostName: 'RuTor Tracker'
+      },
+      {
+        id: 'dl-hk-datanodes',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: DataNodes (Speed & Usability) [Use IDM]',
+        url: 'https://datanodes.to',
+        size: '1.2 GB',
+        hostName: 'DataNodes'
+      },
+      {
+        id: 'dl-hk-fuckingfast',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: FuckingFast (REALLY Fucking Fast)',
+        url: 'https://fuckingfast.co',
+        size: '1.2 GB',
+        hostName: 'FuckingFast'
+      },
+      {
+        id: 'dl-hk-filekeeper',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Mirror Direto: FileKeeper.net (Servidor Alternativo)',
+        url: 'https://filekeeper.net',
+        size: '1.2 GB',
+        hostName: 'FileKeeper'
       }
     ],
     systemRequirements: {
