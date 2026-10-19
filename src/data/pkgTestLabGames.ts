@@ -46,13 +46,13 @@ export const INITIAL_PKG_GAMES: PkgGame[] = [
     format: 'PKG',
     firmware: 'PS3 CFW / HEN 4.90+ (PS1 Classics No-NpDrm)',
     region: 'NTSC-U',
-    coverUrl: 'https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?auto=format&fit=crop&w=600&q=80',
-    bannerUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80',
+    coverUrl: 'https://upload.wikimedia.org/wikipedia/en/3/36/Castlevania_Symphony_of_the_Night_cover.png',
+    bannerUrl: 'https://upload.wikimedia.org/wikipedia/en/3/36/Castlevania_Symphony_of_the_Night_cover.png',
     screenshots: [
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1000&q=80'
+      'https://upload.wikimedia.org/wikipedia/en/3/36/Castlevania_Symphony_of_the_Night_cover.png',
+      'https://upload.wikimedia.org/wikipedia/en/3/36/Castlevania_Symphony_of_the_Night_cover.png',
+      'https://upload.wikimedia.org/wikipedia/en/3/36/Castlevania_Symphony_of_the_Night_cover.png',
+      'https://upload.wikimedia.org/wikipedia/en/3/36/Castlevania_Symphony_of_the_Night_cover.png'
     ],
     description: 'Considerado a obra-prima definitiva do gênero Metroidvania. Quatro anos após o desaparecimento de Richter Belmont, o Castelo de Drácula ressurge misteriosamente da névoa. Alucard, o filho meio-humano de Drácula, desperta de seu sono profundo para investigar a anomalia e confrontar o mal ancestral. Explore um mapa labiríntico e não-linear, colete centenas de armas, magias e relíquias, e descubra o segredo do Castelo Invertido.',
     releaseYear: 1997,
@@ -105,13 +105,13 @@ export const INITIAL_PKG_GAMES: PkgGame[] = [
     format: 'PKG',
     firmware: 'PS3 CFW / HEN 4.90+ (PS1 Classics No-NpDrm)',
     region: 'NTSC-U',
-    coverUrl: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=600&q=80',
-    bannerUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80',
+    coverUrl: 'https://upload.wikimedia.org/wikipedia/en/9/96/Silent_Hill_video_game_cover.png',
+    bannerUrl: 'https://upload.wikimedia.org/wikipedia/en/9/99/SH1_rifle.jpg',
     screenshots: [
-      'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1000&q=80'
+      'https://upload.wikimedia.org/wikipedia/en/9/99/SH1_rifle.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/9/96/Silent_Hill_video_game_cover.png',
+      'https://upload.wikimedia.org/wikipedia/en/9/99/SH1_rifle.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/9/96/Silent_Hill_video_game_cover.png'
     ],
     description: 'O marco que redefiniu o horror psicológico no PlayStation. Harry Mason sofre um acidente de carro na entrada da misteriosa cidade turística de Silent Hill e descobre que sua filha adotiva Cheryl desapareceu. Enquanto busca desesperadamente pela garota sob uma névoa espessa e chuva de cinzas, Harry descobre que a cidade transita para uma dimensão enferrujada e grotesca governada por um culto fanático.',
     releaseYear: 1999,
@@ -164,13 +164,13 @@ export const INITIAL_PKG_GAMES: PkgGame[] = [
     format: 'PKG',
     firmware: 'PS3 CFW / HEN 4.90+ (2 Discos Unificados no PKG)',
     region: 'NTSC-U',
-    coverUrl: 'https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?auto=format&fit=crop&w=600&q=80',
-    bannerUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80',
+    coverUrl: 'https://upload.wikimedia.org/wikipedia/en/4/41/Resident_Evil_2_Cover.jpg',
+    bannerUrl: 'https://upload.wikimedia.org/wikipedia/en/b/b3/Resident_Evil_2_Gameplay.png',
     screenshots: [
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1000&q=80'
+      'https://upload.wikimedia.org/wikipedia/en/b/b3/Resident_Evil_2_Gameplay.png',
+      'https://upload.wikimedia.org/wikipedia/en/4/41/Resident_Evil_2_Cover.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/b/b3/Resident_Evil_2_Gameplay.png',
+      'https://upload.wikimedia.org/wikipedia/en/4/41/Resident_Evil_2_Cover.jpg'
     ],
     description: 'O ápice dos clássicos de zumbis em Raccoon City. Dois meses após os incidentes na Mansão Spencer, o T-Vírus consome completamente a cidade. O policial novato Leon S. Kennedy e a jovem estudante universitária Claire Redfield chegam à cidade ao mesmo tempo e devem unir forças para escapar do horror dentro do Departamento de Polícia (R.P.D.) e dos laboratórios subterrâneos da Umbrella.',
     releaseYear: 1998,
@@ -195,13 +195,13 @@ export const INITIAL_PKG_GAMES: PkgGame[] = [
     format: 'PKG',
     firmware: 'PS3 CFW / HEN 4.90+ (2 Discos Unificados no PKG)',
     region: 'NTSC-U',
-    coverUrl: 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=600&q=80',
-    bannerUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80',
+    coverUrl: 'https://upload.wikimedia.org/wikipedia/en/3/33/Metal_Gear_Solid_cover_art.png',
+    bannerUrl: 'https://upload.wikimedia.org/wikipedia/en/4/44/MGS1_gameplay.png',
     screenshots: [
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1000&q=80'
+      'https://upload.wikimedia.org/wikipedia/en/4/44/MGS1_gameplay.png',
+      'https://upload.wikimedia.org/wikipedia/en/3/33/Metal_Gear_Solid_cover_art.png',
+      'https://upload.wikimedia.org/wikipedia/en/4/44/MGS1_gameplay.png',
+      'https://upload.wikimedia.org/wikipedia/en/3/33/Metal_Gear_Solid_cover_art.png'
     ],
     description: 'A obra-prima cinematográfica de espionagem tática criada por Hideo Kojima. Solid Snake é convocado da aposentadoria para infiltrar-se em uma base de descarte nuclear em Shadow Moses, no Alasca, tomada pela unidade terrorista FOXHOUND liderada por Liquid Snake. Com ameaça de ataque nuclear em 24 horas, Snake precisa resgatar reféns e neutralizar a arma bípede Metal Gear REX.',
     releaseYear: 1998,
@@ -228,13 +228,13 @@ export const INITIAL_PKG_GAMES: PkgGame[] = [
     format: 'PKG',
     firmware: 'PS3 CFW / HEN 4.90+ (PS2 Classics GUI Convertido)',
     region: 'NTSC-U',
-    coverUrl: 'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1593500/library_600x900.jpg',
-    bannerUrl: 'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1593500/header.jpg',
+    coverUrl: 'https://upload.wikimedia.org/wikipedia/en/2/25/God_of_War_II_cover.jpg',
+    bannerUrl: 'https://upload.wikimedia.org/wikipedia/en/d/df/God_of_War_II_gameplay.jpg',
     screenshots: [
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1000&q=80'
+      'https://upload.wikimedia.org/wikipedia/en/d/df/God_of_War_II_gameplay.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/2/25/God_of_War_II_cover.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/d/df/God_of_War_II_gameplay.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/2/25/God_of_War_II_cover.jpg'
     ],
     description: 'O espetáculo definitivo de ação hack-and-slash do PlayStation 2. Kratos, agora entronizado como o novo Deus da Guerra, é traído por Zeus e despojado de seus poderes divinos. Resgatado das garras do Submundo por Gaia, Kratos embarca em uma jornada épica até a Ilha da Criação para encontrar as Irmãs do Destino e alterar o tempo para se vingar do Rei do Olimpo.',
     releaseYear: 2007,
@@ -259,13 +259,13 @@ export const INITIAL_PKG_GAMES: PkgGame[] = [
     format: 'PKG',
     firmware: 'PS3 CFW / HEN 4.90+ (PS2 Classics GUI Convertido)',
     region: 'NTSC-U',
-    coverUrl: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80',
-    bannerUrl: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80',
+    coverUrl: 'https://upload.wikimedia.org/wikipedia/en/c/c4/GTASABOX.jpg',
+    bannerUrl: 'https://upload.wikimedia.org/wikipedia/en/3/36/Gta-sa-screen1.jpg',
     screenshots: [
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1000&q=80'
+      'https://upload.wikimedia.org/wikipedia/en/3/36/Gta-sa-screen1.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/c/c4/GTASABOX.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/3/36/Gta-sa-screen1.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/c/c4/GTASABOX.jpg'
     ],
     description: 'O maior e mais aclamado mundo aberto da era 128-bit. Há cinco anos, Carl Johnson fugiu das pressões de Los Santos, uma cidade corrompida por guerras de gangues, drogas e corrupção. No início dos anos 90, CJ retorna para casa após o assassinato de sua mãe, apenas para ser incriminado por policiais corruptos. CJ é forçado a percorrer todo o estado de San Andreas para salvar sua família e dominar as ruas.',
     releaseYear: 2004,
@@ -290,13 +290,13 @@ export const INITIAL_PKG_GAMES: PkgGame[] = [
     format: 'PKG',
     firmware: 'PS3 CFW / HEN 4.90+ (PS2 Classics GUI Convertido)',
     region: 'NTSC-U',
-    coverUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80',
-    bannerUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80',
+    coverUrl: 'https://upload.wikimedia.org/wikipedia/en/b/bb/Shadow_of_the_Colossus_Coverart.png',
+    bannerUrl: 'https://upload.wikimedia.org/wikipedia/en/b/b8/Shadow1_gameplay.jpg',
     screenshots: [
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1000&q=80'
+      'https://upload.wikimedia.org/wikipedia/en/b/b8/Shadow1_gameplay.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/b/bb/Shadow_of_the_Colossus_Coverart.png',
+      'https://upload.wikimedia.org/wikipedia/en/b/b8/Shadow1_gameplay.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/b/bb/Shadow_of_the_Colossus_Coverart.png'
     ],
     description: 'Uma das obras mais poéticas e impactantes da história dos videogames. Um jovem chamado Wander cavalga até uma terra proibida acompanhado de seu fiel corcel Agro para ressuscitar uma garota sacrificada chamada Mono. Para cumprir o pacto com a entidade Dormin, Wander precisa localizar e derrotar dezesseis gigantescos Colossos de pedra espalhados pelo vasto santuário.',
     releaseYear: 2005,
@@ -321,13 +321,13 @@ export const INITIAL_PKG_GAMES: PkgGame[] = [
     format: 'PKG',
     firmware: 'PS3 CFW / HEN 4.90+ (Com Dublagem Brasileira)',
     region: 'NTSC-U',
-    coverUrl: 'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2050650/library_600x900.jpg',
-    bannerUrl: 'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2050650/header.jpg',
+    coverUrl: 'https://upload.wikimedia.org/wikipedia/en/d/df/Resident_Evil_4_cover.jpg',
+    bannerUrl: 'https://upload.wikimedia.org/wikipedia/en/3/37/Resident_Evil_4_gameplay.jpg',
     screenshots: [
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1000&q=80'
+      'https://upload.wikimedia.org/wikipedia/en/3/37/Resident_Evil_4_gameplay.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/d/df/Resident_Evil_4_cover.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/3/37/Resident_Evil_4_gameplay.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/d/df/Resident_Evil_4_cover.jpg'
     ],
     description: 'A revolução que estabeleceu a câmera sobre o ombro e o ritmo moderno dos jogos de tiro e terror. Seis anos após o fim de Raccoon City, Leon S. Kennedy foi recrutado como agente especial do governo norte-americano. Sua missão é resgatar Ashley Graham, a filha do presidente dos EUA, mantida em cativeiro em uma vila rural espanhola dominada pelo culto sinistro Los Iluminados e pelo parasita Las Plagas.',
     releaseYear: 2005,
@@ -354,13 +354,13 @@ export const INITIAL_PKG_GAMES: PkgGame[] = [
     format: 'PKG',
     firmware: 'PS3 CFW / HEN 4.90+ (PKG + RAP + DLC Left Behind)',
     region: 'NTSC-U',
-    coverUrl: 'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1888930/library_600x900.jpg',
-    bannerUrl: 'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1888930/header.jpg',
+    coverUrl: 'https://upload.wikimedia.org/wikipedia/en/4/46/Video_Game_Cover_-_The_Last_of_Us.jpg',
+    bannerUrl: 'https://upload.wikimedia.org/wikipedia/en/1/16/The_Last_of_Us_gameplay.jpg',
     screenshots: [
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1000&q=80'
+      'https://upload.wikimedia.org/wikipedia/en/1/16/The_Last_of_Us_gameplay.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/4/46/Video_Game_Cover_-_The_Last_of_Us.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/1/16/The_Last_of_Us_gameplay.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/4/46/Video_Game_Cover_-_The_Last_of_Us.jpg'
     ],
     description: 'O jogo mais premiado da sétima geração de consoles. Uma pandemia fúngica do fungo Cordyceps devastou os Estados Unidos há vinte anos. Joel, um contrabandista cínico e traumatizado, é encarregado de escoltar Ellie, uma garota de 14 anos imune à infecção, através de uma América pós-apocalíptica em busca do grupo rebelde Vagalumes.',
     releaseYear: 2013,
@@ -385,13 +385,13 @@ export const INITIAL_PKG_GAMES: PkgGame[] = [
     format: 'PKG',
     firmware: 'PS3 CFW / HEN 4.90+ (PKG + Expansão Undead Nightmare)',
     region: 'PAL',
-    coverUrl: 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=600&q=80',
-    bannerUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80',
+    coverUrl: 'https://upload.wikimedia.org/wikipedia/en/a/a7/Red_Dead_Redemption.jpg',
+    bannerUrl: 'https://upload.wikimedia.org/wikipedia/en/3/36/RDR_combat.jpg',
     screenshots: [
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1000&q=80'
+      'https://upload.wikimedia.org/wikipedia/en/3/36/RDR_combat.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/a/a7/Red_Dead_Redemption.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/3/36/RDR_combat.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/a/a7/Red_Dead_Redemption.jpg'
     ],
     description: 'O ápice do faroeste interativo da Rockstar Games. Quando agentes federais ameaçam sua família, o ex-fora da lei John Marston é forçado a caçar os membros de sua antiga gangue de pistoleiros pelas fronteiras áridas do sudoeste americano e do México. Vivencie duelos mortais ao pôr do sol, caçadas, jogos de cartas e a aclamada expansão de terror zumbi Undead Nightmare.',
     releaseYear: 2010,
@@ -416,13 +416,13 @@ export const INITIAL_PKG_GAMES: PkgGame[] = [
     format: 'PKG',
     firmware: 'PS3 CFW / HEN 4.90+ (PKG Completo + Fix Update)',
     region: 'NTSC-U',
-    coverUrl: 'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1593500/library_600x900.jpg',
-    bannerUrl: 'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1593500/header.jpg',
+    coverUrl: 'https://upload.wikimedia.org/wikipedia/en/6/63/God_of_War_3_cover.jpg',
+    bannerUrl: 'https://upload.wikimedia.org/wikipedia/en/0/05/God_of_War_III_combat.jpg',
     screenshots: [
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1000&q=80'
+      'https://upload.wikimedia.org/wikipedia/en/0/05/God_of_War_III_combat.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/6/63/God_of_War_3_cover.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/0/05/God_of_War_III_combat.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/6/63/God_of_War_3_cover.jpg'
     ],
     description: 'O confronto final contra os deuses do Monte Olimpo. Empunhando as Lâminas do Exílio e subindo pelas costas dos Titãs em direção ao cume dos céus, Kratos busca extinguir toda a linhagem divina da Grécia Antiga. Batalhe contra Poseidon, Hades, Hércules e o próprio Zeus em combates titânicos de escala sem precedentes.',
     releaseYear: 2010,
@@ -447,13 +447,13 @@ export const INITIAL_PKG_GAMES: PkgGame[] = [
     format: 'PKG',
     firmware: 'PS3 CFW / HEN 4.90+ (PKG Pronto para Instalação)',
     region: 'NTSC-U',
-    coverUrl: 'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1245620/library_600x900.jpg',
-    bannerUrl: 'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1245620/header.jpg',
+    coverUrl: 'https://upload.wikimedia.org/wikipedia/en/b/b7/Demons_Souls_Cover_Art.jpg',
+    bannerUrl: 'https://upload.wikimedia.org/wikipedia/en/b/be/Demons_Souls_Combat.jpg',
     screenshots: [
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1000&q=80'
+      'https://upload.wikimedia.org/wikipedia/en/b/be/Demons_Souls_Combat.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/b/b7/Demons_Souls_Cover_Art.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/b/be/Demons_Souls_Combat.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/b/b7/Demons_Souls_Cover_Art.jpg'
     ],
     description: 'O jogo lendário de Hidetaka Miyazaki que deu origem ao gênero Souls-like. O reino de Boletaria foi engolido por um nevoeiro incolor após o Rei Allant despertar o Antigo mal. Assuma o papel de um guerreiro solitário no santuário do Nexus, explorando cinco arquipedras sombrias repletas de demônios impiedosos e armadilhas traiçoeiras.',
     releaseYear: 2009,
@@ -478,13 +478,13 @@ export const INITIAL_PKG_GAMES: PkgGame[] = [
     format: 'PKG',
     firmware: 'PS3 CFW / HEN 4.90+ & PC Edition',
     region: 'NTSC-U',
-    coverUrl: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80',
-    bannerUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80',
+    coverUrl: 'https://upload.wikimedia.org/wikipedia/en/b/b3/Grim_Dawn_cover.jpg',
+    bannerUrl: 'https://upload.wikimedia.org/wikipedia/en/7/7b/Grim_Dawn_gameplay.jpg',
     screenshots: [
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1000&q=80'
+      'https://upload.wikimedia.org/wikipedia/en/7/7b/Grim_Dawn_gameplay.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/b/b3/Grim_Dawn_cover.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/7/7b/Grim_Dawn_gameplay.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/b/b3/Grim_Dawn_cover.jpg'
     ],
     description: 'Entre em um mundo de fantasia sombrio e apocalíptico onde a humanidade está à beira da extinção. Grim Dawn é o aclamado ARPG espiritual do lendário Titan Quest, combinando árvores de habilidades duplas, centenas de itens épicos e um universo devastado pelo Éter. A Definitive Edition inclui as expansões Ashes of Malmouth e Forgotten Gods, além de suporte a controle e tradução PT-BR.',
     releaseYear: 2016,
@@ -584,13 +584,42 @@ export const getStoredPkgGames = (): PkgGame[] => {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed.map((g: PkgGame) => ({
-          ...g,
-          title: g.title
-            .replace(/\s*\((PS[1-3]|PC)\s*PKG[^\)]*\)/gi, '')
+        return parsed.map((g: PkgGame) => {
+          const cleanTitle = (g.title || '')
+            .replace(/\s*\((PS[1-5]|PC)\s*PKG[^\)]*\)/gi, '')
             .replace(/\s*\.pkg\b/gi, '')
-            .trim()
-        }));
+            .trim();
+
+          const matchingInitial = INITIAL_PKG_GAMES.find(init => 
+            init.id === g.id || init.title.toLowerCase() === cleanTitle.toLowerCase()
+          );
+
+          let coverUrl = g.coverUrl;
+          let bannerUrl = g.bannerUrl;
+          let screenshots = g.screenshots || [];
+          let coverOptions = g.coverOptions || (coverUrl ? [coverUrl] : []);
+
+          // Se o jogo salvo ainda tem links legados do Unsplash ou capa genérica do Steam, migrar para a arte real
+          const hasUnsplash = (coverUrl && coverUrl.includes('unsplash.com')) || 
+            screenshots.some(s => s && s.includes('unsplash.com')) ||
+            (coverUrl && coverUrl.includes('steamstatic.com'));
+
+          if (matchingInitial && (hasUnsplash || !coverUrl)) {
+            coverUrl = matchingInitial.coverUrl;
+            bannerUrl = matchingInitial.bannerUrl;
+            screenshots = matchingInitial.screenshots;
+            coverOptions = matchingInitial.coverOptions || [coverUrl];
+          }
+
+          return {
+            ...g,
+            title: cleanTitle,
+            coverUrl,
+            bannerUrl,
+            screenshots: screenshots.slice(0, 4),
+            coverOptions
+          };
+        });
       }
     }
   } catch (e) {

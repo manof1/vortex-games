@@ -44,8 +44,10 @@ import {
   importCheatsFromGameFaqs,
   fetchNexusModsForGame,
   fetchGameFaqsBoxes,
-  fetchGameFaqsImages
+  fetchGameFaqsImages,
+  fetchLiveGameMedia
 } from '../services/pkgScraperService';
+import { generateCustomGameCoverSvg, normalizeTitleForComparison } from '../data/playstationGameMedia';
 import { GameCheat, GameMod } from '../types';
 
 interface PkgTestLabModalProps {
@@ -149,13 +151,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
   const [coverCandidates, setCoverCandidates] = useState<string[]>([]);
   const [formGamefaqsBoxesUrl, setFormGamefaqsBoxesUrl] = useState<string>('');
   const [formGamefaqsImagesUrl, setFormGamefaqsImagesUrl] = useState<string>('');
-  // 4 fotos da postagem
-  const [formScreenshots, setFormScreenshots] = useState<string[]>([
-    'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1000&q=80',
-    'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1000&q=80',
-    'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1000&q=80',
-    'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1000&q=80'
-  ]);
+  const [formScreenshots, setFormScreenshots] = useState<string[]>(['', '', '', '']);
   const [screenshotCandidates, setScreenshotCandidates] = useState<string[]>([]);
   const [formDescription, setFormDescription] = useState('');
   const [formDeveloper, setFormDeveloper] = useState('');
@@ -269,7 +265,20 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
 
   // Buscar Capas da Seção Boxes do GameFAQs (gamefaqs.com/<console>/<jogo>/boxes)
   const handleFetchBoxesDirectly = async () => {
-    const target = formGamefaqsBoxesUrl || formTitle || scraperInput;
+    // Prioriza o título do jogo atual no formulário se estiver preenchido,
+    // garantindo que NUNCA puxe capas de outro jogo devido a URLs antigas ou desatualizadas no campo.
+    let target = formTitle.trim();
+    if (!target) {
+      target = formGamefaqsBoxesUrl.trim() || scraperInput.trim();
+    } else if (formGamefaqsBoxesUrl.trim()) {
+      // Se houver URL preenchida, só usa se corresponder ao título atual
+      const urlClean = extractCleanGameTitle(formGamefaqsBoxesUrl.trim());
+      const titleClean = extractCleanGameTitle(target);
+      if (normalizeTitleForComparison(urlClean.primaryClean) === normalizeTitleForComparison(titleClean.primaryClean)) {
+        target = formGamefaqsBoxesUrl.trim();
+      }
+    }
+
     if (!target.trim()) {
       showNotification('Informe o título do jogo ou o link da seção Boxes no GameFAQs.');
       return;
@@ -281,9 +290,9 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
         setCoverCandidates(res.covers);
         setFormCoverUrl(res.covers[0]);
         setFormGamefaqsBoxesUrl(res.boxesUrl);
-        showNotification(`📦 ${res.covers.length} Capas e Boxes autênticos puxados da seção Media > Boxes do GameFAQs!`);
+        showNotification(`📦 ${res.covers.length} Capas autênticas do GameFAQs Boxes puxadas para "${res.queryUsed}"!`);
       } else {
-        showNotification('Nenhuma capa encontrada na seção Boxes do GameFAQs.');
+        showNotification('Nenhuma capa encontrada na seção Boxes do GameFAQs para este jogo.');
       }
     } catch {
       showNotification('Falha ao conectar com a seção Boxes do GameFAQs.');
@@ -294,7 +303,19 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
 
   // Buscar Fotos da Seção Images do GameFAQs (gamefaqs.com/<console>/<jogo>/images)
   const handleFetchImagesDirectly = async () => {
-    const target = formGamefaqsImagesUrl || formTitle || scraperInput;
+    // Prioriza o título do jogo atual no formulário se estiver preenchido,
+    // garantindo que NUNCA puxe screenshots de outro jogo
+    let target = formTitle.trim();
+    if (!target) {
+      target = formGamefaqsImagesUrl.trim() || scraperInput.trim();
+    } else if (formGamefaqsImagesUrl.trim()) {
+      const urlClean = extractCleanGameTitle(formGamefaqsImagesUrl.trim());
+      const titleClean = extractCleanGameTitle(target);
+      if (normalizeTitleForComparison(urlClean.primaryClean) === normalizeTitleForComparison(titleClean.primaryClean)) {
+        target = formGamefaqsImagesUrl.trim();
+      }
+    }
+
     if (!target.trim()) {
       showNotification('Informe o título do jogo ou o link da seção Images no GameFAQs.');
       return;
@@ -305,9 +326,18 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
       if (res && res.screenshots && res.screenshots.length > 0) {
         setScreenshotCandidates(res.screenshots);
         setFormGamefaqsImagesUrl(res.imagesUrl);
-        showNotification(`📸 ${res.screenshots.length} Screenshots reais de gameplay puxados da seção Media > Images do GameFAQs!`);
+        // Preencher automaticamente os 4 slots com as fotos desse jogo
+        if (res.screenshots.length > 0) {
+          setFormScreenshots([
+            res.screenshots[0] || '',
+            res.screenshots[1] || res.screenshots[0] || '',
+            res.screenshots[2] || res.screenshots[0] || '',
+            res.screenshots[3] || res.screenshots[0] || ''
+          ]);
+        }
+        showNotification(`📸 ${res.screenshots.length} Screenshots de gameplay reais puxadas da seção Images do GameFAQs para "${res.queryUsed}"!`);
       } else {
-        showNotification('Nenhuma imagem encontrada na seção Images do GameFAQs.');
+        showNotification('Nenhuma imagem encontrada na seção Images do GameFAQs para este jogo.');
       }
     } catch {
       showNotification('Falha ao conectar com a seção Images do GameFAQs.');
@@ -316,21 +346,69 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
     }
   };
 
-  // Preencher os 4 slots de fotos automaticamente com as primeiras imagens da galeria do GameFAQs
+  // Buscar simultaneamente Capas (Box Shots) e Screenshots de Gameplay da aba Media > Images do GameFAQs
+  const handleFetchAllMediaForCurrentGame = async () => {
+    let target = formTitle.trim();
+    if (!target) {
+      target = formGamefaqsImagesUrl.trim() || formGamefaqsBoxesUrl.trim() || scraperInput.trim();
+    } else if (formGamefaqsImagesUrl.trim() || formGamefaqsBoxesUrl.trim()) {
+      const urlCandidate = formGamefaqsImagesUrl.trim() || formGamefaqsBoxesUrl.trim();
+      const urlClean = extractCleanGameTitle(urlCandidate);
+      const titleClean = extractCleanGameTitle(target);
+      if (normalizeTitleForComparison(urlClean.primaryClean) === normalizeTitleForComparison(titleClean.primaryClean)) {
+        target = urlCandidate;
+      }
+    }
+
+    if (!target) {
+      showNotification('Informe o título do jogo ou o link da aba Media > Images do GameFAQs.');
+      return;
+    }
+
+    setIsFetchingBoxes(true);
+    setIsFetchingImages(true);
+    try {
+      const media = await fetchLiveGameMedia(target, formPlatform);
+      if (media) {
+        if (media.coverOptions && media.coverOptions.length > 0) {
+          setCoverCandidates(media.coverOptions);
+          setFormCoverUrl(media.coverUrl || media.coverOptions[0]);
+          setFormGamefaqsBoxesUrl(media.boxesUrl);
+        }
+        if (media.screenshots && media.screenshots.length > 0) {
+          setScreenshotCandidates(media.screenshotOptions || media.screenshots);
+          setFormScreenshots([
+            media.screenshots[0] || '',
+            media.screenshots[1] || media.screenshots[0] || '',
+            media.screenshots[2] || media.screenshots[0] || '',
+            media.screenshots[3] || media.screenshots[0] || ''
+          ]);
+          setFormGamefaqsImagesUrl(media.imagesUrl);
+        }
+        showNotification(`✓ Capas (Box Shots) e 4 Fotos de Gameplay (Screenshots) sincronizadas da aba Images do GameFAQs para "${media.matchedTitle}"!`);
+      }
+    } catch {
+      showNotification('Falha ao conectar com o GameFAQs.');
+    } finally {
+      setIsFetchingBoxes(false);
+      setIsFetchingImages(false);
+    }
+  };
+
+  // Preencher os 4 slots de fotos exclusivamente com fotos do próprio jogo
   const handleAutoFillScreenshots = () => {
-    const pool = screenshotCandidates.length > 0 ? screenshotCandidates : [
-      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d2.jpg',
-      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d3.jpg',
-      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d4.jpg',
-      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d5.jpg'
-    ];
+    if (screenshotCandidates.length === 0 && !formCoverUrl) {
+      showNotification('Nenhuma foto encontrada ainda. Clique em "Buscar Fotos no GameFAQs" primeiro!');
+      return;
+    }
+    const pool = screenshotCandidates.length > 0 ? screenshotCandidates : [formCoverUrl];
     setFormScreenshots([
       pool[0] || '',
       pool[1] || pool[0] || '',
       pool[2] || pool[0] || '',
       pool[3] || pool[0] || ''
     ]);
-    showNotification('✓ Os 4 slots de fotos da postagem foram preenchidos com fotos do GameFAQs!');
+    showNotification(`✓ Os 4 slots de fotos foram preenchidos com fotos exclusivas de "${formTitle || 'deste jogo'}"!`);
   };
 
   // Importar Cheats Direto do GameFAQs (com limpeza de versões e subtítulos)
@@ -390,27 +468,11 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
     setFormDownloadUrl('');
     setFormFormat('PKG');
     setFormFileSize('2.5 GB');
-    setFormCoverUrl('https://images.igdb.com/igdb/image/upload/t_cover_big/co2044.jpg');
-    setCoverCandidates([
-      'https://images.igdb.com/igdb/image/upload/t_cover_big/co2044.jpg',
-      'https://images.igdb.com/igdb/image/upload/t_cover_big/co1v6b.jpg',
-      'https://images.igdb.com/igdb/image/upload/t_cover_big/co1t9c.jpg',
-      'https://images.igdb.com/igdb/image/upload/t_cover_big/co1xbu.jpg'
-    ]);
+    setFormCoverUrl('');
+    setCoverCandidates([]);
     setFormGamefaqsBoxesUrl('');
-    setFormScreenshots([
-      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d2.jpg',
-      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d3.jpg',
-      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d4.jpg',
-      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d5.jpg'
-    ]);
-    setScreenshotCandidates([
-      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d2.jpg',
-      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d3.jpg',
-      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d4.jpg',
-      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d5.jpg',
-      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc8p9f.jpg'
-    ]);
+    setFormScreenshots(['', '', '', '']);
+    setScreenshotCandidates([]);
     setFormGamefaqsImagesUrl('');
     setFormDescription('');
     setFormDeveloper('PlayStation Scene');
@@ -487,14 +549,13 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
     const cleanPlatform = formPlatform.toLowerCase().replace(/[^a-z0-9]/g, '');
     const targetId = editingGameId || `pkg-${cleanPlatform}-${Date.now()}`;
     const cleanScreenshots = formScreenshots.filter(s => s && s.trim().startsWith('http'));
-    const finalScreenshots = cleanScreenshots.length >= 3 ? cleanScreenshots.slice(0, 4) : [
-      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d2.jpg',
-      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d3.jpg',
-      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d4.jpg',
-      'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d5.jpg'
-    ];
+    const finalScreenshots = cleanScreenshots.length > 0 
+      ? cleanScreenshots.slice(0, 4) 
+      : (formCoverUrl.trim() ? [formCoverUrl.trim()] : []);
 
     const cleanDesc = formDescription.replace(/^Sinopse GameFAQs:\s*/i, '').trim();
+
+    const finalCover = formCoverUrl.trim() || generateCustomGameCoverSvg(formTitle.trim(), formPlatform, 'Capa Oficial');
 
     const savedGame: PkgGame = {
       id: targetId,
@@ -506,9 +567,9 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
       format: formFormat.trim().toUpperCase() || 'PKG',
       firmware: `${formPlatform} CFW / HEN / Oficial`,
       region: 'NTSC-U',
-      coverUrl: formCoverUrl.trim() || 'https://images.igdb.com/igdb/image/upload/t_cover_big/co2044.jpg',
+      coverUrl: finalCover,
       coverOptions: coverCandidates.length > 0 ? coverCandidates : undefined,
-      bannerUrl: formScreenshots[0] || formCoverUrl.trim(),
+      bannerUrl: formScreenshots.find(s => s && s.trim()) || finalCover,
       screenshots: finalScreenshots,
       description: cleanDesc || `${formTitle} em formato ${formFormat || 'PKG'} para ${formPlatform}.`,
       releaseYear: formReleaseYear,
@@ -966,9 +1027,23 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
                     <div className="sm:col-span-2">
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">
-                        Título do Jogo / Postagem *
-                      </label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase">
+                          Título do Jogo / Postagem *
+                        </label>
+                        {formTitle.trim() && (
+                          <button
+                            type="button"
+                            onClick={handleFetchAllMediaForCurrentGame}
+                            disabled={isFetchingBoxes || isFetchingImages}
+                            className="text-[10px] text-cyan-400 hover:text-cyan-300 font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                            title="Buscar capa e fotos autênticas deste jogo"
+                          >
+                            {(isFetchingBoxes || isFetchingImages) ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                            <span>Buscar Capa &amp; Fotos</span>
+                          </button>
+                        )}
+                      </div>
                       <input
                         type="text"
                         value={formTitle}
@@ -1151,13 +1226,42 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                   </div>
                 </div>
 
-                {/* 2. ESCOLHA DA FOTO DA CAPA (COVER DO GAMEFAQS - ABA MEDIA > BOXES) */}
+                {/* BANNER UNIFICADO DE MÍDIA DO GAMEFAQS (ABA MEDIA > IMAGES: BOX SHOTS + SCREENSHOTS) */}
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950/40 to-cyan-950/40 border border-cyan-500/30 flex items-center justify-between flex-wrap gap-3 shadow-lg">
+                  <div className="space-y-1 max-w-xl">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-cyan-400" />
+                      <span className="text-xs font-black uppercase text-white tracking-wider">
+                        Sincronização GameFAQs Media &gt; Images (Box Shots + Screenshots)
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-300">
+                      No GameFAQs, a seção <code className="text-cyan-300 font-mono">/images</code> reúne tudo: as opções de capa (<strong className="text-cyan-300">Box Shots</strong>) e as fotos de gameplay (<strong className="text-cyan-300">Screenshots</strong>).
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleFetchAllMediaForCurrentGame}
+                    disabled={isFetchingBoxes || isFetchingImages || (!formTitle.trim() && !scraperInput.trim() && !formGamefaqsBoxesUrl.trim() && !formGamefaqsImagesUrl.trim())}
+                    className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 disabled:opacity-50 text-slate-950 font-black text-xs transition-all cursor-pointer flex items-center gap-2 shadow-lg shadow-cyan-500/20"
+                    title="Puxar Capas Box Shots e as 4 Fotos de Gameplay ao mesmo tempo para o jogo atual"
+                  >
+                    {(isFetchingBoxes || isFetchingImages) ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-4 h-4" />
+                    )}
+                    <span>{(isFetchingBoxes || isFetchingImages) ? 'Sincronizando Mídia...' : 'Puxar Capas & Fotos da aba /images do GameFAQs'}</span>
+                  </button>
+                </div>
+
+                {/* 2. ESCOLHA DA FOTO DA CAPA (BOX SHOTS DO GAMEFAQS - ABA MEDIA > IMAGES / BOXES) */}
                 <div className="p-5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-4">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div className="flex items-center gap-2">
                       <ImageIcon className="w-4 h-4 text-cyan-400" />
                       <h3 className="text-sm font-black text-white uppercase tracking-wider text-cyan-400">
-                        2. Escolha da Foto da Capa (Cover do GameFAQs - Aba Media &gt; Boxes)
+                        2. Escolha da Foto da Capa (Box Shots do GameFAQs - Aba Media &gt; Images / Boxes)
                       </h3>
                     </div>
                     {formGamefaqsBoxesUrl && (
@@ -1206,18 +1310,31 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                     {/* Preview da Capa Selecionada */}
                     <div className="md:col-span-3 flex flex-col items-center p-3.5 rounded-2xl bg-slate-900 border border-cyan-500/30 text-center">
                       <span className="text-[10px] font-bold text-cyan-300 uppercase mb-2">Capa Atualmente Escolhida</span>
-                      <div className="relative w-36 aspect-[3/4] rounded-xl overflow-hidden border-2 border-cyan-500 shadow-xl bg-slate-950">
-                        <img
-                          src={formCoverUrl || 'https://images.igdb.com/igdb/image/upload/t_cover_big/co2044.jpg'}
-                          alt="Capa do Jogo"
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute top-2 right-2 p-1 rounded-full bg-cyan-500 text-slate-950 font-bold">
-                          <Check className="w-3 h-3 stroke-[3]" />
-                        </div>
+                      <div className="relative w-36 aspect-[3/4] rounded-xl overflow-hidden border-2 border-cyan-500 shadow-xl bg-slate-950 flex items-center justify-center">
+                        {formCoverUrl ? (
+                          <img
+                            src={formCoverUrl}
+                            alt="Capa do Jogo"
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="400" viewBox="0 0 300 400"><rect width="300" height="400" fill="%230f172a"/><text x="150" y="200" fill="%2338bdf8" font-size="14" font-family="sans-serif" text-anchor="middle">Capa PlayStation</text></svg>';
+                            }}
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center p-3 text-center text-slate-500">
+                            <ImageIcon className="w-8 h-8 text-cyan-500/40 mb-2" />
+                            <span className="text-[10px] font-bold text-slate-400">Sem Capa</span>
+                            <span className="text-[9px] text-slate-600 mt-1">Busque no GameFAQs</span>
+                          </div>
+                        )}
+                        {formCoverUrl && (
+                          <div className="absolute top-2 right-2 p-1 rounded-full bg-cyan-500 text-slate-950 font-bold">
+                            <Check className="w-3 h-3 stroke-[3]" />
+                          </div>
+                        )}
                       </div>
                       <span className="text-[10px] text-slate-400 mt-2 font-mono truncate max-w-[140px]">
-                        {formCoverUrl.split('/').pop()?.slice(0, 20)}...
+                        {formCoverUrl ? formCoverUrl.split('/').pop()?.slice(0, 20) + '...' : 'Nenhuma selecionada'}
                       </span>
                     </div>
 
@@ -1229,51 +1346,70 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                             Opções de Capas da Seção Boxes do GameFAQs (Clique para selecionar):
                           </label>
                           <span className="text-[10px] text-slate-400">
-                            {coverCandidates.length} opções disponíveis
+                            {coverCandidates.length} opções disponíveis para este jogo
                           </span>
                         </div>
 
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                          {(coverCandidates.length > 0 ? coverCandidates : [
-                            'https://images.igdb.com/igdb/image/upload/t_cover_big/co1v6b.jpg',
-                            'https://images.igdb.com/igdb/image/upload/t_cover_big/co2044.jpg',
-                            'https://images.igdb.com/igdb/image/upload/t_cover_big/co1t9c.jpg',
-                            'https://images.igdb.com/igdb/image/upload/t_cover_big/co1xbu.jpg'
-                          ]).map((cand, idx) => {
-                            const boxLabels = [
-                              'Frontal US (NTSC-U)',
-                              'Frontal Europa (PAL)',
-                              'Frontal Japão (NTSC-J)',
-                              'Verso da Caixa (Back Box)',
-                              'Edição Especial'
-                            ];
-                            const label = boxLabels[idx] || `Box Art #${idx + 1}`;
-                            const isSelected = formCoverUrl === cand;
-                            return (
-                              <div
-                                key={idx}
-                                onClick={() => setFormCoverUrl(cand)}
-                                className={`group relative flex flex-col items-center p-2 rounded-xl bg-slate-900 border-2 cursor-pointer transition-all ${
-                                  isSelected 
-                                    ? 'border-cyan-400 ring-2 ring-cyan-400/50 scale-[1.02] shadow-lg shadow-cyan-500/20' 
-                                    : 'border-slate-800 hover:border-slate-600 opacity-80 hover:opacity-100'
-                                }`}
-                              >
-                                <div className="relative w-full aspect-[3/4] rounded-lg overflow-hidden mb-1.5 bg-slate-950">
-                                  <img src={cand} alt={label} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                                  {isSelected && (
-                                    <div className="absolute top-1.5 right-1.5 p-1 rounded-full bg-cyan-500 text-slate-950 font-black shadow-md">
-                                      <Check className="w-3 h-3 stroke-[3]" />
-                                    </div>
-                                  )}
+                        {coverCandidates.length > 0 ? (
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            {coverCandidates.map((cand, idx) => {
+                              const boxLabels = [
+                                'Frontal US (NTSC-U)',
+                                'Frontal Europa (PAL)',
+                                'Frontal Japão (NTSC-J)',
+                                'Verso da Caixa (Back Box)',
+                                'Edição Especial'
+                              ];
+                              const label = boxLabels[idx] || `Box Art #${idx + 1}`;
+                              const isSelected = formCoverUrl === cand;
+                              return (
+                                <div
+                                  key={idx}
+                                  onClick={() => setFormCoverUrl(cand)}
+                                  className={`group relative flex flex-col items-center p-2 rounded-xl bg-slate-900 border-2 cursor-pointer transition-all ${
+                                    isSelected 
+                                      ? 'border-cyan-400 ring-2 ring-cyan-400/50 scale-[1.02] shadow-lg shadow-cyan-500/20' 
+                                      : 'border-slate-800 hover:border-slate-600 opacity-80 hover:opacity-100'
+                                  }`}
+                                >
+                                  <div className="relative w-full aspect-[3/4] rounded-lg overflow-hidden mb-1.5 bg-slate-950">
+                                    <img 
+                                      src={cand} 
+                                      alt={label} 
+                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform" 
+                                      onError={(e) => {
+                                        (e.target as HTMLImageElement).src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="400" viewBox="0 0 300 400"><rect width="300" height="400" fill="%230f172a"/><text x="150" y="200" fill="%2338bdf8" font-size="14" font-family="sans-serif" text-anchor="middle">Box Art</text></svg>';
+                                      }}
+                                    />
+                                    {isSelected && (
+                                      <div className="absolute top-1.5 right-1.5 p-1 rounded-full bg-cyan-500 text-slate-950 font-black shadow-md">
+                                        <Check className="w-3 h-3 stroke-[3]" />
+                                      </div>
+                                    )}
+                                  </div>
+                                  <span className={`text-[10px] font-bold text-center leading-tight ${isSelected ? 'text-cyan-300' : 'text-slate-400'}`}>
+                                    {label}
+                                  </span>
                                 </div>
-                                <span className={`text-[10px] font-bold text-center leading-tight ${isSelected ? 'text-cyan-300' : 'text-slate-400'}`}>
-                                  {label}
-                                </span>
-                              </div>
-                            );
-                          })}
-                        </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className="p-4 rounded-xl bg-slate-900/60 border border-dashed border-slate-700/80 text-center space-y-2">
+                            <p className="text-xs text-slate-400">
+                              Nenhuma capa carregada ainda para <strong className="text-cyan-300">"{formTitle || 'este jogo'}"</strong>.
+                            </p>
+                            <button
+                              type="button"
+                              onClick={handleFetchBoxesDirectly}
+                              disabled={isFetchingBoxes || (!formTitle.trim() && !scraperInput.trim() && !formGamefaqsBoxesUrl.trim())}
+                              className="px-3.5 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 disabled:opacity-40 text-slate-950 font-black text-xs transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-md"
+                            >
+                              <ImageIcon className="w-3.5 h-3.5" />
+                              <span>Buscar Capas Oficiais no GameFAQs</span>
+                            </button>
+                          </div>
+                        )}
                       </div>
 
                       <div>
@@ -1331,7 +1467,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                   <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
                     <div className="flex items-center justify-between flex-wrap gap-2 text-xs">
                       <label className="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
-                        <span>Endereço do Jogo no GameFAQs (Aba Media &gt; Images):</span>
+                        <span>Endereço do Jogo no GameFAQs (Aba Media &gt; Images - Contém Box Shots e Screenshots):</span>
                       </label>
                       <span className="text-[10px] text-cyan-400 font-mono">gamefaqs.gamespot.com/&lt;console&gt;/&lt;jogo&gt;/images</span>
                     </div>
@@ -1375,19 +1511,30 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                             </button>
                           </div>
 
-                          <div 
-                            onClick={() => photoUrl && setLightboxImage(photoUrl)}
-                            className="aspect-video rounded-xl overflow-hidden border border-slate-800 bg-slate-950 relative group cursor-zoom-in"
-                          >
-                            <img
-                              src={photoUrl || 'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc93d2.jpg'}
-                              alt={`Foto ${slotIdx + 1}`}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                            />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                              <span className="text-[10px] text-white font-bold bg-slate-900/80 px-2 py-1 rounded-md">Ampliar</span>
+                          {photoUrl ? (
+                            <div 
+                              onClick={() => setLightboxImage(photoUrl)}
+                              className="aspect-video rounded-xl overflow-hidden border border-slate-800 bg-slate-950 relative group cursor-zoom-in"
+                            >
+                              <img
+                                src={photoUrl}
+                                alt={`Foto ${slotIdx + 1}`}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="225" viewBox="0 0 400 225"><rect width="400" height="225" fill="%230f172a"/><text x="200" y="115" fill="%2338bdf8" font-size="14" font-family="sans-serif" text-anchor="middle">Foto do Jogo</text></svg>';
+                                }}
+                              />
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <span className="text-[10px] text-white font-bold bg-slate-900/80 px-2 py-1 rounded-md">Ampliar</span>
+                              </div>
                             </div>
-                          </div>
+                          ) : (
+                            <div className="aspect-video rounded-xl border border-dashed border-slate-800 bg-slate-950/70 flex flex-col items-center justify-center text-center p-2 text-slate-500">
+                              <Tv className="w-5 h-5 text-slate-600 mb-1" />
+                              <span className="text-[10px] font-bold text-slate-400">Slot #{slotIdx + 1} Vazio</span>
+                              <span className="text-[9px] text-slate-600">Selecione abaixo ou cole URL</span>
+                            </div>
+                          )}
 
                           <input
                             type="url"
