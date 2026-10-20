@@ -974,6 +974,16 @@ export function normalizeTitleForComparison(title: string): string {
   return title
     .toLowerCase()
     .replace(/\b(the|a|an)\b/g, '')
+    // Converter algarismos romanos comuns para numéricos para compatibilidade (ex: "II" -> "2", "III" -> "3")
+    .replace(/\bviii\b/g, '8')
+    .replace(/\bvii\b/g, '7')
+    .replace(/\bvi\b/g, '6')
+    .replace(/\biv\b/g, '4')
+    .replace(/\biii\b/g, '3')
+    .replace(/\bii\b/g, '2')
+    .replace(/\bix\b/g, '9')
+    .replace(/\bv\b/g, '5')
+    .replace(/\bx\b/g, '10')
     .replace(/[^a-z0-9]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
@@ -987,9 +997,9 @@ export function findMatchingGameInCatalog(queryOrUrl: string): PlayStationMediaE
   if (!queryOrUrl) return null;
   const raw = queryOrUrl.trim().toLowerCase();
   
-  // Se for URL GameFAQs, extrair slug exato (ex: 915010-god-of-war-ii -> god-of-war-ii)
+  // Se for URL GameFAQs, RomsPure ou DLPSGame, extrair slug exato
   let urlSlug = '';
-  if (raw.includes('gamefaqs.gamespot.com') || raw.includes('gamefaqs.com')) {
+  if (raw.includes('gamefaqs.gamespot.com') || raw.includes('gamefaqs.com') || raw.includes('romspure.cc') || raw.includes('dlpsgame.com')) {
     try {
       const u = new URL(queryOrUrl.startsWith('http') ? queryOrUrl : `https://${queryOrUrl}`);
       const parts = u.pathname.split('/').filter(Boolean);
@@ -997,9 +1007,18 @@ export function findMatchingGameInCatalog(queryOrUrl: string): PlayStationMediaE
       while (parts.length > 0 && /^(boxes|images|cheats|faqs|reviews|data|saves|media)$/i.test(parts[parts.length - 1])) {
         parts.pop();
       }
-      // O segmento do jogo geralmente contém ID numérico ou é o último restante
-      const slugSegment = parts.find(p => /^\d+-/.test(p)) || parts[parts.length - 1] || '';
-      urlSlug = slugSegment.replace(/^\d+-/, '').toLowerCase().trim();
+      if (raw.includes('dlpsgame.com')) {
+        const last = parts[parts.length - 1] || '';
+        urlSlug = last
+          .replace(/-(ps[1-5]|psp|psvita|switch|wii|gamecube|pc)-(iso|pkg|rom|nsp|xci|cso|vpk)$/i, '')
+          .replace(/-(iso|pkg|rom|nsp|xci|cso)$/i, '');
+      } else if (raw.includes('romspure.cc')) {
+        urlSlug = parts[parts.length - 1] || '';
+      } else {
+        // O segmento do jogo geralmente contém ID numérico ou é o último restante
+        const slugSegment = parts.find(p => /^\d+-/.test(p)) || parts[parts.length - 1] || '';
+        urlSlug = slugSegment.replace(/^\d+-/, '').toLowerCase().trim();
+      }
     } catch {}
   }
 

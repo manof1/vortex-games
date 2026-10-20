@@ -40,6 +40,7 @@ import { GITHUB_ACTIONS_WORKFLOW_YAML, VERCEL_CRON_JSON } from '../services/auto
 import { ZUKO_TAPOCHEK_PRESETS } from '../data/zukoTapochekPresets';
 import { createZukoTapochekGame, ZUKO_TAPOCHEK_SUPABASE_SCRIPT } from '../services/zukoTapochekService';
 import { ROMSPURE_DLPS_PRESETS, ROMSPURE_DLPS_SUPABASE_SCRIPT } from '../data/romspureDlpsPresets';
+import { pullGameDataFromSources } from '../services/pkgScraperService';
 import { SUPABASE_SCHEMA_SQL } from '../services/supabaseSchemaService';
 import { SUPABASE_URL, SUPABASE_ANON_KEY, testSupabaseConnection, upsertGameToSupabase } from '../services/supabaseClient';
 import { getGameCover, handleImageError } from '../utils/imageUtils';
@@ -68,11 +69,15 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
   const [activeTab, setActiveTab] = useState<'igdb' | 'fitgirl' | 'zukotapochek' | 'romspuredlps' | 'manage' | 'comments' | 'backup'>('igdb');
 
   // RomsPure & DLPSGame Tab states
-  const [romspurePlatformFilter, setRomspurePlatformFilter] = useState<'ALL' | 'PS1' | 'PS2' | 'PS3' | 'PS4' | 'PSP' | 'Switch'>('ALL');
+  const [romspurePlatformFilter, setRomspurePlatformFilter] = useState<'ALL' | 'PS1' | 'PS2' | 'PS3' | 'PS4' | 'PSP' | 'Switch' | 'N64' | 'GBA'>('ALL');
   const [romspureSearch, setRomspureSearch] = useState('');
   const [romspureImportedCount, setRomspureImportedCount] = useState<number | null>(null);
   const [copiedRomspureScript, setCopiedRomspureScript] = useState(false);
   const [singleImportSuccess, setSingleImportSuccess] = useState<string | null>(null);
+  const [customConsoleUrl, setCustomConsoleUrl] = useState('');
+  const [isPullingConsoleUrl, setIsPullingConsoleUrl] = useState(false);
+  const [consolePullResult, setConsolePullResult] = useState<Game | null>(null);
+  const [consolePullError, setConsolePullError] = useState<string | null>(null);
 
   // IGDB Search state
   const [igdbQuery, setIgdbQuery] = useState('');
@@ -251,6 +256,109 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
       setPublishedSuccess(false);
       setActiveTab('manage');
     }, 1500);
+  };
+
+  // Puxar jogo diretamente de link do RomsPure.cc ou DLPSGame.com
+  const handlePullFromConsoleUrl = async () => {
+    if (!customConsoleUrl.trim()) return;
+    setIsPullingConsoleUrl(true);
+    setConsolePullError(null);
+    setConsolePullResult(null);
+
+    try {
+      const raw = customConsoleUrl.trim();
+      let defaultPlat = 'PS1';
+      if (raw.includes('sony-playstation-2') || raw.includes('-ps2-')) defaultPlat = 'PS2';
+      else if (raw.includes('sony-playstation-3') || raw.includes('-ps3-')) defaultPlat = 'PS3';
+      else if (raw.includes('sony-playstation-4') || raw.includes('-ps4-')) defaultPlat = 'PS4';
+      else if (raw.includes('sony-playstation-portable') || raw.includes('-psp-')) defaultPlat = 'PSP';
+      else if (raw.includes('sony-playstation-vita') || raw.includes('-psvita-')) defaultPlat = 'PS Vita';
+      else if (raw.includes('nintendo-switch') || raw.includes('-switch-')) defaultPlat = 'Switch';
+      else if (raw.includes('nintendo-64') || raw.includes('-n64-')) defaultPlat = 'N64';
+      else if (raw.includes('gameboy-advance') || raw.includes('-gba-')) defaultPlat = 'GBA';
+
+      // 1. Verificar se já existe nos presets ricos
+      const existingPreset = ROMSPURE_DLPS_PRESETS.find(p => 
+        (p.sourceUrl && raw.toLowerCase().includes(p.sourceUrl.toLowerCase())) || 
+        raw.toLowerCase().includes(p.slug.toLowerCase())
+      );
+      if (existingPreset) {
+        setConsolePullResult(existingPreset);
+        setIsPullingConsoleUrl(false);
+        return;
+      }
+
+      // 2. Extrair informações inteligentes e mídia ao vivo
+      const scraped = await pullGameDataFromSources(raw, defaultPlat);
+      if (!scraped || !scraped.title) {
+        throw new Error('Não foi possível identificar o título do jogo a partir desta URL. Verifique o link e tente novamente.');
+      }
+
+      const isRomsPure = raw.includes('romspure.cc');
+      const isDlps = raw.includes('dlpsgame.com');
+      const sourceWeb = isRomsPure ? 'RomsPure' : isDlps ? 'DLPSGame' : 'Consoles Hub';
+      const cleanSlug = scraped.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      const finalId = `${cleanSlug}-${scraped.platform.toLowerCase()}-${sourceWeb.toLowerCase()}`;
+
+      const newGame: Game = {
+        id: finalId,
+        title: scraped.title,
+        slug: `${cleanSlug}-${scraped.platform.toLowerCase()}-rom`,
+        coverUrl: scraped.coverUrl || 'https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Boxarts/Castlevania%20-%20Symphony%20of%20the%20Night%20(USA).png',
+        bannerUrl: scraped.bannerUrl || scraped.coverUrl,
+        shortDescription: `Edição preservada do clássico ${scraped.title} para ${scraped.platform}. Dumps e arquivos verificados via ${sourceWeb}. Formato: ${scraped.format || 'ISO/ROM'}, tamanho estimado de ${scraped.fileSize || '1.2 GB'}.`,
+        description: scraped.synopsis || `Mergulhe no universo de ${scraped.title} no console ${scraped.platform}. Jogo testado para rodar em emuladores modernos (PCSX2, DuckStation, RetroArch, PPSSPP) ou consoles desbloqueados.`,
+        genres: ['Ação', 'Aventura', 'Console Clássico'],
+        categories: [scraped.platform, 'Preservação de Consoles', sourceWeb],
+        releaseYear: scraped.releaseYear ? parseInt(scraped.releaseYear) : 2005,
+        releaseDate: scraped.releaseYear ? `01/01/${scraped.releaseYear}` : '01/01/2005',
+        developer: scraped.developer || 'Estúdio Oficial',
+        publisher: scraped.publisher || 'Distribuidora Oficial',
+        rating: 4.8,
+        totalVotes: 6400,
+        repackInfo: {
+          repacker: `${sourceWeb} Preservation Archive`,
+          version: `v1.0 (${scraped.region || 'NTSC-U'})`,
+          repackSize: scraped.fileSize || '1.2 GB',
+          originalSize: scraped.fileSize || '1.2 GB',
+          crackStatus: 'DRM Free',
+          crackGroup: `${scraped.platform} Scene`
+        },
+        downloadLinks: [
+          {
+            id: `dl-${finalId}-1`,
+            type: scraped.format === 'PKG' ? 'pkg' : 'direct',
+            format: (scraped.format?.toLowerCase() as any) || 'iso',
+            platform: scraped.platform as any,
+            label: `Download Direto (${sourceWeb} - ${scraped.fileSize || '1.2 GB'})`,
+            url: raw,
+            size: scraped.fileSize || '1.2 GB',
+            titleId: scraped.titleId,
+            firmware: scraped.firmware || `${scraped.platform} Emulador / CFW`,
+            isPtBrSubs: true,
+            hostName: `${sourceWeb}.cc`
+          }
+        ],
+        screenshots: scraped.screenshots?.length ? scraped.screenshots : [scraped.coverUrl],
+        systemRequirements: {
+          minimum: { os: `${scraped.platform} ou Emulador`, processor: 'Dual Core 2.5GHz', memory: '4 GB RAM', graphics: 'DirectX 11', storage: '4 GB', directx: '11' },
+          recommended: { os: `${scraped.platform} ou Emulador`, processor: 'Quad Core 3.5GHz', memory: '8 GB RAM', graphics: 'DirectX 12', storage: '8 GB', directx: '12' }
+        },
+        tags: [scraped.platform, scraped.format || 'ISO', sourceWeb, 'Console', 'VortexGames'],
+        downloadsCount: 15400,
+        viewsCount: 42000,
+        createdAt: new Date().toISOString(),
+        hasPtBrSubs: true,
+        hasPkgFormat: scraped.format === 'PKG',
+        hasPcTorrent: false
+      };
+
+      setConsolePullResult(newGame);
+    } catch (err: any) {
+      setConsolePullError(err?.message || 'Falha ao processar link do jogo.');
+    } finally {
+      setIsPullingConsoleUrl(false);
+    }
   };
 
   // Handle Editing Game submit
@@ -1358,6 +1466,112 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
                 </div>
               </div>
 
+              {/* Interactive Scraper Bar for Any RomsPure or DLPSGame URL */}
+              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-emerald-400" />
+                    Puxar Jogo por Link do RomsPure.cc ou DLPSGame.com
+                  </span>
+                  <span className="text-[10px] text-slate-400 hidden sm:inline">
+                    Insira qualquer URL de jogo desses sites para extrair capa, formato e cadastrar
+                  </span>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-stretch gap-2">
+                  <input
+                    type="url"
+                    value={customConsoleUrl}
+                    onChange={e => setCustomConsoleUrl(e.target.value)}
+                    placeholder="Ex: https://romspure.cc/roms/sony-playstation/castlevania-symphony-of-the-night/ ou https://dlpsgame.com/..."
+                    className="flex-1 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handlePullFromConsoleUrl();
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    disabled={isPullingConsoleUrl || !customConsoleUrl.trim()}
+                    onClick={handlePullFromConsoleUrl}
+                    className="px-4 py-2 rounded-xl font-bold text-xs bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-slate-950 flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0"
+                  >
+                    {isPullingConsoleUrl ? (
+                      <>
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        <span>Puxando dados...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Puxar Dados do Link</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {consolePullError && (
+                  <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-xs text-red-300">
+                    {consolePullError}
+                  </div>
+                )}
+
+                {consolePullResult && (
+                  <div className="p-4 rounded-xl bg-emerald-950/30 border border-emerald-500/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fadeIn">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={consolePullResult.coverUrl}
+                        alt={consolePullResult.title}
+                        referrerPolicy="no-referrer"
+                        className="w-14 h-18 object-cover rounded-lg border border-slate-700 shadow shrink-0"
+                        onError={e => handleImageError(e, consolePullResult)}
+                      />
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500 text-slate-950">
+                            {consolePullResult.categories?.[0] || 'Console'}
+                          </span>
+                          <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-slate-800 text-slate-300">
+                            {consolePullResult.downloadLinks?.[0]?.format?.toUpperCase() || 'ROM'}
+                          </span>
+                          <span className="text-[11px] text-slate-400">
+                            {consolePullResult.downloadLinks?.[0]?.size || '1.5 GB'}
+                          </span>
+                        </div>
+                        <h4 className="text-sm font-bold text-white">{consolePullResult.title}</h4>
+                        <p className="text-[11px] text-slate-400 line-clamp-1">{consolePullResult.shortDescription}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          addGame(consolePullResult);
+                          setSingleImportSuccess(`"${consolePullResult.title}" cadastrado com sucesso no banco de dados!`);
+                          setConsolePullResult(null);
+                          setCustomConsoleUrl('');
+                          setTimeout(() => setSingleImportSuccess(null), 4000);
+                        }}
+                        className="flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/20 cursor-pointer"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Cadastrar no Banco</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConsolePullResult(null)}
+                        className="px-3 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer"
+                      >
+                        Limpar
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Filters and Search Bar */}
               <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
@@ -1373,7 +1587,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
                   </div>
 
                   <div className="flex items-center gap-1.5 overflow-x-auto text-[11px] font-bold">
-                    {(['ALL', 'PS1', 'PS2', 'PS3', 'PS4', 'PSP', 'Switch'] as const).map(plat => (
+                    {(['ALL', 'PS1', 'PS2', 'PS3', 'PS4', 'PSP', 'Switch', 'N64', 'GBA'] as const).map(plat => (
                       <button
                         key={plat}
                         type="button"

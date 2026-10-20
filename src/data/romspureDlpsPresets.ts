@@ -4,7 +4,7 @@ export interface ConsolePresetItem extends Game {
   sourceWebsite: 'RomsPure' | 'DLPSGame' | 'Ambos';
   sourceUrl: string;
   romFormat: 'ISO' | 'PKG' | 'ROM' | 'BIN/CUE' | 'NSP' | 'XCI' | 'CHD';
-  consolePlatform: 'PS1' | 'PS2' | 'PS3' | 'PS4' | 'PS5' | 'PSP' | 'PS Vita' | 'Switch';
+  consolePlatform: 'PS1' | 'PS2' | 'PS3' | 'PS4' | 'PS5' | 'PSP' | 'PS Vita' | 'Switch' | 'N64' | 'GBA';
 }
 
 type RawConsolePreset = Omit<ConsolePresetItem, 'systemRequirements' | 'tags' | 'downloadsCount' | 'viewsCount' | 'createdAt'> & {
@@ -493,6 +493,336 @@ const RAW_ROMSPURE_DLPS_PRESETS: RawConsolePreset[] = [
       "https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Nintendo_Switch/master/Named_Boxarts/The%20Legend%20of%20Zelda%20-%20Breath%20of%20the%20Wild%20(USA).png",
       "https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Nintendo_Switch/master/Named_Snaps/The%20Legend%20of%20Zelda%20-%20Breath%20of%20the%20Wild%20(USA).png",
       "https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Nintendo_Switch/master/Named_Boxarts/The%20Legend%20of%20Zelda%20-%20Breath%20of%20the%20Wild%20(USA).png"
+    ]
+  },
+
+  // 9. Grand Theft Auto: San Andreas (PS2)
+  {
+    id: "gta-san-andreas-ps2-dlps-romspure",
+    title: "Grand Theft Auto: San Andreas",
+    slug: "grand-theft-auto-san-andreas-ps2-iso",
+    coverUrl: "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation_2/master/Named_Boxarts/Grand%20Theft%20Auto%20-%20San%20Andreas%20(USA).png",
+    bannerUrl: "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation_2/master/Named_Snaps/Grand%20Theft%20Auto%20-%20San%20Andreas%20(USA).png",
+    shortDescription: "A obra máxima da Rockstar Games na era PS2. CJ retorna a Los Santos nos anos 90 para salvar sua família e dominar o submundo.",
+    description: "Cinco anos atrás, Carl Johnson escapou da pressão da vida em Los Santos, San Andreas. Agora, no início dos anos 90, Carl precisa voltar para casa após o assassinato de sua mãe. Uma das maiores revoluções dos jogos de mundo aberto.",
+    genres: ["Mundo Aberto", "Ação", "Crime", "Tiro em 3ª Pessoa"],
+    categories: ["Clássicos PlayStation", "Mais Baixados", "Destaques"],
+    releaseYear: 2004,
+    releaseDate: "26/10/2004",
+    developer: "Rockstar North",
+    publisher: "Rockstar Games",
+    sourceWebsite: "Ambos",
+    sourceUrl: "https://dlpsgame.com/grand-theft-auto-san-andreas-ps2-iso/",
+    romFormat: "ISO",
+    consolePlatform: "PS2",
+    repackInfo: {
+      repacker: "DLPSGame & RomsPure Console Archive",
+      version: "v1.03 Special Edition (SLUS-20946) + Legendas PT-BR",
+      repackSize: "4.1 GB",
+      originalSize: "4.7 GB",
+      crackStatus: "DRM Free",
+      crackGroup: "PS2 Scene"
+    },
+    downloadLinks: [
+      {
+        id: "dl-gtasa-dlps",
+        type: "direct",
+        format: "iso",
+        platform: "PS2",
+        label: "Download ISO DVD Direto (DLPSGame SLUS-20946)",
+        url: "https://dlpsgame.com/grand-theft-auto-san-andreas-ps2-iso/",
+        size: "4.1 GB",
+        titleId: "SLUS-20946",
+        firmware: "PS2 OPL / PCSX2",
+        isPtBrAudio: false,
+        isPtBrSubs: true,
+        hostName: "DLPSGame.com"
+      },
+      {
+        id: "dl-gtasa-romspure",
+        type: "direct",
+        format: "iso",
+        platform: "PS2",
+        label: "Download ROM ISO Limpa (RomsPure.cc)",
+        url: "https://romspure.cc/roms/sony-playstation-2/grand-theft-auto-san-andreas/",
+        size: "4.0 GB",
+        titleId: "SLUS-20946",
+        firmware: "PCSX2 / OPL",
+        isPtBrAudio: false,
+        isPtBrSubs: true,
+        hostName: "RomsPure.cc"
+      }
+    ],
+    rating: 5.0,
+    totalVotes: 28400,
+    screenshots: [
+      "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation_2/master/Named_Snaps/Grand%20Theft%20Auto%20-%20San%20Andreas%20(USA).png",
+      "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation_2/master/Named_Boxarts/Grand%20Theft%20Auto%20-%20San%20Andreas%20(USA).png",
+      "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation_2/master/Named_Snaps/Grand%20Theft%20Auto%20-%20San%20Andreas%20(USA).png",
+      "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation_2/master/Named_Boxarts/Grand%20Theft%20Auto%20-%20San%20Andreas%20(Europe).png"
+    ]
+  },
+
+  // 10. Shadow of the Colossus (PS2)
+  {
+    id: "shadow-of-colossus-ps2-dlps",
+    title: "Shadow of the Colossus",
+    slug: "shadow-of-the-colossus-ps2-iso",
+    coverUrl: "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation_2/master/Named_Boxarts/Shadow%20of%20the%20Colossus%20(USA).png",
+    bannerUrl: "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation_2/master/Named_Snaps/Shadow%20of%20the%20Colossus%20(USA).png",
+    shortDescription: "A poética e grandiosa aventura de Wander e sua égua Agro contra dezesseis gigantes míticos para salvar a vida de Mono.",
+    description: "Considerado um dos maiores marcos artísticos dos videogames. Cavalgue pela Terra Proibida armada apenas de um arco e da Espada Ancestral para derrotar gigantes que vagam por vales, lagos e montanhas solitárias.",
+    genres: ["Aventura", "Ação", "Fantasia", "Épico"],
+    categories: ["Clássicos PlayStation", "Obras de Arte"],
+    releaseYear: 2005,
+    releaseDate: "18/10/2005",
+    developer: "Team Ico / Japan Studio",
+    publisher: "Sony Computer Entertainment",
+    sourceWebsite: "Ambos",
+    sourceUrl: "https://dlpsgame.com/shadow-of-the-colossus-ps2-iso/",
+    romFormat: "ISO",
+    consolePlatform: "PS2",
+    repackInfo: {
+      repacker: "DLPSGame & RomsPure",
+      version: "v1.0 NTSC-U (SCUS-97472) + Tradução PT-BR",
+      repackSize: "1.9 GB",
+      originalSize: "2.4 GB",
+      crackStatus: "DRM Free",
+      crackGroup: "Team Ico Archive"
+    },
+    downloadLinks: [
+      {
+        id: "dl-sotc-dlps",
+        type: "direct",
+        format: "iso",
+        platform: "PS2",
+        label: "Download ISO DVD Direto (DLPSGame - SCUS-97472)",
+        url: "https://dlpsgame.com/shadow-of-the-colossus-ps2-iso/",
+        size: "1.9 GB",
+        titleId: "SCUS-97472",
+        firmware: "PS2 OPL / PCSX2",
+        isPtBrAudio: false,
+        isPtBrSubs: true,
+        hostName: "DLPSGame.com"
+      }
+    ],
+    rating: 4.9,
+    totalVotes: 11900,
+    screenshots: [
+      "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation_2/master/Named_Snaps/Shadow%20of%20the%20Colossus%20(USA).png",
+      "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation_2/master/Named_Boxarts/Shadow%20of%20the%20Colossus%20(USA).png",
+      "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation_2/master/Named_Snaps/Shadow%20of%20the%20Colossus%20(USA).png",
+      "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation_2/master/Named_Boxarts/Shadow%20of%20the%20Colossus%20(Europe).png"
+    ]
+  },
+
+  // 11. Tekken 3 (PS1)
+  {
+    id: "tekken-3-ps1-romspure-dlps",
+    title: "Tekken 3",
+    slug: "tekken-3-ps1-iso",
+    coverUrl: "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Boxarts/Tekken%203%20(USA).png",
+    bannerUrl: "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Snaps/Tekken%203%20(USA).png",
+    shortDescription: "O ápice dos jogos de luta em 3D do PS1. Jin Kazama, Hwoarang e Eddy Gordo em um torneio lendário de King of Iron Fist.",
+    description: "Quase duas décadas após o segundo torneio, Heihachi Mishima busca absorver o poder da entidade Ogre. Apresentando animações capturadas com atores reais e a introdução de Jin Kazama, Tekken 3 vendeu mais de 8 milhões de cópias.",
+    genres: ["Luta 3D", "Artes Marciais", "Arcade"],
+    categories: ["Clássicos PlayStation", "Retrogaming"],
+    releaseYear: 1998,
+    releaseDate: "29/04/1998",
+    developer: "Namco",
+    publisher: "Namco",
+    sourceWebsite: "Ambos",
+    sourceUrl: "https://romspure.cc/roms/sony-playstation/tekken-3/",
+    romFormat: "ISO",
+    consolePlatform: "PS1",
+    repackInfo: {
+      repacker: "RomsPure & DLPSGame",
+      version: "v1.1 USA (SLUS-00402) Redump Verified",
+      repackSize: "440 MB",
+      originalSize: "680 MB",
+      crackStatus: "DRM Free",
+      crackGroup: "Namco Classic Scene"
+    },
+    downloadLinks: [
+      {
+        id: "dl-tekken3-romspure",
+        type: "direct",
+        format: "iso",
+        platform: "PS1",
+        label: "Download ROM ISO Direto (RomsPure.cc - SLUS-00402)",
+        url: "https://romspure.cc/roms/sony-playstation/tekken-3/",
+        size: "440 MB",
+        titleId: "SLUS-00402",
+        firmware: "DuckStation / RetroArch / PS1",
+        isPtBrAudio: false,
+        isPtBrSubs: false,
+        hostName: "RomsPure.cc"
+      }
+    ],
+    rating: 4.9,
+    totalVotes: 16800,
+    screenshots: [
+      "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Snaps/Tekken%203%20(USA).png",
+      "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Boxarts/Tekken%203%20(USA).png",
+      "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Snaps/Tekken%203%20(USA).png",
+      "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Boxarts/Tekken%203%20(Europe).png"
+    ]
+  },
+
+  // 12. Super Mario Odyssey (Switch)
+  {
+    id: "super-mario-odyssey-switch-romspure",
+    title: "Super Mario Odyssey",
+    slug: "super-mario-odyssey-switch-nsp",
+    coverUrl: "https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Nintendo_Switch/master/Named_Boxarts/Super%20Mario%20Odyssey%20(USA).png",
+    bannerUrl: "https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Nintendo_Switch/master/Named_Snaps/Super%20Mario%20Odyssey%20(USA).png",
+    shortDescription: "Junte-se a Mario e Cappy em uma odisseia mágica de plataforma 3D pelos mais diversos reinos para impedir o casamento de Bowser.",
+    description: "Use o chapéu mágico Cappy para capturar e controlar inimigos, objetos e dinossauros em uma incrível viagem de exploração livre estilo Mario 64 e Sunshine.",
+    genres: ["Plataforma 3D", "Aventura", "Família"],
+    categories: ["Nintendo", "Destaques"],
+    releaseYear: 2017,
+    releaseDate: "27/10/2017",
+    developer: "Nintendo EPD",
+    publisher: "Nintendo",
+    sourceWebsite: "RomsPure",
+    sourceUrl: "https://romspure.cc/roms/nintendo-switch/super-mario-odyssey/",
+    romFormat: "NSP",
+    consolePlatform: "Switch",
+    repackInfo: {
+      repacker: "RomsPure Switch Dumps",
+      version: "v1.3.0 + Luigi's Balloon World Update",
+      repackSize: "5.6 GB",
+      originalSize: "6.2 GB",
+      crackStatus: "DRM Free",
+      crackGroup: "Nintendo Switch Scene"
+    },
+    downloadLinks: [
+      {
+        id: "dl-smo-romspure",
+        type: "direct",
+        format: "nsp",
+        platform: "Nintendo Switch",
+        label: "Download ROM NSP/XCI Direto (RomsPure.cc)",
+        url: "https://romspure.cc/roms/nintendo-switch/super-mario-odyssey/",
+        size: "5.6 GB",
+        titleId: "0100000000010000",
+        firmware: "Ryujinx / Yuzu / Switch CFW Atmosphere",
+        isPtBrAudio: false,
+        isPtBrSubs: true,
+        hostName: "RomsPure.cc"
+      }
+    ],
+    rating: 4.9,
+    totalVotes: 19400,
+    screenshots: [
+      "https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Nintendo_Switch/master/Named_Snaps/Super%20Mario%20Odyssey%20(USA).png",
+      "https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Nintendo_Switch/master/Named_Boxarts/Super%20Mario%20Odyssey%20(USA).png",
+      "https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Nintendo_Switch/master/Named_Snaps/Super%20Mario%20Odyssey%20(USA).png",
+      "https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Nintendo_Switch/master/Named_Boxarts/Super%20Mario%20Odyssey%20(USA).png"
+    ]
+  },
+
+  // 13. The Legend of Zelda: Ocarina of Time (N64)
+  {
+    id: "zelda-oot-n64-romspure",
+    title: "The Legend of Zelda: Ocarina of Time",
+    slug: "the-legend-of-zelda-ocarina-of-time-n64-rom",
+    coverUrl: "https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Nintendo_64/master/Named_Boxarts/Legend%20of%20Zelda%2C%20The%20-%20Ocarina%20of%20Time%20(USA).png",
+    bannerUrl: "https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Nintendo_64/master/Named_Snaps/Legend%20of%20Zelda%2C%20The%20-%20Ocarina%20of%20Time%20(USA).png",
+    shortDescription: "Geralmente considerado o melhor videogame de todos os tempos. Link viaja no tempo para derrotar Ganondorf e salvar Hyrule.",
+    description: "Com o sistema inovador de mira Z-Targeting, passagem de tempo dia/noite e canções tocadas na Ocarina, a jornada mágica de Link de criança a herói adulto marcou a história.",
+    genres: ["Ação", "Aventura", "Fantasia", "RPG"],
+    categories: ["Nintendo", "Retrogaming", "Obras de Arte"],
+    releaseYear: 1998,
+    releaseDate: "21/11/1998",
+    developer: "Nintendo EAD",
+    publisher: "Nintendo",
+    sourceWebsite: "RomsPure",
+    sourceUrl: "https://romspure.cc/roms/nintendo-64/the-legend-of-zelda-ocarina-of-time/",
+    romFormat: "ROM",
+    consolePlatform: "N64",
+    repackInfo: {
+      repacker: "RomsPure Preservation",
+      version: "v1.2 USA (Z64) + Tradução PT-BR Completa",
+      repackSize: "32 MB",
+      originalSize: "32 MB",
+      crackStatus: "DRM Free",
+      crackGroup: "No-Intro N64"
+    },
+    downloadLinks: [
+      {
+        id: "dl-oot-romspure",
+        type: "direct",
+        format: "rom",
+        platform: "N64",
+        label: "Download ROM N64 Direto (RomsPure.cc - 32 MB)",
+        url: "https://romspure.cc/roms/nintendo-64/the-legend-of-zelda-ocarina-of-time/",
+        size: "32 MB",
+        firmware: "Mupen64Plus / RetroArch / EverDrive 64",
+        isPtBrAudio: false,
+        isPtBrSubs: true,
+        hostName: "RomsPure.cc"
+      }
+    ],
+    rating: 5.0,
+    totalVotes: 32000,
+    screenshots: [
+      "https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Nintendo_64/master/Named_Snaps/Legend%20of%20Zelda%2C%20The%20-%20Ocarina%20of%20Time%20(USA).png",
+      "https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Nintendo_64/master/Named_Boxarts/Legend%20of%20Zelda%2C%20The%20-%20Ocarina%20of%20Time%20(USA).png",
+      "https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Nintendo_64/master/Named_Snaps/Legend%20of%20Zelda%2C%20The%20-%20Ocarina%20of%20Time%20(USA).png",
+      "https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Nintendo_64/master/Named_Boxarts/Legend%20of%20Zelda%2C%20The%20-%20Ocarina%20of%20Time%20(Europe).png"
+    ]
+  },
+
+  // 14. Pokémon Emerald Version (Game Boy Advance)
+  {
+    id: "pokemon-emerald-gba-romspure",
+    title: "Pokémon Emerald Version",
+    slug: "pokemon-emerald-version-gba-rom",
+    coverUrl: "https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Game_Boy_Advance/master/Named_Boxarts/Pokemon%20-%20Emerald%20Version%20(USA%2C%20Europe).png",
+    bannerUrl: "https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Game_Boy_Advance/master/Named_Snaps/Pokemon%20-%20Emerald%20Version%20(USA%2C%20Europe).png",
+    shortDescription: "A versão definitiva da 3ª geração Pokémon na região de Hoenn com Rayquaza, Battle Frontier e suporte a cheat codes.",
+    description: "Explore a região de Hoenn, impeça os planos do Team Magma e Team Aqua e desperte o lendário dragão Rayquaza para restaurar o equilíbrio do clima.",
+    genres: ["RPG", "Colecionismo", "Aventura"],
+    categories: ["Nintendo", "Portáteis", "Retrogaming"],
+    releaseYear: 2004,
+    releaseDate: "16/09/2004",
+    developer: "Game Freak",
+    publisher: "The Pokémon Company / Nintendo",
+    sourceWebsite: "RomsPure",
+    sourceUrl: "https://romspure.cc/roms/gameboy-advance/pokemon-emerald-version/",
+    romFormat: "ROM",
+    consolePlatform: "GBA",
+    repackInfo: {
+      repacker: "RomsPure GBA Archive",
+      version: "v1.0 USA/EUR Clean Dump + Tradução PT-BR",
+      repackSize: "16 MB",
+      originalSize: "16 MB",
+      crackStatus: "DRM Free",
+      crackGroup: "No-Intro GBA"
+    },
+    downloadLinks: [
+      {
+        id: "dl-emerald-romspure",
+        type: "direct",
+        format: "rom",
+        platform: "GBA",
+        label: "Download ROM GBA Direto (RomsPure.cc - 16 MB)",
+        url: "https://romspure.cc/roms/gameboy-advance/pokemon-emerald-version/",
+        size: "16 MB",
+        firmware: "mGBA / VisualBoyAdvance / RetroArch",
+        isPtBrAudio: false,
+        isPtBrSubs: true,
+        hostName: "RomsPure.cc"
+      }
+    ],
+    rating: 4.9,
+    totalVotes: 24500,
+    screenshots: [
+      "https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Game_Boy_Advance/master/Named_Snaps/Pokemon%20-%20Emerald%20Version%20(USA%2C%20Europe).png",
+      "https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Game_Boy_Advance/master/Named_Boxarts/Pokemon%20-%20Emerald%20Version%20(USA%2C%20Europe).png",
+      "https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Game_Boy_Advance/master/Named_Snaps/Pokemon%20-%20Emerald%20Version%20(USA%2C%20Europe).png",
+      "https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Game_Boy_Advance/master/Named_Boxarts/Pokemon%20-%20Emerald%20Version%20(USA%2C%20Europe).png"
     ]
   }
 ];
