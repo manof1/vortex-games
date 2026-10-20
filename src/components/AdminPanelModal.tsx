@@ -39,6 +39,7 @@ import { getFitGirlPresetCatalog, parseFitGirlRssXml, FITGIRL_SUPABASE_SYNC_SCRI
 import { GITHUB_ACTIONS_WORKFLOW_YAML, VERCEL_CRON_JSON } from '../services/autoSyncService';
 import { ZUKO_TAPOCHEK_PRESETS } from '../data/zukoTapochekPresets';
 import { createZukoTapochekGame, ZUKO_TAPOCHEK_SUPABASE_SCRIPT } from '../services/zukoTapochekService';
+import { ROMSPURE_DLPS_PRESETS, ROMSPURE_DLPS_SUPABASE_SCRIPT } from '../data/romspureDlpsPresets';
 import { SUPABASE_SCHEMA_SQL } from '../services/supabaseSchemaService';
 import { SUPABASE_URL, SUPABASE_ANON_KEY, testSupabaseConnection, upsertGameToSupabase } from '../services/supabaseClient';
 import { getGameCover, handleImageError } from '../utils/imageUtils';
@@ -64,7 +65,14 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
     triggerManualSync
   } = useGame();
 
-  const [activeTab, setActiveTab] = useState<'igdb' | 'fitgirl' | 'zukotapochek' | 'manage' | 'comments' | 'backup'>('igdb');
+  const [activeTab, setActiveTab] = useState<'igdb' | 'fitgirl' | 'zukotapochek' | 'romspuredlps' | 'manage' | 'comments' | 'backup'>('igdb');
+
+  // RomsPure & DLPSGame Tab states
+  const [romspurePlatformFilter, setRomspurePlatformFilter] = useState<'ALL' | 'PS1' | 'PS2' | 'PS3' | 'PS4' | 'PSP' | 'Switch'>('ALL');
+  const [romspureSearch, setRomspureSearch] = useState('');
+  const [romspureImportedCount, setRomspureImportedCount] = useState<number | null>(null);
+  const [copiedRomspureScript, setCopiedRomspureScript] = useState(false);
+  const [singleImportSuccess, setSingleImportSuccess] = useState<string | null>(null);
 
   // IGDB Search state
   const [igdbQuery, setIgdbQuery] = useState('');
@@ -317,6 +325,18 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
           >
             <Gamepad2 className="w-4 h-4 text-purple-400" />
             <span>TheZukoStore & Tapochek Hub</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('romspuredlps')}
+            className={`px-3.5 py-2 rounded-xl font-bold flex items-center gap-2 transition-all ${
+              activeTab === 'romspuredlps'
+                ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
+                : 'bg-slate-800 text-slate-300 hover:text-white'
+            }`}
+          >
+            <Disc className="w-4 h-4 text-emerald-400" />
+            <span>Consoles (RomsPure & DLPS)</span>
           </button>
 
           <button
@@ -1251,6 +1271,253 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
                 </pre>
               </div>
 
+            </div>
+          )}
+
+          {/* TAB: ROMSPURE & DLPSGAME CONSOLES HUB */}
+          {activeTab === 'romspuredlps' && (
+            <div className="space-y-6">
+              {/* Header Box */}
+              <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-950/80 via-slate-900 to-teal-950/70 border-2 border-emerald-500/40 space-y-3 shadow-xl">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase bg-emerald-500 text-slate-950">
+                        ROMSPURE.CC & DLPSGAME.COM
+                      </span>
+                      <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase bg-cyan-500 text-slate-950">
+                        PS1 • PS2 • PS3 • PS4 • PSP • SWITCH
+                      </span>
+                      <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase bg-amber-500 text-slate-950">
+                        ISO • PKG • ROM • NSP
+                      </span>
+                    </div>
+
+                    <h3 className="text-xl font-black text-white font-display">
+                      Preservação de Consoles: RomsPure & DLPSGame Hub
+                    </h3>
+                    <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
+                      Catálogo especializado de <strong>ROMs, ISOs e pacotes PKG</strong> para consoles clássicos e modernos.
+                      O <strong>RomsPure.cc</strong> é referência mundial em dumps limpos de ROMs/ISOs para emuladores e consoles físicos, 
+                      enquanto o <strong>DLPSGame.com</strong> é a principal fonte de pacotes PKG, ISOs e backports testados para a comunidade PlayStation.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col gap-2 shrink-0 w-full sm:w-auto">
+                    <button
+                      onClick={() => {
+                        let count = 0;
+                        ROMSPURE_DLPS_PRESETS.forEach(item => {
+                          const exists = games.some(g => g.id === item.id || g.title.toLowerCase() === item.title.toLowerCase());
+                          if (!exists) {
+                            addGame(item);
+                            count++;
+                          }
+                        });
+                        setRomspureImportedCount(count);
+                        setTimeout(() => setRomspureImportedCount(null), 5000);
+                      }}
+                      className="px-4 py-2.5 rounded-xl font-black text-xs bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                    >
+                      <Download className="w-4 h-4 text-slate-950" />
+                      <span>Importar Todos ({ROMSPURE_DLPS_PRESETS.length} Jogos)</span>
+                    </button>
+
+                    {romspureImportedCount !== null && (
+                      <div className="p-2 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-[11px] text-emerald-300 font-bold text-center animate-fadeIn">
+                        ✓ {romspureImportedCount} novos jogos importados com sucesso!
+                      </div>
+                    )}
+                    {singleImportSuccess && (
+                      <div className="p-2 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-[11px] text-emerald-300 font-bold text-center animate-fadeIn">
+                        ✓ {singleImportSuccess}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Architecture Highlights */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs">
+                  <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
+                    <span className="font-bold text-emerald-300 flex items-center gap-1.5 mb-1">
+                      <Disc className="w-3.5 h-3.5" /> 1. RomsPure.cc (ROMs & ISOs Limpas)
+                    </span>
+                    <p className="text-slate-400 text-[11px]">
+                      Imagens ISO de PlayStation 1, PS2, PSP e Nintendo Switch prontas para gravação, flash carts (OPL, DuckStation, PCSX2, PPSSPP, Ryujinx).
+                    </p>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
+                    <span className="font-bold text-teal-300 flex items-center gap-1.5 mb-1">
+                      <Gamepad2 className="w-3.5 h-3.5" /> 2. DLPSGame.com (PKGs & Console Scene)
+                    </span>
+                    <p className="text-slate-400 text-[11px]">
+                      Arquivos PKG oficiais e FPKG para PS4 e PS3 com identificadores Title ID (CUSA-XXXXX, BCUS-XXXXX) e compatibilidade com firmware HEN/CFW.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Filters and Search Bar */}
+              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                  <div className="relative flex-1">
+                    <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={romspureSearch}
+                      onChange={e => setRomspureSearch(e.target.value)}
+                      placeholder="Filtrar por nome do jogo, franquia ou Title ID (ex: Castlevania, God of War, SLUS-00067...)"
+                      className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-1.5 overflow-x-auto text-[11px] font-bold">
+                    {(['ALL', 'PS1', 'PS2', 'PS3', 'PS4', 'PSP', 'Switch'] as const).map(plat => (
+                      <button
+                        key={plat}
+                        type="button"
+                        onClick={() => setRomspurePlatformFilter(plat)}
+                        className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                          romspurePlatformFilter === plat
+                            ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
+                            : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                        }`}
+                      >
+                        {plat === 'ALL' ? 'Todos os Consoles' : plat}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Games Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {ROMSPURE_DLPS_PRESETS
+                  .filter(item => {
+                    const matchesPlat = romspurePlatformFilter === 'ALL' || item.consolePlatform === romspurePlatformFilter;
+                    const matchesSearch = !romspureSearch.trim() || 
+                      item.title.toLowerCase().includes(romspureSearch.toLowerCase()) ||
+                      item.slug.toLowerCase().includes(romspureSearch.toLowerCase()) ||
+                      item.downloadLinks.some(dl => dl.titleId?.toLowerCase().includes(romspureSearch.toLowerCase()));
+                    return matchesPlat && matchesSearch;
+                  })
+                  .map(item => {
+                    const isAlreadyImported = games.some(g => g.id === item.id || g.title.toLowerCase() === item.title.toLowerCase());
+                    const primaryLink = item.downloadLinks[0];
+
+                    return (
+                      <div
+                        key={item.id}
+                        className="p-4 rounded-2xl bg-slate-950 border border-slate-800/90 hover:border-emerald-500/40 transition-all space-y-3 shadow-md flex flex-col justify-between"
+                      >
+                        <div className="flex items-start gap-3.5">
+                          <img
+                            src={item.coverUrl}
+                            alt={item.title}
+                            referrerPolicy="no-referrer"
+                            onError={(e) => handleImageError(e, item)}
+                            className="w-16 h-22 object-cover rounded-xl border border-slate-800 shrink-0 shadow"
+                          />
+
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                {item.consolePlatform}
+                              </span>
+                              <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                                {item.romFormat}
+                              </span>
+                              <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-800 text-slate-300">
+                                {item.sourceWebsite}
+                              </span>
+                              {primaryLink?.titleId && (
+                                <span className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-slate-900 text-slate-400 border border-slate-800">
+                                  {primaryLink.titleId}
+                                </span>
+                              )}
+                            </div>
+
+                            <h4 className="font-bold text-sm text-white truncate font-display">
+                              {item.title}
+                            </h4>
+                            <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
+                              {item.shortDescription}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="pt-2 border-t border-slate-900 flex items-center justify-between gap-2 text-xs">
+                          <div className="text-[10px] text-slate-400">
+                            <span>Tamanho: <strong className="text-white font-mono">{primaryLink?.size || item.repackInfo.repackSize}</strong></span>
+                            <span className="mx-1.5">•</span>
+                            <span>{item.genres.slice(0, 2).join(', ')}</span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <a
+                              href={item.sourceUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white transition-all"
+                              title="Abrir no site oficial"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </a>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                addGame(item);
+                                setSingleImportSuccess(`"${item.title}" importado com sucesso!`);
+                                setTimeout(() => setSingleImportSuccess(null), 3000);
+                              }}
+                              className={`px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
+                                isAlreadyImported
+                                  ? 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                                  : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-sm shadow-emerald-500/20'
+                              }`}
+                            >
+                              {isAlreadyImported ? <Check className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+                              <span>{isAlreadyImported ? 'Reimportar' : 'Importar Jogo'}</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+
+              {/* Supabase SQL Script Box */}
+              <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-white flex items-center gap-2">
+                      <Database className="w-4 h-4 text-emerald-400" />
+                      Script SQL para Supabase (RomsPure & DLPSGame)
+                    </span>
+                    <p className="text-[11px] text-slate-400">
+                      Execute este script no SQL Editor do seu Supabase para persistir todos os jogos de consoles no banco na nuvem.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(ROMSPURE_DLPS_SUPABASE_SCRIPT);
+                      setCopiedRomspureScript(true);
+                      setTimeout(() => setCopiedRomspureScript(false), 2000);
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition-all shrink-0 cursor-pointer"
+                  >
+                    {copiedRomspureScript ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copiedRomspureScript ? 'Copiado!' : 'Copiar Script SQL'}</span>
+                  </button>
+                </div>
+
+                <pre className="p-4 rounded-xl bg-slate-900 text-emerald-300 font-mono text-[11px] overflow-x-auto max-h-56 border border-slate-800">
+                  {ROMSPURE_DLPS_SUPABASE_SCRIPT}
+                </pre>
+              </div>
             </div>
           )}
 

@@ -31,8 +31,9 @@ import {
   Zap,
   Package,
   Layers,
-  ArrowRight,
-  Bookmark
+  Bookmark,
+  Upload,
+  Clipboard
 } from 'lucide-react';
 import { PkgGame, getStoredPkgGames, savePkgGames, resetPkgGamesToDefault, updateStoredPkgGame, deleteStoredPkgGame } from '../data/pkgTestLabGames';
 import { 
@@ -265,31 +266,36 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
 
   // Buscar Capas da Seção Boxes do GameFAQs (gamefaqs.com/<console>/<jogo>/boxes)
   const handleFetchBoxesDirectly = async () => {
-    // Prioriza o título do jogo atual no formulário se estiver preenchido,
-    // garantindo que NUNCA puxe capas de outro jogo devido a URLs antigas ou desatualizadas no campo.
-    let target = formTitle.trim();
-    if (!target) {
-      target = formGamefaqsBoxesUrl.trim() || scraperInput.trim();
-    } else if (formGamefaqsBoxesUrl.trim()) {
-      // Se houver URL preenchida, só usa se corresponder ao título atual
-      const urlClean = extractCleanGameTitle(formGamefaqsBoxesUrl.trim());
-      const titleClean = extractCleanGameTitle(target);
-      if (normalizeTitleForComparison(urlClean.primaryClean) === normalizeTitleForComparison(titleClean.primaryClean)) {
-        target = formGamefaqsBoxesUrl.trim();
-      }
-    }
+    // Se o usuário digitou ou colou uma URL do GameFAQs no campo de Boxes, prioriza essa URL!
+    let target = formGamefaqsBoxesUrl.trim() || formTitle.trim() || scraperInput.trim();
 
     if (!target.trim()) {
       showNotification('Informe o título do jogo ou o link da seção Boxes no GameFAQs.');
       return;
     }
+
+    // Se for URL do GameFAQs, detectar plataforma automaticamente
+    let platform = formPlatform;
+    if (target.includes('gamefaqs.gamespot.com')) {
+      if (target.includes('/ps/')) { platform = 'PS1'; setFormPlatform('PS1'); }
+      else if (target.includes('/ps2/')) { platform = 'PS2'; setFormPlatform('PS2'); }
+      else if (target.includes('/ps3/')) { platform = 'PS3'; setFormPlatform('PS3'); }
+      else if (target.includes('/ps4/')) { platform = 'PS4'; setFormPlatform('PS4'); }
+      else if (target.includes('/ps5/')) { platform = 'PS5'; setFormPlatform('PS5'); }
+      else if (target.includes('/psp/')) { platform = 'PSP'; setFormPlatform('PSP'); }
+      else if (target.includes('/vita/')) { platform = 'PS Vita'; setFormPlatform('PS Vita'); }
+    }
+
     setIsFetchingBoxes(true);
     try {
-      const res = await fetchGameFaqsBoxes(target, formPlatform);
+      const res = await fetchGameFaqsBoxes(target, platform);
       if (res && res.covers && res.covers.length > 0) {
         setCoverCandidates(res.covers);
         setFormCoverUrl(res.covers[0]);
         setFormGamefaqsBoxesUrl(res.boxesUrl);
+        if (!formTitle.trim() || target.includes('gamefaqs.gamespot.com')) {
+          setFormTitle(res.queryUsed);
+        }
         showNotification(`📦 ${res.covers.length} Capas autênticas do GameFAQs Boxes puxadas para "${res.queryUsed}"!`);
       } else {
         showNotification('Nenhuma capa encontrada na seção Boxes do GameFAQs para este jogo.');
@@ -303,29 +309,35 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
 
   // Buscar Fotos da Seção Images do GameFAQs (gamefaqs.com/<console>/<jogo>/images)
   const handleFetchImagesDirectly = async () => {
-    // Prioriza o título do jogo atual no formulário se estiver preenchido,
-    // garantindo que NUNCA puxe screenshots de outro jogo
-    let target = formTitle.trim();
-    if (!target) {
-      target = formGamefaqsImagesUrl.trim() || scraperInput.trim();
-    } else if (formGamefaqsImagesUrl.trim()) {
-      const urlClean = extractCleanGameTitle(formGamefaqsImagesUrl.trim());
-      const titleClean = extractCleanGameTitle(target);
-      if (normalizeTitleForComparison(urlClean.primaryClean) === normalizeTitleForComparison(titleClean.primaryClean)) {
-        target = formGamefaqsImagesUrl.trim();
-      }
-    }
+    // Se o usuário digitou ou colou uma URL do GameFAQs no campo de Images, prioriza essa URL!
+    let target = formGamefaqsImagesUrl.trim() || formTitle.trim() || scraperInput.trim();
 
     if (!target.trim()) {
       showNotification('Informe o título do jogo ou o link da seção Images no GameFAQs.');
       return;
     }
+
+    // Se for URL do GameFAQs, detectar plataforma automaticamente
+    let platform = formPlatform;
+    if (target.includes('gamefaqs.gamespot.com')) {
+      if (target.includes('/ps/')) { platform = 'PS1'; setFormPlatform('PS1'); }
+      else if (target.includes('/ps2/')) { platform = 'PS2'; setFormPlatform('PS2'); }
+      else if (target.includes('/ps3/')) { platform = 'PS3'; setFormPlatform('PS3'); }
+      else if (target.includes('/ps4/')) { platform = 'PS4'; setFormPlatform('PS4'); }
+      else if (target.includes('/ps5/')) { platform = 'PS5'; setFormPlatform('PS5'); }
+      else if (target.includes('/psp/')) { platform = 'PSP'; setFormPlatform('PSP'); }
+      else if (target.includes('/vita/')) { platform = 'PS Vita'; setFormPlatform('PS Vita'); }
+    }
+
     setIsFetchingImages(true);
     try {
-      const res = await fetchGameFaqsImages(target, formPlatform);
+      const res = await fetchGameFaqsImages(target, platform);
       if (res && res.screenshots && res.screenshots.length > 0) {
         setScreenshotCandidates(res.screenshots);
         setFormGamefaqsImagesUrl(res.imagesUrl);
+        if (!formTitle.trim() || target.includes('gamefaqs.gamespot.com')) {
+          setFormTitle(res.queryUsed);
+        }
         // Preencher automaticamente os 4 slots com as fotos desse jogo
         if (res.screenshots.length > 0) {
           setFormScreenshots([
@@ -348,28 +360,36 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
 
   // Buscar simultaneamente Capas (Box Shots) e Screenshots de Gameplay da aba Media > Images do GameFAQs
   const handleFetchAllMediaForCurrentGame = async () => {
-    let target = formTitle.trim();
-    if (!target) {
-      target = formGamefaqsImagesUrl.trim() || formGamefaqsBoxesUrl.trim() || scraperInput.trim();
-    } else if (formGamefaqsImagesUrl.trim() || formGamefaqsBoxesUrl.trim()) {
-      const urlCandidate = formGamefaqsImagesUrl.trim() || formGamefaqsBoxesUrl.trim();
-      const urlClean = extractCleanGameTitle(urlCandidate);
-      const titleClean = extractCleanGameTitle(target);
-      if (normalizeTitleForComparison(urlClean.primaryClean) === normalizeTitleForComparison(titleClean.primaryClean)) {
-        target = urlCandidate;
-      }
-    }
+    let target = formGamefaqsImagesUrl.trim() || formGamefaqsBoxesUrl.trim() || formTitle.trim() || scraperInput.trim();
 
     if (!target) {
       showNotification('Informe o título do jogo ou o link da aba Media > Images do GameFAQs.');
       return;
     }
 
+    // Se for URL do GameFAQs, detectar plataforma automaticamente
+    let platform = formPlatform;
+    if (target.includes('gamefaqs.gamespot.com')) {
+      if (target.includes('/ps/')) { platform = 'PS1'; setFormPlatform('PS1'); }
+      else if (target.includes('/ps2/')) { platform = 'PS2'; setFormPlatform('PS2'); }
+      else if (target.includes('/ps3/')) { platform = 'PS3'; setFormPlatform('PS3'); }
+      else if (target.includes('/ps4/')) { platform = 'PS4'; setFormPlatform('PS4'); }
+      else if (target.includes('/ps5/')) { platform = 'PS5'; setFormPlatform('PS5'); }
+      else if (target.includes('/psp/')) { platform = 'PSP'; setFormPlatform('PSP'); }
+      else if (target.includes('/vita/')) { platform = 'PS Vita'; setFormPlatform('PS Vita'); }
+    }
+
     setIsFetchingBoxes(true);
     setIsFetchingImages(true);
     try {
-      const media = await fetchLiveGameMedia(target, formPlatform);
+      const media = await fetchLiveGameMedia(target, platform);
       if (media) {
+        if (!formTitle.trim() || target.includes('gamefaqs.gamespot.com')) {
+          setFormTitle(media.matchedTitle);
+        }
+        if (media.synopsis && !formDescription.trim()) {
+          setFormDescription(media.synopsis);
+        }
         if (media.coverOptions && media.coverOptions.length > 0) {
           setCoverCandidates(media.coverOptions);
           setFormCoverUrl(media.coverUrl || media.coverOptions[0]);
@@ -409,6 +429,71 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
       pool[3] || pool[0] || ''
     ]);
     showNotification(`✓ Os 4 slots de fotos foram preenchidos com fotos exclusivas de "${formTitle || 'deste jogo'}"!`);
+  };
+
+  // Handler para ler imagem diretamente da Área de Transferência (Clipboard API)
+  // Permite clicar em "Copiar imagem" no GameFAQs e colar sem nenhum bloqueio de CORS/Cloudflare!
+  const handlePasteImageFromClipboard = async (targetSlot?: number) => {
+    try {
+      if (!navigator.clipboard || !navigator.clipboard.read) {
+        showNotification('Para colar imagem, use o botão "Upload do Computador" ou pressione Ctrl+V no campo.');
+        return;
+      }
+      const items = await navigator.clipboard.read();
+      let found = false;
+      for (const item of items) {
+        const imageType = item.types.find(t => t.startsWith('image/'));
+        if (imageType) {
+          found = true;
+          const blob = await item.getType(imageType);
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const dataUrl = e.target?.result as string;
+            if (dataUrl) {
+              if (targetSlot !== undefined) {
+                handleUpdateScreenshotSlot(targetSlot, dataUrl);
+                showNotification(`✓ Foto colada com sucesso no Slot #${targetSlot + 1} (livre de bloqueio)!`);
+              } else {
+                setFormCoverUrl(dataUrl);
+                showNotification('✓ Capa colada com sucesso da área de transferência (livre de bloqueio)!');
+              }
+            }
+          };
+          reader.readAsDataURL(blob);
+          break;
+        }
+      }
+      if (!found) {
+        showNotification('Nenhuma imagem encontrada na área de transferência. No GameFAQs, clique com botão direito na foto e escolha "Copiar imagem".');
+      }
+    } catch {
+      showNotification('Permissão de área de transferência negada. Use o botão "Upload do Computador" ou cole o link.');
+    }
+  };
+
+  // Handler para Upload de arquivo de imagem do computador (100% local e sem bloqueio)
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, targetSlot?: number) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showNotification('Por favor, selecione um arquivo de imagem válido (PNG, JPG, WEBP).');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      if (dataUrl) {
+        if (targetSlot !== undefined) {
+          handleUpdateScreenshotSlot(targetSlot, dataUrl);
+          showNotification(`✓ Foto #${targetSlot + 1} carregada do computador!`);
+        } else {
+          setFormCoverUrl(dataUrl);
+          showNotification('✓ Capa carregada do computador com sucesso!');
+        }
+      }
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
   };
 
   // Importar Cheats Direto do GameFAQs (com limpeza de versões e subtítulos)
@@ -889,10 +974,10 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <span className="text-xs font-black text-cyan-400 uppercase tracking-wider flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-cyan-400" />
-                  Puxador Automático de Dados: Digite o Nome do Jogo
+                  Puxador Automático de Dados: Digite o Nome do Jogo ou Link
                 </span>
                 <span className="text-[11px] text-slate-400">
-                  Nome & Link PKG de <strong>TheZukoStore</strong> • Capa, 4 Fotos e Cheats de <strong>GameFAQs</strong> • Mods de <strong>NexusMods</strong>
+                  Nome & Link PKG/ISO de <strong>TheZukoStore</strong>, <strong>RomsPure</strong> & <strong>DLPSGame</strong> • Capa, 4 Fotos e Cheats de <strong>GameFAQs</strong> • Mods de <strong>NexusMods</strong>
                 </span>
               </div>
 
@@ -902,7 +987,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                     type="text"
                     value={scraperInput}
                     onChange={e => setScraperInput(e.target.value)}
-                    placeholder="Digite o nome do jogo (ex: Grim Dawn: Definitive Edition, Resident Evil 4, God of War...)"
+                    placeholder="Digite o nome do jogo ou link (ex: Castlevania SOTN, romspure.cc/..., dlpsgame.com/..., God of War...)"
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
                   />
                 </div>
@@ -913,13 +998,14 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                     onChange={e => setScraperPlatform(e.target.value)}
                     className="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-cyan-500 cursor-pointer font-medium"
                   >
-                    <option value="PS1">PlayStation</option>
-                    <option value="PS2">PlayStation 2</option>
-                    <option value="PS3">PlayStation 3</option>
-                    <option value="PS4">PlayStation 4</option>
-                    <option value="PS5">PlayStation 5</option>
+                    <option value="PS1">PlayStation (PS1)</option>
+                    <option value="PS2">PlayStation 2 (PS2)</option>
+                    <option value="PS3">PlayStation 3 (PS3)</option>
+                    <option value="PS4">PlayStation 4 (PS4)</option>
+                    <option value="PS5">PlayStation 5 (PS5)</option>
                     <option value="PSP">PlayStation Portable (PSP)</option>
                     <option value="PS Vita">PlayStation Vita</option>
+                    <option value="Switch">Nintendo Switch</option>
                   </select>
                 </div>
 
@@ -934,7 +1020,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                     ) : (
                       <Sparkles className="w-4 h-4 text-slate-950" />
                     )}
-                    <span>{isScraping ? 'Puxando do GameFAQs...' : 'Puxar Dados dos Sites'}</span>
+                    <span>{isScraping ? 'Puxando Dados...' : 'Puxar Dados dos Sites'}</span>
                   </button>
                 </div>
               </form>
@@ -948,10 +1034,10 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                   <div className="p-3.5 rounded-xl bg-slate-900 border border-cyan-500/40 text-xs space-y-2 animate-fadeIn shadow-inner">
                     <div className="flex items-center gap-2 text-cyan-300 font-bold flex-wrap">
                       <Sparkles className="w-4 h-4 text-cyan-400 shrink-0" />
-                      <span>Filtro de Nome Limpo Ativado (Versão Removida):</span>
+                      <span>Filtro de Nome Limpo Ativado:</span>
                       {detected.versionTag && (
                         <span className="text-[10px] px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 border border-rose-500/30 font-mono">
-                          Versão ignorada: {detected.versionTag}
+                          Tag removida: {detected.versionTag}
                         </span>
                       )}
                     </div>
@@ -990,25 +1076,25 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
 
               {/* Sugestões Rápidas */}
               <div className="flex items-center gap-1.5 flex-wrap pt-1 text-xs">
-                <span className="text-[10px] font-bold text-slate-500 uppercase mr-1">Sugestões de Teste:</span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase mr-1">Fontes & Testes Rápidos:</span>
                 {[
-                  'Grim Dawn: Definitive Edition (v1.3.1.1 + All DLCs + Bonus Content + MULTi13)',
-                  'Grim Dawn',
-                  'Silent Hill',
-                  'Castlevania SOTN',
-                  'God of War II',
-                  'The Last of Us'
+                  { label: 'Castlevania SOTN (PS1 ISO)', q: 'https://romspure.cc/roms/sony-playstation/castlevania-symphony-of-the-night/' },
+                  { label: 'God of War II (PS2 ISO)', q: 'https://dlpsgame.com/god-of-war-ii-ps2-iso/' },
+                  { label: 'The Last of Us (PS3 PKG)', q: 'https://dlpsgame.com/the-last-of-us-ps3-iso/' },
+                  { label: 'Zelda BOTW (Switch NSP)', q: 'https://romspure.cc/roms/nintendo-switch/the-legend-of-zelda-breath-of-the-wild/' },
+                  { label: 'Silent Hill (PS1 ISO)', q: 'https://romspure.cc/roms/sony-playstation/silent-hill/' },
+                  { label: 'Grim Dawn: Definitive Edition', q: 'Grim Dawn: Definitive Edition' }
                 ].map(sug => (
                   <button
-                    key={sug}
+                    key={sug.label}
                     type="button"
                     onClick={() => {
-                      setScraperInput(sug);
-                      handleAutoPull(undefined, sug);
+                      setScraperInput(sug.q);
+                      handleAutoPull(undefined, sug.q);
                     }}
                     className="px-2.5 py-0.5 rounded-lg bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-cyan-400 text-[11px] transition-all cursor-pointer border border-slate-700/60"
                   >
-                    {sug.length > 35 ? sug.slice(0, 32) + '...' : sug}
+                    {sug.label}
                   </button>
                 ))}
               </div>
@@ -1315,6 +1401,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                           <img
                             src={formCoverUrl}
                             alt="Capa do Jogo"
+                            referrerPolicy="no-referrer"
                             className="w-full h-full object-cover"
                             onError={(e) => {
                               (e.target as HTMLImageElement).src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="400" viewBox="0 0 300 400"><rect width="300" height="400" fill="%230f172a"/><text x="150" y="200" fill="%2338bdf8" font-size="14" font-family="sans-serif" text-anchor="middle">Capa PlayStation</text></svg>';
@@ -1376,6 +1463,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                                     <img 
                                       src={cand} 
                                       alt={label} 
+                                      referrerPolicy="no-referrer"
                                       className="w-full h-full object-cover group-hover:scale-105 transition-transform" 
                                       onError={(e) => {
                                         (e.target as HTMLImageElement).src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="400" viewBox="0 0 300 400"><rect width="300" height="400" fill="%230f172a"/><text x="150" y="200" fill="%2338bdf8" font-size="14" font-family="sans-serif" text-anchor="middle">Box Art</text></svg>';
@@ -1412,6 +1500,49 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                         )}
                       </div>
 
+                      {/* Callout Informativo sobre o Bloqueio do GameFAQs e Soluções Diretas */}
+                      <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs space-y-2">
+                        <div className="flex items-start gap-2">
+                          <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                          <div className="space-y-1">
+                            <span className="font-bold block text-amber-300">
+                              Sobre a visualização das imagens do GameFAQs:
+                            </span>
+                            <p className="text-[11px] text-amber-200/90 leading-relaxed">
+                              O site GameFAQs possui <strong>proteção ativa da Cloudflare e bloqueio de hotlink (CORS 403)</strong>, impedindo que outros sites exibam links diretos copiados da barra de endereços de imagens deles.
+                            </p>
+                            <p className="text-[11px] text-slate-300">
+                              💡 <strong>Maneiras 100% livres de bloqueio para adicionar:</strong>
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                          {/* Colar Imagem Copiada (Ctrl+V) */}
+                          <button
+                            type="button"
+                            onClick={() => handlePasteImageFromClipboard()}
+                            className="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-cyan-500/40 text-cyan-300 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm hover:border-cyan-400"
+                            title="No GameFAQs, clique com botão direito na foto > 'Copiar imagem' e depois clique aqui!"
+                          >
+                            <Clipboard className="w-3.5 h-3.5" />
+                            <span>1. Colar Imagem Copiada (Ctrl+V)</span>
+                          </button>
+
+                          {/* Upload do Computador */}
+                          <label className="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-indigo-500/40 text-indigo-300 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm hover:border-indigo-400">
+                            <Upload className="w-3.5 h-3.5" />
+                            <span>2. Upload do Computador</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => handleFileUpload(e)}
+                            />
+                          </label>
+                        </div>
+                      </div>
+
                       <div>
                         <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">
                           Ou Cole a URL Direta da Capa Desejada
@@ -1420,7 +1551,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                           type="url"
                           value={formCoverUrl}
                           onChange={e => setFormCoverUrl(e.target.value)}
-                          placeholder="https://gamefaqs.gamespot.com/.../boxart.jpg"
+                          placeholder="https://.../boxart.jpg"
                           className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono"
                         />
                       </div>
@@ -1491,6 +1622,14 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                     </div>
                   </div>
 
+                  {/* Dica para contornar bloqueio de hotlink do GameFAQs */}
+                  <div className="px-3 py-2 rounded-xl bg-slate-900 border border-cyan-500/20 text-[11px] text-slate-300 flex items-center justify-between flex-wrap gap-2">
+                    <span className="flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                      <span>💡 <strong>Dica GameFAQs:</strong> No GameFAQs, clique com botão direito em qualquer foto e escolha <em>"Copiar imagem"</em>. Depois clique em <strong>Colar</strong> no slot abaixo (100% livre de bloqueio!).</span>
+                    </span>
+                  </div>
+
                   {/* 4 Slots de Fotos da Postagem */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {[0, 1, 2, 3].map(slotIdx => {
@@ -1519,6 +1658,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                               <img
                                 src={photoUrl}
                                 alt={`Foto ${slotIdx + 1}`}
+                                referrerPolicy="no-referrer"
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                                 onError={(e) => {
                                   (e.target as HTMLImageElement).src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="225" viewBox="0 0 400 225"><rect width="400" height="225" fill="%230f172a"/><text x="200" y="115" fill="%2338bdf8" font-size="14" font-family="sans-serif" text-anchor="middle">Foto do Jogo</text></svg>';
@@ -1532,15 +1672,38 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                             <div className="aspect-video rounded-xl border border-dashed border-slate-800 bg-slate-950/70 flex flex-col items-center justify-center text-center p-2 text-slate-500">
                               <Tv className="w-5 h-5 text-slate-600 mb-1" />
                               <span className="text-[10px] font-bold text-slate-400">Slot #{slotIdx + 1} Vazio</span>
-                              <span className="text-[9px] text-slate-600">Selecione abaixo ou cole URL</span>
+                              <span className="text-[9px] text-slate-600">Cole imagem, envie ou cole URL</span>
                             </div>
                           )}
+
+                          {/* Botões Colar da Área de Transferência e Upload do Computador */}
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => handlePasteImageFromClipboard(slotIdx)}
+                              className="flex-1 px-2 py-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 border border-cyan-500/30 text-cyan-300 font-bold text-[10px] flex items-center justify-center gap-1 transition-all cursor-pointer"
+                              title="Colar imagem copiada do GameFAQs diretamente no slot"
+                            >
+                              <Clipboard className="w-3 h-3" />
+                              <span>Colar</span>
+                            </button>
+                            <label className="flex-1 px-2 py-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 border border-indigo-500/30 text-indigo-300 font-bold text-[10px] flex items-center justify-center gap-1 transition-all cursor-pointer">
+                              <Upload className="w-3 h-3" />
+                              <span>Upload</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => handleFileUpload(e, slotIdx)}
+                              />
+                            </label>
+                          </div>
 
                           <input
                             type="url"
                             value={photoUrl}
                             onChange={e => handleUpdateScreenshotSlot(slotIdx, e.target.value)}
-                            placeholder={`URL da Foto ${slotIdx + 1}`}
+                            placeholder={`Ou URL da Foto ${slotIdx + 1}`}
                             className="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-[11px] text-white focus:outline-none focus:border-cyan-500 font-mono"
                           />
                         </div>
@@ -1565,7 +1728,12 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                             key={idx}
                             className="shrink-0 group relative aspect-video w-36 rounded-xl overflow-hidden border border-slate-700 bg-slate-900 shadow-md"
                           >
-                            <img src={cand} alt={`Opção de Screenshot ${idx + 1}`} className="w-full h-full object-cover" />
+                            <img 
+                              src={cand} 
+                              alt={`Opção de Screenshot ${idx + 1}`} 
+                              referrerPolicy="no-referrer"
+                              className="w-full h-full object-cover" 
+                            />
                             <div className="absolute inset-0 bg-slate-950/80 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1.5 p-1">
                               <span className="text-[9px] font-bold text-cyan-300 uppercase">Definir como:</span>
                               <div className="flex gap-1">

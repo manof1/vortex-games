@@ -7,6 +7,7 @@ import {
   PLAYSTATION_MEDIA_CATALOG, 
   PlayStationMediaEntry 
 } from '../data/playstationGameMedia';
+import { ROMSPURE_DLPS_PRESETS } from '../data/romspureDlpsPresets';
 
 export interface ScrapedGameResult {
   title: string;
@@ -82,17 +83,28 @@ export function extractCleanGameTitle(rawInput: string): CleanedTitleInfo {
         parts.pop();
       }
 
-      // No GameFAQs, o slug é tipicamente '915010-god-of-war-ii' ou o último segmento restante
-      const gamefaqsSlug = parts.find(p => /^\d+-/.test(p)) || parts[parts.length - 1] || '';
-      if (gamefaqsSlug) {
-        working = gamefaqsSlug.replace(/^\d+-/, '');
+      // No RomsPure e DLPSGame, tratar slugs específicos
+      if (raw.includes('dlpsgame.com')) {
+        const last = parts[parts.length - 1] || '';
+        working = last
+          .replace(/-(ps[1-5]|psp|psvita|switch|wii|gamecube|pc)-(iso|pkg|rom|nsp|xci|cso|vpk)$/i, '')
+          .replace(/-(iso|pkg|rom|nsp|xci|cso)$/i, '');
+      } else if (raw.includes('romspure.cc')) {
+        // Ex: /roms/sony-playstation-2/god-of-war-2/ -> god-of-war-2
+        working = parts[parts.length - 1] || '';
       } else {
-        working = parts[parts.length - 1] || raw;
+        // No GameFAQs, o slug é tipicamente '915010-god-of-war-ii' ou o último segmento restante
+        const gamefaqsSlug = parts.find(p => /^\d+-/.test(p)) || parts[parts.length - 1] || '';
+        if (gamefaqsSlug) {
+          working = gamefaqsSlug.replace(/^\d+-/, '');
+        } else {
+          working = parts[parts.length - 1] || raw;
+        }
       }
 
       working = working
-        .replace(/^(ps[1-5]-pkg-|pc-pkg-|pkg-)/i, '')
-        .replace(/\.(pkg|iso|zip|rar|torrent|bin|cue|7z|exe)$/i, '')
+        .replace(/^(ps[1-5]-pkg-|pc-pkg-|pkg-|rom-|iso-)/i, '')
+        .replace(/\.(pkg|iso|zip|rar|torrent|bin|cue|7z|exe|nsp|xci|cso)$/i, '')
         .replace(/[-_]+/g, ' ')
         .trim();
 
@@ -1704,9 +1716,69 @@ export async function pullGameDataFromSources(
     else if (query.includes('/ps5/')) detectedPlatform = 'PS5';
     else if (query.includes('/psp/')) detectedPlatform = 'PSP';
     else if (query.includes('/vita/')) detectedPlatform = 'PS Vita';
+  } else if (query.includes('romspure.cc')) {
+    if (query.includes('sony-playstation-2')) detectedPlatform = 'PS2';
+    else if (query.includes('sony-playstation-3')) detectedPlatform = 'PS3';
+    else if (query.includes('sony-playstation-4')) detectedPlatform = 'PS4';
+    else if (query.includes('sony-playstation-portable')) detectedPlatform = 'PSP';
+    else if (query.includes('sony-playstation-vita')) detectedPlatform = 'PS Vita';
+    else if (query.includes('sony-playstation')) detectedPlatform = 'PS1';
+    else if (query.includes('nintendo-switch')) detectedPlatform = 'Switch';
+  } else if (query.includes('dlpsgame.com')) {
+    if (query.includes('-ps1-')) detectedPlatform = 'PS1';
+    else if (query.includes('-ps2-')) detectedPlatform = 'PS2';
+    else if (query.includes('-ps3-')) detectedPlatform = 'PS3';
+    else if (query.includes('-ps4-')) detectedPlatform = 'PS4';
+    else if (query.includes('-ps5-')) detectedPlatform = 'PS5';
+    else if (query.includes('-psp-')) detectedPlatform = 'PSP';
+    else if (query.includes('-psvita-')) detectedPlatform = 'PS Vita';
+    else if (query.includes('-switch-')) detectedPlatform = 'Switch';
   }
 
-  // 1. Verificar correspondência estrita no catálogo pré-indexado
+  // 1. Verificar catálogo de presets de consoles RomsPure & DLPSGame
+  const consolePreset = ROMSPURE_DLPS_PRESETS.find(p => {
+    const tMatch = normalizeTitleForComparison(p.title) === normalizeTitleForComparison(cleanInfo.primaryClean);
+    const sMatch = query.toLowerCase().includes(p.slug) || (p.sourceUrl && query.includes(p.sourceUrl));
+    return tMatch || sMatch;
+  });
+
+  if (consolePreset) {
+    const media = await fetchLiveGameMedia(consolePreset.title, consolePreset.consolePlatform);
+    const primaryLink = consolePreset.downloadLinks[0];
+    return {
+      title: consolePreset.title,
+      platform: consolePreset.consolePlatform,
+      titleId: primaryLink?.titleId || 'SLUS-00067',
+      fileUrl: primaryLink?.url || consolePreset.sourceUrl,
+      fileSize: primaryLink?.size || '1.5 GB',
+      format: consolePreset.romFormat,
+      firmware: primaryLink?.firmware || `${consolePreset.consolePlatform} Oficial / CFW`,
+      region: 'NTSC-U',
+      coverUrl: consolePreset.coverUrl || media.coverUrl,
+      coverOptions: [consolePreset.coverUrl, ...(media.coverOptions || [])],
+      bannerUrl: consolePreset.bannerUrl || media.screenshots[0] || consolePreset.coverUrl,
+      screenshots: consolePreset.screenshots || media.screenshots,
+      screenshotOptions: consolePreset.screenshots || media.screenshotOptions,
+      description: consolePreset.description,
+      developer: consolePreset.developer,
+      publisher: consolePreset.publisher,
+      releaseYear: consolePreset.releaseYear,
+      releaseDate: consolePreset.releaseDate || 'Original Console Release',
+      genres: consolePreset.genres,
+      gamefaqsRating: consolePreset.rating || 4.9,
+      gamefaqsDifficulty: 'Equilibrado',
+      ptBrSupport: true,
+      zukoStorePageUrl: consolePreset.sourceUrl,
+      gamefaqsPageUrl: `https://gamefaqs.gamespot.com/search?game=${encodeURIComponent(consolePreset.title)}`,
+      gamefaqsBoxesUrl: media.boxesUrl,
+      gamefaqsImagesUrl: media.imagesUrl,
+      tags: [consolePreset.consolePlatform, consolePreset.romFormat, consolePreset.sourceWebsite, 'GameFAQs', 'RomsPure', 'DLPSGame', cleanInfo.primaryClean],
+      cheats: [],
+      mods: []
+    };
+  }
+
+  // 2. Verificar correspondência estrita no catálogo pré-indexado PlayStation
   const catalogEntry = findMatchingGameInCatalog(query) || findMatchingGameInCatalog(cleanInfo.primaryClean);
   if (catalogEntry) {
     const exact = KNOWN_SCRAPED_GAMES.find(g => 

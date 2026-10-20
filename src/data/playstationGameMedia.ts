@@ -108,11 +108,11 @@ export const PLAYSTATION_MEDIA_CATALOG: PlayStationMediaEntry[] = [
     platform: 'PS1',
     titleId: 'SLUS-00067',
     gamefaqsSlug: '196885-castlevania-symphony-of-the-night',
-    coverUrl: 'https://upload.wikimedia.org/wikipedia/en/3/36/Castlevania_Symphony_of_the_Night_cover.png',
+    coverUrl: 'https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Boxarts/Castlevania%20-%20Symphony%20of%20the%20Night%20(USA).png',
     coverOptions: [
-      'https://upload.wikimedia.org/wikipedia/en/3/36/Castlevania_Symphony_of_the_Night_cover.png',
-      generateCustomGameCoverSvg('Castlevania: Symphony of the Night', 'PS1', 'Edição Europa (PAL)'),
-      generateCustomGameCoverSvg('Castlevania: Symphony of the Night', 'PS1', 'Nocturne in the Moonlight (JP)'),
+      'https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Boxarts/Castlevania%20-%20Symphony%20of%20the%20Night%20(USA).png',
+      'https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Boxarts/Castlevania%20-%20Symphony%20of%20the%20Night%20(Europe).png',
+      'https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Boxarts/Akumajou%20Dracula%20X%20-%20Gekka%20no%20Yasoukyoku%20(Japan).png',
       generateCustomGameCoverSvg('Castlevania: Symphony of the Night', 'PS1', 'Verso da Caixa / Back Box')
     ],
     coverLabels: [
@@ -121,15 +121,16 @@ export const PLAYSTATION_MEDIA_CATALOG: PlayStationMediaEntry[] = [
       'Capa Frontal Japão (NTSC-J)',
       'Verso da Caixa / Back Box'
     ],
-    bannerUrl: 'https://upload.wikimedia.org/wikipedia/en/3/36/Castlevania_Symphony_of_the_Night_cover.png',
+    bannerUrl: 'https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Snaps/Castlevania%20-%20Symphony%20of%20the%20Night%20(USA).png',
     screenshots: [
-      'https://upload.wikimedia.org/wikipedia/en/3/36/Castlevania_Symphony_of_the_Night_cover.png',
+      'https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Snaps/Castlevania%20-%20Symphony%20of%20the%20Night%20(USA).png',
       generateCustomGameCoverSvg('Castlevania: SOTN', 'PS1', 'Gameplay Castelo Invertido'),
-      'https://upload.wikimedia.org/wikipedia/en/3/36/Castlevania_Symphony_of_the_Night_cover.png',
+      'https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Boxarts/Castlevania%20-%20Symphony%20of%20the%20Night%20(Europe).png',
       generateCustomGameCoverSvg('Castlevania: SOTN', 'PS1', 'Boss Battle Drácula')
     ],
     screenshotOptions: [
-      'https://upload.wikimedia.org/wikipedia/en/3/36/Castlevania_Symphony_of_the_Night_cover.png'
+      'https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Snaps/Castlevania%20-%20Symphony%20of%20the%20Night%20(USA).png',
+      'https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Boxarts/Castlevania%20-%20Symphony%20of%20the%20Night%20(USA).png'
     ],
     developer: 'Konami Computer Entertainment Tokyo',
     publisher: 'Konami',

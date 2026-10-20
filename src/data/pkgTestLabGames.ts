@@ -46,13 +46,13 @@ export const INITIAL_PKG_GAMES: PkgGame[] = [
     format: 'PKG',
     firmware: 'PS3 CFW / HEN 4.90+ (PS1 Classics No-NpDrm)',
     region: 'NTSC-U',
-    coverUrl: 'https://upload.wikimedia.org/wikipedia/en/3/36/Castlevania_Symphony_of_the_Night_cover.png',
-    bannerUrl: 'https://upload.wikimedia.org/wikipedia/en/3/36/Castlevania_Symphony_of_the_Night_cover.png',
+    coverUrl: 'https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Boxarts/Castlevania%20-%20Symphony%20of%20the%20Night%20(USA).png',
+    bannerUrl: 'https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Snaps/Castlevania%20-%20Symphony%20of%20the%20Night%20(USA).png',
     screenshots: [
-      'https://upload.wikimedia.org/wikipedia/en/3/36/Castlevania_Symphony_of_the_Night_cover.png',
-      'https://upload.wikimedia.org/wikipedia/en/3/36/Castlevania_Symphony_of_the_Night_cover.png',
-      'https://upload.wikimedia.org/wikipedia/en/3/36/Castlevania_Symphony_of_the_Night_cover.png',
-      'https://upload.wikimedia.org/wikipedia/en/3/36/Castlevania_Symphony_of_the_Night_cover.png'
+      'https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Snaps/Castlevania%20-%20Symphony%20of%20the%20Night%20(USA).png',
+      'https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Boxarts/Castlevania%20-%20Symphony%20of%20the%20Night%20(USA).png',
+      'https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Boxarts/Castlevania%20-%20Symphony%20of%20the%20Night%20(Europe).png',
+      'https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Boxarts/Akumajou%20Dracula%20X%20-%20Gekka%20no%20Yasoukyoku%20(Japan).png'
     ],
     description: 'Considerado a obra-prima definitiva do gênero Metroidvania. Quatro anos após o desaparecimento de Richter Belmont, o Castelo de Drácula ressurge misteriosamente da névoa. Alucard, o filho meio-humano de Drácula, desperta de seu sono profundo para investigar a anomalia e confrontar o mal ancestral. Explore um mapa labiríntico e não-linear, colete centenas de armas, magias e relíquias, e descubra o segredo do Castelo Invertido.',
     releaseYear: 1997,

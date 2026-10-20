@@ -113,7 +113,8 @@ export function isUnreliableCover(rawUrl?: string | null): boolean {
   const trimmed = rawUrl.trim().toLowerCase();
   
   if (trimmed.length < 10) return true;
-  if (trimmed.startsWith('data:image/svg') || trimmed.startsWith('data:')) return true;
+  // Imagens locais válidas (Data URIs coladas via Clipboard ou SVGs de alta definição gerados) são 100% confiáveis
+  if (trimmed.startsWith('data:image/')) return false;
   // Specific Unsplash photo ID that showed "GAME OVER" text
   if (trimmed.includes('1542751371-adc38448a05e')) return true;
   if (trimmed.includes('game-over') || trimmed.includes('game_over') || trimmed.includes('gameover')) return true;

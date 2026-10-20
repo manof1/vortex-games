@@ -1,8 +1,8 @@
 export interface DownloadLink {
   id: string;
   type: 'magnet' | 'torrent' | 'direct' | 'mirror' | 'pkg' | 'pt_br_patch';
-  format?: 'torrent' | 'pkg' | 'direct' | 'magnet' | 'pt_br_patch';
-  platform?: 'PC' | 'PS4' | 'PS3' | 'PS5' | 'Emulador';
+  format?: 'torrent' | 'pkg' | 'direct' | 'magnet' | 'pt_br_patch' | 'iso' | 'rom' | 'nsp';
+  platform?: 'PC' | 'PS4' | 'PS3' | 'PS5' | 'PS1' | 'PS2' | 'PSP' | 'PS Vita' | 'Switch' | 'Nintendo Switch' | 'Emulador';
   label: string;
   url: string;
   seeders?: number;
