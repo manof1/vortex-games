@@ -41,6 +41,7 @@ import { ZUKO_TAPOCHEK_PRESETS } from '../data/zukoTapochekPresets';
 import { createZukoTapochekGame, ZUKO_TAPOCHEK_SUPABASE_SCRIPT } from '../services/zukoTapochekService';
 import { ROMSPURE_DLPS_PRESETS, ROMSPURE_DLPS_SUPABASE_SCRIPT } from '../data/romspureDlpsPresets';
 import { pullGameDataFromSources } from '../services/pkgScraperService';
+import { normalizeTitleForComparison } from '../data/playstationGameMedia';
 import { SUPABASE_SCHEMA_SQL } from '../services/supabaseSchemaService';
 import { SUPABASE_URL, SUPABASE_ANON_KEY, testSupabaseConnection, upsertGameToSupabase } from '../services/supabaseClient';
 import { getGameCover, handleImageError } from '../utils/imageUtils';
@@ -1545,29 +1546,91 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          addGame(consolePullResult);
-                          setSingleImportSuccess(`"${consolePullResult.title}" cadastrado com sucesso no banco de dados!`);
-                          setConsolePullResult(null);
-                          setCustomConsoleUrl('');
-                          setTimeout(() => setSingleImportSuccess(null), 4000);
-                        }}
-                        className="flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/20 cursor-pointer"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                        <span>Cadastrar no Banco</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setConsolePullResult(null)}
-                        className="px-3 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer"
-                      >
-                        Limpar
-                      </button>
-                    </div>
+                    {(() => {
+                      const matchingExistingGame = games.find(g => 
+                        g.id === consolePullResult.id || 
+                        normalizeTitleForComparison(g.title) === normalizeTitleForComparison(consolePullResult.title)
+                      );
+
+                      if (matchingExistingGame) {
+                        return (
+                          <div className="flex flex-col gap-2 w-full sm:w-auto">
+                            <div className="text-[11px] text-amber-300 font-bold bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 rounded-lg">
+                              ⚡ Este jogo já existe no catálogo: <strong>{matchingExistingGame.title}</strong>
+                            </div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const updatedLinks = [...matchingExistingGame.downloadLinks];
+                                  consolePullResult.downloadLinks.forEach(newLink => {
+                                    if (!updatedLinks.some(l => l.url === newLink.url || (l.titleId && l.titleId === newLink.titleId))) {
+                                      updatedLinks.push(newLink);
+                                    }
+                                  });
+                                  const mergedGame: Game = {
+                                    ...matchingExistingGame,
+                                    downloadLinks: updatedLinks,
+                                    categories: Array.from(new Set([...matchingExistingGame.categories, ...(consolePullResult.categories || [])])),
+                                    tags: Array.from(new Set([...(matchingExistingGame.tags || []), ...(consolePullResult.tags || [])]))
+                                  };
+                                  updateGame(mergedGame);
+                                  setSingleImportSuccess(`Versão ${consolePullResult.downloadLinks[0]?.platform || 'Console'} anexada ao perfil unificado de "${matchingExistingGame.title}"!`);
+                                  setConsolePullResult(null);
+                                  setCustomConsoleUrl('');
+                                  setTimeout(() => setSingleImportSuccess(null), 5000);
+                                }}
+                                className="px-3.5 py-2 rounded-xl text-xs font-black bg-cyan-500 hover:bg-cyan-400 text-slate-950 flex items-center justify-center gap-1.5 shadow-md shadow-cyan-500/20 cursor-pointer"
+                                title="Anexar arquivos ao jogo existente sem duplicar"
+                              >
+                                <Sparkles className="w-3.5 h-3.5" />
+                                <span>Anexar ao Perfil Canônico ({matchingExistingGame.title})</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  addGame(consolePullResult);
+                                  setSingleImportSuccess(`"${consolePullResult.title}" cadastrado como título separado!`);
+                                  setConsolePullResult(null);
+                                  setCustomConsoleUrl('');
+                                  setTimeout(() => setSingleImportSuccess(null), 4000);
+                                }}
+                                className="px-3 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer"
+                              >
+                                Criar Novo
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              addGame(consolePullResult);
+                              setSingleImportSuccess(`"${consolePullResult.title}" cadastrado com sucesso no banco de dados!`);
+                              setConsolePullResult(null);
+                              setCustomConsoleUrl('');
+                              setTimeout(() => setSingleImportSuccess(null), 4000);
+                            }}
+                            className="flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/20 cursor-pointer"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                            <span>Cadastrar no Banco</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setConsolePullResult(null)}
+                            className="px-3 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer"
+                          >
+                            Limpar
+                          </button>
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
               </div>

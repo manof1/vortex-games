@@ -28,7 +28,10 @@ import {
   Globe,
   Lock,
   Zap,
-  Package
+  Package,
+  Monitor,
+  Tv,
+  Info
 } from 'lucide-react';
 import { Game, LibraryStatus } from '../types';
 import { useGame } from '../context/GameContext';
@@ -67,9 +70,41 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
   } = useGame();
 
   const [activeTab, setActiveTab] = useState<'downloads' | 'specs' | 'screenshots' | 'instructions' | 'cheats' | 'mods'>('downloads');
+  const [selectedPlatformTab, setSelectedPlatformTab] = useState<'ALL' | 'PC' | 'PLAYSTATION' | 'NINTENDO' | 'EMULATORS'>('ALL');
   const [copiedMagnet, setCopiedMagnet] = useState(false);
   const [copiedCheatId, setCopiedCheatId] = useState<string | null>(null);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+
+  // Categorias de Plataformas detectadas no perfil canônico deste jogo
+  const platformCategories = React.useMemo(() => {
+    const result: { id: 'PC' | 'PLAYSTATION' | 'NINTENDO'; label: string; count: number; icon: any; color: string }[] = [];
+    
+    const pcLinks = game.downloadLinks.filter(l => 
+      l.platform === 'PC' || l.type === 'magnet' || l.type === 'torrent' || l.format === 'torrent'
+    );
+
+    const playstationLinks = game.downloadLinks.filter(l => 
+      ['PS1', 'PS2', 'PS3', 'PS4', 'PS5', 'PSP', 'PS Vita'].includes(l.platform || '') || 
+      l.type === 'pkg' || l.format === 'pkg' || (l.format === 'iso' && !l.platform?.includes('Wii') && !l.platform?.includes('GameCube'))
+    );
+
+    const nintendoLinks = game.downloadLinks.filter(l => 
+      ['Switch', 'Nintendo Switch', 'N64', 'GBA', 'GameCube', 'Wii'].includes(l.platform || '') || 
+      l.format === 'nsp' || l.format === 'xci' || (l.format === 'rom' && (l.platform === 'GBA' || l.platform === 'N64'))
+    );
+
+    if (pcLinks.length > 0 || game.hasPcTorrent) {
+      result.push({ id: 'PC', label: 'PC Windows', count: pcLinks.length || 1, icon: Monitor, color: 'text-cyan-400' });
+    }
+    if (playstationLinks.length > 0 || game.hasPkgFormat || game.categories?.some(c => c.toLowerCase().includes('playstation') || c.startsWith('PS'))) {
+      result.push({ id: 'PLAYSTATION', label: 'PlayStation', count: playstationLinks.length || 1, icon: Gamepad2, color: 'text-purple-400' });
+    }
+    if (nintendoLinks.length > 0 || game.categories?.some(c => c.toLowerCase().includes('nintendo') || ['Switch', 'N64', 'GBA'].includes(c))) {
+      result.push({ id: 'NINTENDO', label: 'Nintendo', count: nintendoLinks.length || 1, icon: Disc, color: 'text-emerald-400' });
+    }
+
+    return result;
+  }, [game]);
 
   const hasCheats = Array.isArray(game.cheats) && game.cheats.length > 0;
   const hasMods = (Array.isArray(game.mods) && game.mods.length > 0) || !!game.nexusModsUrl;
@@ -232,6 +267,27 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                 <span className="px-2.5 py-0.5 rounded-md text-xs font-bold uppercase tracking-wider bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
                   {game.repackInfo.repacker}
                 </span>
+
+                {/* Plataformas Disponíveis no Perfil Canônico deste Jogo */}
+                {platformCategories.map(cat => {
+                  const Icon = cat.icon;
+                  return (
+                    <span
+                      key={cat.id}
+                      className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase flex items-center gap-1 border shadow-sm ${
+                        cat.id === 'PC' 
+                          ? 'bg-cyan-500/25 text-cyan-200 border-cyan-400/50' 
+                          : cat.id === 'PLAYSTATION' 
+                          ? 'bg-purple-600/30 text-purple-200 border-purple-400/50' 
+                          : 'bg-emerald-600/30 text-emerald-200 border-emerald-400/50'
+                      }`}
+                      title={`Versão disponível para ${cat.label}`}
+                    >
+                      <Icon className="w-3 h-3" />
+                      <span>{cat.label}</span>
+                    </span>
+                  );
+                })}
 
                 {/* PT-BR Audio & Subtitle Badges */}
                 {game.hasPtBrAudio ? (
@@ -734,204 +790,438 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                 </div>
               )}
 
-              {/* DISTINCT DOWNLOAD BUTTONS SECTION */}
+              {/* DISTINCT DOWNLOAD BUTTONS SECTION & UNIVERSAL PLATFORM HUB */}
               <div className="space-y-4">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                  <Download className="w-4 h-4 text-cyan-500 dark:text-cyan-400" />
-                  Opções de Download por Formato & Plataforma
-                </h4>
+                {/* Platform Switcher Bar */}
+                <div className="p-4 rounded-2xl bg-slate-950/90 border border-slate-800 space-y-3">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div className="space-y-0.5">
+                      <span className="text-xs font-bold text-white flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-cyan-400" />
+                        Espaço Unificado de Plataformas & Formatos
+                      </span>
+                      <p className="text-[11px] text-slate-400">
+                        Selecione a plataforma onde deseja jogar para filtrar os arquivos (PC, PlayStation, Nintendo ou Emuladores)
+                      </p>
+                    </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  
-                  {/* BUTTON 1: TORRENT PC (MAGNET) */}
-                  {game.downloadLinks.filter(l => l.type === 'magnet' || l.type === 'torrent' || l.format === 'torrent').map(link => (
-                    <div 
-                      key={link.id}
-                      className="p-5 rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-cyan-950/30 border-2 border-cyan-500/50 space-y-3 flex flex-col justify-between shadow-xl"
-                    >
-                      <div className="space-y-1.5">
-                        <div className="flex items-center justify-between">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-cyan-500 text-slate-950">
-                            TORRENT PC (MAGNET)
-                          </span>
-                          <span className="text-xs text-emerald-400 font-bold flex items-center gap-1.5" title="Enxame de peers online distribuindo o jogo">
-                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                            <span>{((link.seeders) || 3200).toLocaleString('pt-BR')} Seeds Ativos</span>
-                          </span>
-                        </div>
+                    {/* Platform Selector Buttons */}
+                    <div className="flex items-center gap-1.5 overflow-x-auto text-xs font-bold w-full sm:w-auto">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPlatformTab('ALL')}
+                        className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+                          selectedPlatformTab === 'ALL'
+                            ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20 font-black'
+                            : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                        }`}
+                      >
+                        <Globe className="w-3.5 h-3.5" />
+                        <span>Todas ({game.downloadLinks.length})</span>
+                      </button>
 
-                        <h5 className="text-sm font-bold text-white font-display">
-                          {link.label}
-                        </h5>
-
-                        <div className="flex items-center gap-2 text-xs text-slate-400">
-                          <span>Tamanho: <strong className="text-white font-mono">{link.size}</strong></span>
-                          <span>•</span>
-                          <span>Formato: <strong className="text-cyan-300">.torrent / Magnet</strong></span>
-                          <span>•</span>
-                          <span className="text-emerald-400 font-medium">Download Imediato</span>
-                        </div>
-
-                        {/* Testador de Seeds em Tempo Real (>50 Seeds Excelente) */}
-                        <div className="pt-1">
-                          <TorrentHealthBadge 
-                            seeders={link.seeders || 78} 
-                            leechers={link.leechers || 24} 
-                            torrentName={link.label}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 pt-2">
-                        {isLoggedIn ? (
-                          <a
-                            href={sanitizeMagnetLink(link.url, `${game.title} [${game.repackInfo?.repacker || 'Vortex'}]`)}
-                            onClick={() => incrementDownload(game.id)}
-                            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-xs bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-md shadow-cyan-500/30 transition-all transform hover:scale-[1.02] cursor-pointer"
-                            title="Enviar link Magnet limpo direto para seu aplicativo de torrent (qBittorrent / uTorrent)"
-                          >
-                            <Download className="w-4 h-4 stroke-[2.5]" />
-                            <span>Baixar Torrent PC (Abrir no qBittorrent / uTorrent)</span>
-                          </a>
-                        ) : (
+                      {platformCategories.map(cat => {
+                        const Icon = cat.icon;
+                        const isSelected = selectedPlatformTab === cat.id;
+                        return (
                           <button
+                            key={cat.id}
                             type="button"
-                            onClick={() => setIsAuthModalOpen(true)}
-                            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-xs bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-md shadow-cyan-500/30 transition-all transform hover:scale-[1.02] cursor-pointer"
-                            title="Acesso exclusivo para membros. Clique para cadastrar grátis!"
+                            onClick={() => setSelectedPlatformTab(cat.id)}
+                            className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+                              isSelected
+                                ? cat.id === 'PC' 
+                                  ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20 font-black'
+                                  : cat.id === 'PLAYSTATION'
+                                  ? 'bg-purple-600 text-white shadow-md shadow-purple-600/20 font-black'
+                                  : 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20 font-black'
+                                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                            }`}
                           >
-                            <Lock className="w-4 h-4 stroke-[2.5]" />
-                            <span>🔒 Liberar Download Torrent (Exclusivo Membros)</span>
+                            <Icon className="w-3.5 h-3.5" />
+                            <span>{cat.label} ({cat.count})</span>
                           </button>
-                        )}
+                        );
+                      })}
 
-                        <button
-                          onClick={() => handleCopyMagnet(link.url)}
-                          className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all shrink-0 cursor-pointer flex items-center gap-1.5"
-                          title={isLoggedIn ? 'Copiar Link Magnet Limpo (Sem erros de sintaxe no Windows/qBittorrent)' : '🔒 Cadastre-se para copiar o link'}
-                        >
-                          {copiedMagnet ? (
-                            <>
-                              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                              <span className="text-[11px] font-bold text-emerald-400 hidden sm:inline">Copiado!</span>
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="w-4 h-4" />
-                              <span className="text-[11px] font-bold hidden sm:inline">Copiar Magnet</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
-
-                      {copiedMagnet && (
-                        <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2 animate-fadeIn">
-                          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
-                          <span>Link Magnet 100% verificado copiado! Cole no qBittorrent via <strong>Ctrl + U</strong> ou Arquivo &gt; Adicionar Link Torrent.</span>
-                        </div>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPlatformTab('EMULATORS')}
+                        className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+                          selectedPlatformTab === 'EMULATORS'
+                            ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20 font-black'
+                            : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                        }`}
+                      >
+                        <Zap className="w-3.5 h-3.5" />
+                        <span>Emuladores Recomendados</span>
+                      </button>
                     </div>
-                  ))}
-
-                  {/* BUTTON 2: ARQUIVO PKG (PLAYSTATION / THEZUKOSTORE) */}
-                  {game.downloadLinks.filter(l => l.type === 'pkg' || l.format === 'pkg').map(link => (
-                    <div 
-                      key={link.id}
-                      className="p-5 rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-purple-950/40 border-2 border-purple-500/50 space-y-3 flex flex-col justify-between shadow-xl"
-                    >
-                      <div className="space-y-1.5">
-                        <div className="flex items-center justify-between">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-purple-600 text-white flex items-center gap-1">
-                            <Gamepad2 className="w-3 h-3" /> ARQUIVO PKG CONSOLE
-                          </span>
-                          {link.titleId && (
-                            <span className="text-xs text-purple-300 font-mono font-bold">
-                              {link.titleId}
-                            </span>
-                          )}
-                        </div>
-
-                        <h5 className="text-sm font-bold text-white font-display">
-                          {link.label}
-                        </h5>
-
-                        <div className="flex items-center gap-2 text-xs text-slate-400">
-                          <span>Tamanho: <strong className="text-white font-mono">{link.size}</strong></span>
-                          <span>•</span>
-                          <span>Compatível: <strong className="text-purple-300">{link.firmware || 'PS4 5.05 - 11.00'}</strong></span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 pt-2">
-                        <button
-                          onClick={() => handleDownloadClick(link.url)}
-                          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-xs bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-md shadow-purple-600/30 transition-all transform hover:scale-[1.02]"
-                        >
-                          <FileArchive className="w-4 h-4 stroke-[2.5]" />
-                          <span>Baixar Arquivo PKG (Direto)</span>
-                        </button>
-
-                        <button
-                          onClick={() => handleCopyMagnet(link.url)}
-                          className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all shrink-0"
-                          title="Copiar Link do Arquivo"
-                        >
-                          {copiedMagnet ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* BUTTON 3: PACOTE / PATCH DUBLAGEM & TRADUÇÃO PT-BR */}
-                  {game.downloadLinks.filter(l => l.type === 'pt_br_patch' || l.format === 'pt_br_patch').map(link => (
-                    <div 
-                      key={link.id}
-                      className="p-5 rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950/40 border-2 border-emerald-500/50 space-y-3 flex flex-col justify-between shadow-xl md:col-span-2"
-                    >
-                      <div className="space-y-1.5">
-                        <div className="flex items-center justify-between">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500 text-slate-950 flex items-center gap-1">
-                            <span>🇧🇷</span> PACOTE DE DUBLAGEM & TRADUÇÃO PT-BR
-                          </span>
-                          <span className="text-xs text-emerald-400 font-bold flex items-center gap-1">
-                            <Volume2 className="w-3.5 h-3.5" />
-                            Áudio Oficial Brasileiro
-                          </span>
-                        </div>
-
-                        <h5 className="text-sm font-bold text-white font-display">
-                          {link.label}
-                        </h5>
-
-                        <div className="flex items-center gap-2 text-xs text-slate-400">
-                          <span>Tamanho do Pacote: <strong className="text-white font-mono">{link.size}</strong></span>
-                          <span>•</span>
-                          <span>Instalação: <strong className="text-emerald-300">1-Clique (Substituição ou PKG de Áudio)</strong></span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 pt-2">
-                        <button
-                          onClick={() => handleDownloadClick(link.url)}
-                          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-xs bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 shadow-md shadow-emerald-500/30 transition-all transform hover:scale-[1.02]"
-                        >
-                          <Volume2 className="w-4 h-4 stroke-[2.5]" />
-                          <span>Baixar Pacote de Dublagem PT-BR</span>
-                        </button>
-
-                        <button
-                          onClick={() => handleCopyMagnet(link.url)}
-                          className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all shrink-0"
-                          title="Copiar Link do Pacote"
-                        >
-                          {copiedMagnet ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-
+                  </div>
                 </div>
+
+                {/* EMULATOR GUIDE VIEW */}
+                {selectedPlatformTab === 'EMULATORS' && (
+                  <div className="p-6 rounded-2xl bg-slate-950 border border-slate-800 space-y-4 animate-fadeIn">
+                    <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="p-2 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                          <Zap className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-bold text-white">Guia de Emulação & Configuração em 4K/60FPS</h4>
+                          <p className="text-xs text-slate-400">Software recomendado para rodar este jogo com alta fidelidade gráfica no PC ou no celular</p>
+                        </div>
+                      </div>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-500 text-slate-950">
+                        Verificado
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
+                      <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+                        <span className="font-bold text-cyan-400 text-xs flex items-center gap-1.5">
+                          <Gamepad2 className="w-4 h-4" /> PlayStation 1 (DuckStation)
+                        </span>
+                        <p className="text-xs text-slate-200">
+                          Renderizador Vulkan, upscale para 4K nativo, correção de distorção de textura PGXP e savestates rápidos.
+                        </p>
+                        <span className="inline-block text-[10px] text-cyan-300 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800 font-mono">
+                          Formatos: ISO, BIN/CUE, CHD
+                        </span>
+                      </div>
+
+                      <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+                        <span className="font-bold text-purple-400 text-xs flex items-center gap-1.5">
+                          <Gamepad2 className="w-4 h-4" /> PlayStation 2 (PCSX2)
+                        </span>
+                        <p className="text-xs text-slate-200">
+                          Resoluções até 4K/60FPS, suporte total a controle de Xbox/PS5, filtros anti-aliasing e suporte a OPL em hardware real.
+                        </p>
+                        <span className="inline-block text-[10px] text-purple-300 bg-purple-950/60 px-2 py-0.5 rounded border border-purple-800 font-mono">
+                          Formatos: ISO DVD-9, CSO, CHD
+                        </span>
+                      </div>
+
+                      <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+                        <span className="font-bold text-rose-400 text-xs flex items-center gap-1.5">
+                          <Disc className="w-4 h-4" /> Nintendo Switch (Ryujinx)
+                        </span>
+                        <p className="text-xs text-slate-200">
+                          Emulador de alta compatibilidade para PC. Suporte a mods de 60 FPS, resolução escalável e shaders pré-compilados.
+                        </p>
+                        <span className="inline-block text-[10px] text-rose-300 bg-rose-950/60 px-2 py-0.5 rounded border border-rose-800 font-mono">
+                          Formatos: NSP, XCI
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* DOWNLOAD CARDS GRID */}
+                {selectedPlatformTab !== 'EMULATORS' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    {/* BUTTON 1: TORRENT PC (MAGNET) */}
+                    {(selectedPlatformTab === 'ALL' || selectedPlatformTab === 'PC') && 
+                      game.downloadLinks.filter(l => l.type === 'magnet' || l.type === 'torrent' || l.format === 'torrent').map(link => (
+                      <div 
+                        key={link.id}
+                        className="p-5 rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-cyan-950/30 border-2 border-cyan-500/50 space-y-3 flex flex-col justify-between shadow-xl"
+                      >
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-cyan-500 text-slate-950">
+                              TORRENT PC (MAGNET)
+                            </span>
+                            <span className="text-xs text-emerald-400 font-bold flex items-center gap-1.5" title="Enxame de peers online distribuindo o jogo">
+                              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                              <span>{((link.seeders) || 3200).toLocaleString('pt-BR')} Seeds Ativos</span>
+                            </span>
+                          </div>
+
+                          <h5 className="text-sm font-bold text-white font-display">
+                            {link.label}
+                          </h5>
+
+                          <div className="flex items-center gap-2 text-xs text-slate-400">
+                            <span>Tamanho: <strong className="text-white font-mono">{link.size}</strong></span>
+                            <span>•</span>
+                            <span>Formato: <strong className="text-cyan-300">.torrent / Magnet</strong></span>
+                            <span>•</span>
+                            <span className="text-emerald-400 font-medium">Download Imediato</span>
+                          </div>
+
+                          {/* Testador de Seeds em Tempo Real (>50 Seeds Excelente) */}
+                          <div className="pt-1">
+                            <TorrentHealthBadge 
+                              seeders={link.seeders || 78} 
+                              leechers={link.leechers || 24} 
+                              torrentName={link.label}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 pt-2">
+                          {isLoggedIn ? (
+                            <a
+                              href={sanitizeMagnetLink(link.url, `${game.title} [${game.repackInfo?.repacker || 'Vortex'}]`)}
+                              onClick={() => incrementDownload(game.id)}
+                              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-xs bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-md shadow-cyan-500/30 transition-all transform hover:scale-[1.02] cursor-pointer"
+                              title="Enviar link Magnet limpo direto para seu aplicativo de torrent (qBittorrent / uTorrent)"
+                            >
+                              <Download className="w-4 h-4 stroke-[2.5]" />
+                              <span>Baixar Torrent PC (Abrir no qBittorrent / uTorrent)</span>
+                            </a>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setIsAuthModalOpen(true)}
+                              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-xs bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-md shadow-cyan-500/30 transition-all transform hover:scale-[1.02] cursor-pointer"
+                              title="Acesso exclusivo para membros. Clique para cadastrar grátis!"
+                            >
+                              <Lock className="w-4 h-4 stroke-[2.5]" />
+                              <span>🔒 Liberar Download Torrent (Exclusivo Membros)</span>
+                            </button>
+                          )}
+
+                          <button
+                            onClick={() => handleCopyMagnet(link.url)}
+                            className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all shrink-0 cursor-pointer flex items-center gap-1.5"
+                            title={isLoggedIn ? 'Copiar Link Magnet Limpo (Sem erros de sintaxe no Windows/qBittorrent)' : '🔒 Cadastre-se para copiar o link'}
+                          >
+                            {copiedMagnet ? (
+                              <>
+                                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                                <span className="text-[11px] font-bold text-emerald-400 hidden sm:inline">Copiado!</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-4 h-4" />
+                                <span className="text-[11px] font-bold hidden sm:inline">Copiar Magnet</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+
+                        {copiedMagnet && (
+                          <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2 animate-fadeIn">
+                            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                            <span>Link Magnet 100% verificado copiado! Cole no qBittorrent via <strong>Ctrl + U</strong> ou Arquivo &gt; Adicionar Link Torrent.</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+
+                    {/* BUTTON 2: ARQUIVO PKG (PLAYSTATION / DLPSGAME / THEZUKOSTORE) */}
+                    {(selectedPlatformTab === 'ALL' || selectedPlatformTab === 'PLAYSTATION') &&
+                      game.downloadLinks.filter(l => l.type === 'pkg' || l.format === 'pkg').map(link => (
+                      <div 
+                        key={link.id}
+                        className="p-5 rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-purple-950/40 border-2 border-purple-500/50 space-y-3 flex flex-col justify-between shadow-xl"
+                      >
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-purple-600 text-white flex items-center gap-1">
+                              <Gamepad2 className="w-3 h-3" /> ARQUIVO PKG CONSOLE
+                            </span>
+                            {link.titleId && (
+                              <span className="text-xs text-purple-300 font-mono font-bold">
+                                {link.titleId}
+                              </span>
+                            )}
+                          </div>
+
+                          <h5 className="text-sm font-bold text-white font-display">
+                            {link.label}
+                          </h5>
+
+                          <div className="flex items-center gap-2 text-xs text-slate-400">
+                            <span>Tamanho: <strong className="text-white font-mono">{link.size}</strong></span>
+                            <span>•</span>
+                            <span>Compatível: <strong className="text-purple-300">{link.firmware || 'PS4 5.05 - 11.00'}</strong></span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 pt-2">
+                          <button
+                            onClick={() => handleDownloadClick(link.url)}
+                            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-xs bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-md shadow-purple-600/30 transition-all transform hover:scale-[1.02] cursor-pointer"
+                          >
+                            <FileArchive className="w-4 h-4 stroke-[2.5]" />
+                            <span>Baixar Arquivo PKG (Direto)</span>
+                          </button>
+
+                          <button
+                            onClick={() => handleCopyMagnet(link.url)}
+                            className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all shrink-0 cursor-pointer"
+                            title="Copiar Link do Arquivo"
+                          >
+                            {copiedMagnet ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* BUTTON 3: CONSOLE ISO & CLEAN ROMs (ROMSPURE & PRESERVAÇÃO) */}
+                    {(selectedPlatformTab === 'ALL' || selectedPlatformTab === 'PLAYSTATION' || selectedPlatformTab === 'NINTENDO') &&
+                      game.downloadLinks
+                        .filter(l => {
+                          const isIsoOrRom = l.format === 'iso' || l.format === 'rom' || l.format === 'bin/cue';
+                          const isNotPkgOrTorrent = l.type !== 'pkg' && l.type !== 'magnet' && l.type !== 'torrent';
+                          return isIsoOrRom && isNotPkgOrTorrent;
+                        })
+                        .map(link => (
+                        <div 
+                          key={link.id}
+                          className="p-5 rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-teal-950/40 border-2 border-emerald-500/50 space-y-3 flex flex-col justify-between shadow-xl"
+                        >
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500 text-slate-950 flex items-center gap-1">
+                                <Disc className="w-3 h-3" /> ROM / ISO DUMP LIMPO
+                              </span>
+                              <span className="text-xs text-emerald-400 font-bold font-mono">
+                                {link.platform || 'CONSOLE'} {link.titleId ? `• ${link.titleId}` : ''}
+                              </span>
+                            </div>
+
+                            <h5 className="text-sm font-bold text-white font-display">
+                              {link.label}
+                            </h5>
+
+                            <div className="flex items-center gap-2 text-xs text-slate-400 flex-wrap">
+                              <span>Tamanho: <strong className="text-white font-mono">{link.size}</strong></span>
+                              <span>•</span>
+                              <span>Formato: <strong className="text-emerald-300 font-mono">{(link.format || 'ISO').toUpperCase()}</strong></span>
+                              <span>•</span>
+                              <span>Emulador: <strong className="text-cyan-300">{link.firmware || 'RetroArch / Emulador'}</strong></span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 pt-2">
+                            <button
+                              onClick={() => handleDownloadClick(link.url)}
+                              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-xs bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 shadow-md shadow-emerald-500/30 transition-all transform hover:scale-[1.02] cursor-pointer"
+                            >
+                              <Download className="w-4 h-4 stroke-[2.5]" />
+                              <span>Baixar ROM / ISO Direto</span>
+                            </button>
+
+                            <button
+                              onClick={() => handleCopyMagnet(link.url)}
+                              className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all shrink-0 cursor-pointer"
+                              title="Copiar Link de Download"
+                            >
+                              {copiedMagnet ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+
+                    {/* BUTTON 4: NINTENDO SWITCH (NSP / XCI) */}
+                    {(selectedPlatformTab === 'ALL' || selectedPlatformTab === 'NINTENDO') &&
+                      game.downloadLinks
+                        .filter(l => l.format === 'nsp' || l.format === 'xci' || l.platform === 'Switch' || l.platform === 'Nintendo Switch')
+                        .map(link => (
+                        <div 
+                          key={link.id}
+                          className="p-5 rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-rose-950/40 border-2 border-rose-500/50 space-y-3 flex flex-col justify-between shadow-xl"
+                        >
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-rose-600 text-white flex items-center gap-1">
+                                <Disc className="w-3 h-3" /> NINTENDO SWITCH DUMP
+                              </span>
+                              <span className="text-xs text-rose-300 font-mono font-bold">
+                                {link.format?.toUpperCase() || 'NSP'}
+                              </span>
+                            </div>
+
+                            <h5 className="text-sm font-bold text-white font-display">
+                              {link.label}
+                            </h5>
+
+                            <div className="flex items-center gap-2 text-xs text-slate-400">
+                              <span>Tamanho: <strong className="text-white font-mono">{link.size}</strong></span>
+                              <span>•</span>
+                              <span>Compatível: <strong className="text-rose-300">{link.firmware || 'Ryujinx / Yuzu / Switch CFW'}</strong></span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 pt-2">
+                            <button
+                              onClick={() => handleDownloadClick(link.url)}
+                              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-xs bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white shadow-md shadow-rose-600/30 transition-all transform hover:scale-[1.02] cursor-pointer"
+                            >
+                              <Download className="w-4 h-4 stroke-[2.5]" />
+                              <span>Baixar Pacote Switch (NSP / XCI)</span>
+                            </button>
+
+                            <button
+                              onClick={() => handleCopyMagnet(link.url)}
+                              className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all shrink-0 cursor-pointer"
+                              title="Copiar Link de Download"
+                            >
+                              {copiedMagnet ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+
+                    {/* BUTTON 5: PACOTE / PATCH DUBLAGEM & TRADUÇÃO PT-BR */}
+                    {(selectedPlatformTab === 'ALL' || selectedPlatformTab === 'PC') &&
+                      game.downloadLinks.filter(l => l.type === 'pt_br_patch' || l.format === 'pt_br_patch').map(link => (
+                      <div 
+                        key={link.id}
+                        className="p-5 rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950/40 border-2 border-emerald-500/50 space-y-3 flex flex-col justify-between shadow-xl md:col-span-2"
+                      >
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500 text-slate-950 flex items-center gap-1">
+                              <span>🇧🇷</span> PACOTE DE DUBLAGEM & TRADUÇÃO PT-BR
+                            </span>
+                            <span className="text-xs text-emerald-400 font-bold flex items-center gap-1">
+                              <Volume2 className="w-3.5 h-3.5" />
+                              Áudio Oficial Brasileiro
+                            </span>
+                          </div>
+
+                          <h5 className="text-sm font-bold text-white font-display">
+                            {link.label}
+                          </h5>
+
+                          <div className="flex items-center gap-2 text-xs text-slate-400">
+                            <span>Tamanho do Pacote: <strong className="text-white font-mono">{link.size}</strong></span>
+                            <span>•</span>
+                            <span>Instalação: <strong className="text-emerald-300">1-Clique (Substituição ou PKG de Áudio)</strong></span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 pt-2">
+                          <button
+                            onClick={() => handleDownloadClick(link.url)}
+                            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-xs bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 shadow-md shadow-emerald-500/30 transition-all transform hover:scale-[1.02] cursor-pointer"
+                          >
+                            <Volume2 className="w-4 h-4 stroke-[2.5]" />
+                            <span>Baixar Pacote de Dublagem PT-BR</span>
+                          </button>
+
+                          <button
+                            onClick={() => handleCopyMagnet(link.url)}
+                            className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all shrink-0 cursor-pointer"
+                            title="Copiar Link do Pacote"
+                          >
+                            {copiedMagnet ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+
+                  </div>
+                )}
               </div>
+
 
               {/* Other Links & Mirrors (Servidores Alternativos com Links Diretos nos Botões) */}
               {game.downloadLinks.filter(l => l.type === 'direct' || l.type === 'mirror').length > 0 && (
