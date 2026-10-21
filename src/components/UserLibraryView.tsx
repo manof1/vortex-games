@@ -10,7 +10,8 @@ import {
   FileEdit, 
   Check, 
   Gamepad2,
-  HardDrive
+  HardDrive,
+  ArrowRight
 } from 'lucide-react';
 import { LibraryStatus } from '../types';
 import { useGame } from '../context/GameContext';
@@ -265,13 +266,16 @@ export const UserLibraryView: React.FC<UserLibraryViewProps> = ({ onClose }) => 
                         ))}
                       </div>
 
-                      {/* Download Magnet Button */}
+                      {/* Ver Jogo Button */}
                       <button
-                        onClick={() => handleDownload(game)}
-                        className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-cyan-500/10 hover:bg-cyan-500 text-cyan-400 hover:text-slate-950 border border-cyan-500/30 transition-all"
+                        onClick={() => {
+                          setActiveGame(game);
+                          onClose();
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-slate-800 hover:bg-cyan-500 text-slate-300 hover:text-slate-950 border border-slate-700 hover:border-cyan-400 transition-all cursor-pointer"
                       >
-                        <Download className="w-3.5 h-3.5" />
-                        <span>Baixar Magnet</span>
+                        <span>Ver Jogo</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>

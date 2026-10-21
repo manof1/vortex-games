@@ -805,23 +805,15 @@ export const UserMenuModal: React.FC<UserMenuModalProps> = ({ onClose }) => {
 
                       <div className="flex items-center gap-2 self-stretch sm:self-auto justify-end">
                         <button
-                          onClick={() => handleQuickDownload(game)}
-                          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-cyan-500/10 hover:bg-cyan-500 text-cyan-400 hover:text-slate-950 border border-cyan-500/30 transition-all cursor-pointer"
-                          title="Baixar link torrent limpo"
-                        >
-                          <Download className="w-3.5 h-3.5" />
-                          <span>Baixar</span>
-                        </button>
-
-                        <button
                           onClick={() => {
                             setActiveGame(game);
                             onClose();
                           }}
-                          className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white cursor-pointer"
+                          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-cyan-500 text-slate-300 hover:text-slate-950 border border-slate-700 hover:border-cyan-400 transition-all cursor-pointer"
                           title="Ver Ficha Completa do Jogo"
                         >
-                          <ExternalLink className="w-4 h-4" />
+                          <span>Ver Ficha do Jogo</span>
+                          <ExternalLink className="w-3.5 h-3.5" />
                         </button>
 
                         <button

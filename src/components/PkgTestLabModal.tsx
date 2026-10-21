@@ -3035,21 +3035,13 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                               </button>
                             </div>
 
-                            <a
-                              href={game.fileUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="w-full py-2 px-3 rounded-xl bg-cyan-500/20 hover:bg-cyan-500 text-cyan-300 hover:text-slate-950 text-xs font-black transition-all cursor-pointer flex items-center justify-between gap-1.5 border border-cyan-500/30"
-                              title={`Baixar arquivo .${game.format || 'PKG'} no TheZukoStore`}
+                            <button
+                              onClick={() => setSelectedGame(game)}
+                              className="w-full py-2 px-3 rounded-xl bg-slate-800 hover:bg-cyan-500 text-slate-300 hover:text-slate-950 text-xs font-bold transition-all cursor-pointer flex items-center justify-between gap-1.5 border border-slate-700 hover:border-cyan-400"
                             >
-                              <div className="flex items-center gap-1.5">
-                                <Download className="w-3.5 h-3.5" />
-                                <span>Baixar PKG</span>
-                              </div>
-                              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-950/80 text-emerald-300 border border-emerald-500/30">
-                                .{game.format || 'PKG'}
-                              </span>
-                            </a>
+                              <span>Ver Ficha & Downloads</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </button>
                           </div>
 
                         </div>

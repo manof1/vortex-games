@@ -1,21 +1,19 @@
 import React from 'react';
 import { 
-  Download, 
   Star, 
   HardDrive, 
   Bookmark, 
   Check, 
   Sparkles,
-  Lock,
   Zap,
   Package,
   Trophy,
-  Medal
+  Medal,
+  ArrowRight
 } from 'lucide-react';
 import { Game } from '../types';
 import { useGame } from '../context/GameContext';
 import { useLanguage } from '../context/LanguageContext';
-import { sanitizeMagnetLink } from '../utils/magnetUtils';
 import { getCriticScores, getMetacriticBadgeColor, getOpenCriticTierColor } from '../utils/ratingUtils';
 import { getGameCover, handleImageError } from '../utils/imageUtils';
 
@@ -29,10 +27,7 @@ export const GameCard: React.FC<GameCardProps> = ({ game, rank }) => {
     setActiveGame, 
     isInLibrary, 
     addToLibrary, 
-    removeFromLibrary, 
-    incrementDownload, 
-    isLoggedIn, 
-    setIsAuthModalOpen 
+    removeFromLibrary
   } = useGame();
   const { t } = useLanguage();
   
@@ -53,43 +48,6 @@ export const GameCard: React.FC<GameCardProps> = ({ game, rank }) => {
     }
   };
 
-  const handleTorrentDownload = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!isLoggedIn) {
-      setIsAuthModalOpen(true);
-      return;
-    }
-    const torrentLink = game.downloadLinks.find(l => l.type === 'magnet' || l.type === 'torrent' || l.format === 'torrent');
-    if (torrentLink) {
-      incrementDownload(game.id);
-      const cleanUrl = torrentLink.url.startsWith('magnet:')
-        ? sanitizeMagnetLink(torrentLink.url, `${game.title} [${game.repackInfo?.repacker || 'Vortex'}]`)
-        : torrentLink.url;
-      window.location.href = cleanUrl;
-    } else {
-      setActiveGame(game);
-    }
-  };
-
-  const handlePkgDownload = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!isLoggedIn) {
-      setIsAuthModalOpen(true);
-      return;
-    }
-    const pkgLink = game.downloadLinks.find(l => l.type === 'pkg' || l.format === 'pkg');
-    if (pkgLink) {
-      incrementDownload(game.id);
-      window.open(pkgLink.url, '_blank');
-    } else {
-      setActiveGame(game);
-    }
-  };
-
-  // Check available formats
-  const torrentLink = game.downloadLinks?.find(l => l.type === 'magnet' || l.type === 'torrent' || l.format === 'torrent');
-  const hasTorrent = game.hasPcTorrent || !!torrentLink;
-  const hasPkg = game.hasPkgFormat || game.downloadLinks.some(l => l.type === 'pkg' || l.format === 'pkg');
 
   // Badge color based on repacker
   const getRepackerColor = (repacker: string) => {
@@ -297,53 +255,23 @@ export const GameCard: React.FC<GameCardProps> = ({ game, rank }) => {
           </div>
         </div>
 
-        {/* Card footer: Seeds Ativos & Download Buttons */}
+        {/* Card footer: Plataforma & Botão Ver Jogo */}
         <div className="pt-2 border-t border-slate-200 dark:border-slate-800/80 flex items-center justify-between gap-1.5 flex-wrap">
-          {/* Seeds Ativos Status - Selo de Saúde Excelente */}
+          {/* Plataforma / Console Indicator */}
           <div 
-            className="flex items-center gap-1.5 text-[10px] text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20"
-            title="Saúde do Torrent: Excelente (+50 seeds)"
+            className="flex items-center gap-1 text-[10px] text-slate-700 dark:text-slate-300 font-semibold bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700/60"
+            title={game.platform ? `Disponível para: ${game.platform}` : 'Disponível para PC e Consoles'}
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span>
-              {t('health.excellent', 'Saúde: Excelente')} ({((torrentLink?.seeders) || 78).toLocaleString('pt-BR')} seeds)
-            </span>
+            <span>{game.platform || (game.hasPkgFormat ? 'PC & Console' : 'PC Windows')}</span>
           </div>
 
           <div className="flex items-center gap-1.5 ml-auto">
-            {/* Torrent Button - Direct App Launch */}
-            {hasTorrent && (
-              <button
-                onClick={handleTorrentDownload}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-cyan-50 dark:bg-cyan-500/10 hover:bg-cyan-500 text-cyan-700 dark:text-cyan-400 hover:text-slate-950 border border-cyan-200 dark:border-cyan-500/30 transition-all duration-200 cursor-pointer"
-                title={isLoggedIn ? 'Abrir Magnet direto no seu qBittorrent / uTorrent' : '🔒 Exclusivo para membros cadastrados'}
-              >
-                {isLoggedIn ? <Download className="w-3 h-3" /> : <Lock className="w-3 h-3 text-cyan-600 dark:text-cyan-400" />}
-                <span>Torrent</span>
-              </button>
-            )}
-
-            {/* PKG Button */}
-            {hasPkg && (
-              <button
-                onClick={handlePkgDownload}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-purple-50 dark:bg-purple-500/15 hover:bg-purple-600 text-purple-700 dark:text-purple-300 hover:text-white border border-purple-200 dark:border-purple-500/30 transition-all duration-200 cursor-pointer"
-                title={isLoggedIn ? 'Download Arquivo PKG Console' : '🔒 Exclusivo para membros cadastrados'}
-              >
-                {isLoggedIn ? null : <Lock className="w-2.5 h-2.5 text-purple-600 dark:text-purple-400" />}
-                <span>PKG</span>
-              </button>
-            )}
-
-            {!hasTorrent && !hasPkg && (
-              <button
-                onClick={(e) => { e.stopPropagation(); setActiveGame(game); }}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-cyan-500 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer"
-              >
-                <Download className="w-3 h-3" />
-                <span>{t('card.download', 'Baixar')}</span>
-              </button>
-            )}
+            <span 
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800/90 group-hover:bg-cyan-500 dark:group-hover:bg-cyan-500 text-slate-700 dark:text-slate-200 group-hover:text-slate-950 dark:group-hover:text-slate-950 border border-slate-200 dark:border-slate-700/80 group-hover:border-cyan-400 transition-all duration-200 shadow-sm"
+            >
+              <span>{t('card.viewGame', 'Ver Jogo')}</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+            </span>
           </div>
         </div>
 

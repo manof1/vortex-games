@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  Download, 
   Star, 
   HardDrive, 
   ShieldCheck, 
@@ -10,18 +9,16 @@ import {
   ChevronLeft,
   ChevronRight,
   Bot,
-  Lock,
   ExternalLink
 } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Game } from '../types';
-import { sanitizeMagnetLink } from '../utils/magnetUtils';
 import { getCriticScores, getMetacriticBadgeColor, getOpenCriticTierColor } from '../utils/ratingUtils';
 import { getGameCover, getGameBanner, handleImageError } from '../utils/imageUtils';
 
 export const HeroBanner: React.FC = () => {
-  const { games, setActiveGame, incrementDownload, isLoggedIn, setIsAuthModalOpen } = useGame();
+  const { games, setActiveGame } = useGame();
   const { t } = useLanguage();
 
   // Pick top 6 spotlight releases (prioritizing new automated releases and trending games)
@@ -77,24 +74,6 @@ export const HeroBanner: React.FC = () => {
   const handleNext = (e: React.MouseEvent) => {
     e.stopPropagation();
     setCurrentIndex(prev => (prev + 1) % spotlightGames.length);
-  };
-
-  const handleQuickMagnet = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!isLoggedIn) {
-      setIsAuthModalOpen(true);
-      return;
-    }
-    const magnetLink = current.downloadLinks.find(l => l.type === 'magnet' || l.type === 'torrent');
-    if (magnetLink) {
-      incrementDownload(current.id);
-      const cleanUrl = magnetLink.url.startsWith('magnet:')
-        ? sanitizeMagnetLink(magnetLink.url, `${current.title} [${current.repackInfo?.repacker || 'Vortex'}]`)
-        : magnetLink.url;
-      window.location.href = cleanUrl;
-    } else {
-      setActiveGame(current);
-    }
   };
 
   const scrollToCatalog = (e: React.MouseEvent) => {
@@ -161,13 +140,6 @@ export const HeroBanner: React.FC = () => {
                 <span>🇧🇷</span> {t('hero.subtitled', 'Legendado PT-BR')}
               </span>
             ) : null}
-
-            {/* PKG badge */}
-            {current.hasPkgFormat && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-purple-600 text-white border border-purple-400 shadow-sm">
-                {t('hero.pkgFormat', 'Formato PKG')}
-              </span>
-            )}
 
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
               <ShieldCheck className="w-3.5 h-3.5" /> {current.repackInfo.crackStatus || t('hero.cracked', 'Crackeado')}
@@ -255,37 +227,24 @@ export const HeroBanner: React.FC = () => {
               )}
             </div>
 
-            {/* Seeds */}
-            <div className="flex items-center gap-1.5 bg-slate-950/70 px-2.5 py-1 rounded-lg border border-slate-800 text-emerald-400 font-semibold">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Seeds: <strong className="text-emerald-400">{(current.downloadLinks[0]?.seeders || 3500).toLocaleString('pt-BR')} {t('hero.seedsActive', 'Ativos')}</strong></span>
+            {/* Disponibilidade */}
+            <div className="flex items-center gap-1.5 bg-slate-950/70 px-2.5 py-1 rounded-lg border border-slate-800 text-cyan-400 font-semibold">
+              <Sparkles className="w-3 h-3 text-cyan-400" />
+              <span>{current.platform || 'PC & Consoles'}</span>
             </div>
           </div>
 
           {/* Action buttons */}
           <div className="flex flex-wrap items-center gap-3 pt-2">
             <button
-              onClick={handleQuickMagnet}
-              className="flex items-center gap-2 px-5 sm:px-6 py-3 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 transform hover:-translate-y-0.5 transition-all cursor-pointer"
-              title={isLoggedIn ? 'Baixar Torrent' : '🔒 Exclusivo para membros cadastrados'}
-            >
-              {isLoggedIn ? (
-                <Download className="w-4 h-4 sm:w-5 sm:h-5 text-slate-950 stroke-[2.5]" />
-              ) : (
-                <Lock className="w-4 h-4 sm:w-5 sm:h-5 text-slate-950 stroke-[2.5]" />
-              )}
-              <span>{isLoggedIn ? t('hero.downloadMagnet', 'Baixar Torrent (Magnet)') : t('hero.downloadMembers', 'Baixar Torrent (Membros)')}</span>
-            </button>
-
-            <button
               onClick={() => {
                 window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
                 setActiveGame(current);
               }}
-              className="flex items-center gap-2 px-4 sm:px-5 py-3 rounded-xl font-bold text-xs sm:text-sm bg-slate-900/90 hover:bg-slate-800 text-slate-200 border border-slate-700/80 hover:border-slate-500 transition-all cursor-pointer"
+              className="flex items-center gap-2 px-6 py-3.5 rounded-xl font-black text-xs sm:text-sm bg-gradient-to-r from-cyan-500 via-cyan-400 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-950 shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 transform hover:-translate-y-0.5 transition-all cursor-pointer"
             >
-              <span>{t('hero.viewDetails', 'Ver Detalhes & Requisitos')}</span>
-              <ArrowRight className="w-4 h-4" />
+              <span>{t('hero.viewDetails', 'Acessar Ficha do Jogo & Downloads')}</span>
+              <ArrowRight className="w-4 h-4 stroke-[2.5]" />
             </button>
 
             <button
