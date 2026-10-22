@@ -35,7 +35,10 @@ import {
   Bookmark,
   Upload,
   Clipboard,
-  Globe
+  Globe,
+  Languages,
+  Volume2,
+  Link as LinkIcon
 } from 'lucide-react';
 import { PkgGame, getStoredPkgGames, savePkgGames, resetPkgGamesToDefault, updateStoredPkgGame, deleteStoredPkgGame } from '../data/pkgTestLabGames';
 import { 
@@ -54,6 +57,16 @@ import { generateCustomGameCoverSvg, normalizeTitleForComparison } from '../data
 import { Game, GameCheat, GameMod, DownloadLink } from '../types';
 import { useGame } from '../context/GameContext';
 import { getGameCover, handleImageError } from '../utils/imageUtils';
+
+export interface FormDownloadLink {
+  id: string;
+  label: string;
+  url: string;
+  format: string; // PKG, ISO, RAR, TORRENT, 7Z, ZIP, BIN/CUE, NSP, XCI, CSO, CHD
+  language: string; // Original, Legendado PT-BR, Dublado PT-BR, Dublado & Legendado PT-BR, Multi-linguagens, Espanhol, Japonês
+  size: string;
+  hostName: string;
+}
 
 interface PkgTestLabModalProps {
   isOpen: boolean;
@@ -158,6 +171,20 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
   const [formDownloadUrl, setFormDownloadUrl] = useState('');
   const [formFormat, setFormFormat] = useState<string>('PKG');
   const [formFileSize, setFormFileSize] = useState('1.5 GB');
+
+  // Múltiplos Links de Download (com idioma, servidor e formato individual)
+  const [formDownloadLinks, setFormDownloadLinks] = useState<FormDownloadLink[]>([
+    {
+      id: 'dl-1',
+      label: 'Servidor Principal PKG',
+      url: '',
+      format: 'PKG',
+      language: 'Legendado PT-BR',
+      size: '1.5 GB',
+      hostName: 'TheZukoStore'
+    }
+  ]);
+
   const [formCoverUrl, setFormCoverUrl] = useState('');
   const [coverCandidates, setCoverCandidates] = useState<string[]>([]);
   const [formGamefaqsBoxesUrl, setFormGamefaqsBoxesUrl] = useState<string>('');
@@ -185,6 +212,64 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
   const [newModTitle, setNewModTitle] = useState('');
   const [newModNexusUrl, setNewModNexusUrl] = useState('');
   const [newModDesc, setNewModDesc] = useState('');
+
+  // Funções de gerenciamento dos links múltiplos de download
+  const handleAddDownloadLink = () => {
+    const nextIdx = formDownloadLinks.length + 1;
+    const newLink: FormDownloadLink = {
+      id: `dl-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      label: `Opção #${nextIdx} (${formPlatform})`,
+      url: '',
+      format: formFormat || 'PKG',
+      language: 'Legendado PT-BR',
+      size: formFileSize || '1.5 GB',
+      hostName: 'Google Drive'
+    };
+    setFormDownloadLinks(prev => [...prev, newLink]);
+    showNotification(`✓ Opção de download #${nextIdx} adicionada! Preencha o link, idioma e formato.`);
+  };
+
+  const handleUpdateDownloadLink = (index: number, patch: Partial<FormDownloadLink>) => {
+    setFormDownloadLinks(prev => {
+      const copy = [...prev];
+      copy[index] = { ...copy[index], ...patch };
+      // Sincroniza campos primários se for o primeiro item
+      if (index === 0) {
+        if (patch.url !== undefined) setFormDownloadUrl(patch.url);
+        if (patch.format !== undefined) setFormFormat(patch.format);
+        if (patch.size !== undefined) setFormFileSize(patch.size);
+      }
+      return copy;
+    });
+  };
+
+  const handleRemoveDownloadLink = (index: number) => {
+    if (formDownloadLinks.length <= 1) {
+      showNotification('É necessário manter pelo menos 1 link de download ativo.');
+      return;
+    }
+    setFormDownloadLinks(prev => {
+      const filtered = prev.filter((_, idx) => idx !== index);
+      if (filtered.length > 0) {
+        setFormDownloadUrl(filtered[0].url);
+        setFormFormat(filtered[0].format);
+        setFormFileSize(filtered[0].size);
+      }
+      return filtered;
+    });
+    showNotification('Opção de download removida.');
+  };
+
+  const handleDuplicateDownloadLink = (index: number) => {
+    const target = formDownloadLinks[index];
+    const duplicated: FormDownloadLink = {
+      ...target,
+      id: `dl-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      label: `${target.label} (Cópia / Mirror)`
+    };
+    setFormDownloadLinks(prev => [...prev, duplicated]);
+    showNotification('Opção de download duplicada com sucesso!');
+  };
 
   if (!isOpen) return null;
 
@@ -228,7 +313,8 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
       cheats: game.cheats || [],
       mods: game.mods || [],
       gamefaqsCheatsUrl: game.gamefaqsCheatsUrl || '',
-      nexusModsUrl: game.nexusModsUrl || ''
+      nexusModsUrl: game.nexusModsUrl || '',
+      downloadLinks: game.downloadLinks || []
     };
   };
 
@@ -318,6 +404,15 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
         setFormDownloadUrl(result.fileUrl);
         setFormFormat(result.format || 'PKG');
         setFormFileSize(result.fileSize);
+        setFormDownloadLinks([{
+          id: `dl-pulled-${Date.now()}`,
+          label: `Servidor Principal ${result.format || 'PKG'}`,
+          url: result.fileUrl || '',
+          format: (result.format || 'PKG').toUpperCase(),
+          language: result.ptBrSupport ? 'Legendado PT-BR' : 'Original',
+          size: result.fileSize || '1.5 GB',
+          hostName: result.fileUrl?.includes('thezukostore') ? 'TheZukoStore' : 'TheZukoStore Archive'
+        }]);
         setFormCoverUrl(result.coverUrl);
         setCoverCandidates(result.coverOptions || [result.coverUrl]);
         setFormGamefaqsBoxesUrl(result.gamefaqsBoxesUrl || '');
@@ -637,6 +732,15 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
     setFormDownloadUrl('');
     setFormFormat('PKG');
     setFormFileSize('2.5 GB');
+    setFormDownloadLinks([{
+      id: `dl-${Date.now()}`,
+      label: 'Servidor Principal PKG',
+      url: '',
+      format: 'PKG',
+      language: 'Legendado PT-BR',
+      size: '2.5 GB',
+      hostName: 'TheZukoStore'
+    }]);
     setFormCoverUrl('');
     setCoverCandidates([]);
     setFormGamefaqsBoxesUrl('');
@@ -669,6 +773,29 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
     setFormDownloadUrl(game.fileUrl);
     setFormFormat(game.format || 'PKG');
     setFormFileSize(game.fileSize);
+
+    if (game.downloadLinks && game.downloadLinks.length > 0) {
+      setFormDownloadLinks(game.downloadLinks.map((dl, idx) => ({
+        id: dl.id || `dl-${idx + 1}`,
+        label: dl.label || `Opção #${idx + 1} (${dl.format?.toUpperCase() || 'PKG'})`,
+        url: dl.url || '',
+        format: (dl.format || game.format || 'PKG').toUpperCase(),
+        language: dl.language || (game.ptBrSupport ? 'Legendado PT-BR' : 'Original'),
+        size: dl.size || game.fileSize || '1.5 GB',
+        hostName: dl.hostName || (dl.url?.includes('thezukostore') ? 'TheZukoStore' : 'TheZukoStore')
+      })));
+    } else {
+      setFormDownloadLinks([{
+        id: `dl-${game.id}-1`,
+        label: `${game.format || 'PKG'} ${game.platform} (Servidor Principal)`,
+        url: game.fileUrl || '',
+        format: (game.format || 'PKG').toUpperCase(),
+        language: game.ptBrSupport ? 'Legendado PT-BR' : 'Original',
+        size: game.fileSize || '1.5 GB',
+        hostName: game.fileUrl?.includes('thezukostore') ? 'TheZukoStore' : 'TheZukoStore'
+      }]);
+    }
+
     setFormCoverUrl(game.coverUrl);
     setCoverCandidates(game.coverOptions && game.coverOptions.length > 0 ? game.coverOptions : [game.coverUrl, game.bannerUrl].filter(Boolean));
     setFormGamefaqsBoxesUrl(game.gamefaqsBoxesUrl || '');
@@ -692,7 +819,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
     setEditorSubTab('form');
   };
 
-  // Carregar jogo já publicado no Portal Vortex para Edição (com Cheats & Mods)
+  // Carregar jogo já publicado no Portal Vortex para Edição (com Cheats & Mods e Links)
   const handleEditStoreGame = (game: Game) => {
     const pkg = convertStoreGameToPkgGame(game);
     setEditingStoreGameId(game.id);
@@ -703,6 +830,29 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
     setFormDownloadUrl(pkg.fileUrl);
     setFormFormat(pkg.format || 'PKG');
     setFormFileSize(pkg.fileSize);
+
+    if (game.downloadLinks && game.downloadLinks.length > 0) {
+      setFormDownloadLinks(game.downloadLinks.map((dl, idx) => ({
+        id: dl.id || `dl-${idx + 1}-${Date.now()}`,
+        label: dl.label || `Opção #${idx + 1} (${dl.format?.toUpperCase() || 'PKG'})`,
+        url: dl.url || '',
+        format: (dl.format || 'PKG').toUpperCase(),
+        language: dl.language || (dl.isPtBrAudio && dl.isPtBrSubs ? 'Dublado & Legendado PT-BR' : (dl.isPtBrAudio ? 'Dublado PT-BR' : (dl.isPtBrSubs ? 'Legendado PT-BR' : 'Original'))),
+        size: dl.size || '1.5 GB',
+        hostName: dl.hostName || (dl.url?.includes('thezukostore') ? 'TheZukoStore' : dl.url?.includes('drive.google') ? 'Google Drive' : dl.url?.includes('mediafire') ? 'MediaFire' : dl.url?.includes('mega.nz') ? 'Mega' : (dl.url?.startsWith('magnet:') ? 'Torrent' : 'Servidor Direto'))
+      })));
+    } else {
+      setFormDownloadLinks([{
+        id: `dl-${game.id}-1`,
+        label: `${pkg.format || 'PKG'} ${pkg.platform} (Servidor Principal)`,
+        url: pkg.fileUrl || '',
+        format: (pkg.format || 'PKG').toUpperCase(),
+        language: pkg.ptBrSupport ? 'Legendado PT-BR' : 'Original',
+        size: pkg.fileSize || '1.5 GB',
+        hostName: 'TheZukoStore'
+      }]);
+    }
+
     setFormCoverUrl(pkg.coverUrl);
     setCoverCandidates(pkg.coverOptions && pkg.coverOptions.length > 0 ? pkg.coverOptions : [pkg.coverUrl, pkg.bannerUrl].filter(Boolean));
     setFormGamefaqsBoxesUrl(pkg.gamefaqsBoxesUrl || '');
@@ -724,7 +874,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
     setSelectedGame(null);
     setCurrentTab('editor');
     setEditorSubTab('form');
-    showNotification(`⚡ Jogo "${game.title}" aberto no ambiente de testes! Você pode adicionar/atualizar cheats e mods.`);
+    showNotification(`⚡ Jogo "${game.title}" aberto no ambiente de testes! Você pode adicionar/atualizar cheats, links e idiomas.`);
   };
 
   // Excluir jogo do catálogo oficial da loja
@@ -754,8 +904,11 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
       alert('Por favor, informe o título do jogo.');
       return;
     }
-    if (!formDownloadUrl.trim()) {
-      alert('Por favor, adicione o Link de Download do jogo (TheZukoStore PKG, Torrent ou link direto).');
+    
+    // Verificar se existe ao menos 1 link de download preenchido
+    const validLinks = formDownloadLinks.filter(l => l.url.trim().length > 0);
+    if (validLinks.length === 0 && !formDownloadUrl.trim()) {
+      alert('Por favor, adicione pelo menos um Link de Download válido (TheZukoStore PKG, Torrent, Google Drive ou link direto).');
       return;
     }
 
@@ -767,17 +920,50 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
       : (formCoverUrl.trim() ? [formCoverUrl.trim()] : []);
 
     const cleanDesc = formDescription.replace(/^Sinopse GameFAQs:\s*/i, '').trim();
-
     const finalCover = formCoverUrl.trim() || generateCustomGameCoverSvg(formTitle.trim(), formPlatform, 'Capa Oficial');
+
+    // Mapeamento dos múltiplos links para o formato DownloadLink oficial
+    const canonicalLinks: DownloadLink[] = (validLinks.length > 0 ? validLinks : [{
+      id: `dl-${targetId}-primary`,
+      label: `${formFormat.toUpperCase()} ${formPlatform} (Servidor Principal)`,
+      url: formDownloadUrl.trim(),
+      format: formFormat,
+      language: 'Legendado PT-BR',
+      size: formFileSize,
+      hostName: 'TheZukoStore'
+    }]).map((l, idx) => {
+      const isPkg = l.format.toUpperCase() === 'PKG';
+      const isTorrent = l.url.startsWith('magnet:') || l.format.toUpperCase() === 'TORRENT';
+      const isPtBrAudio = l.language.includes('Dublado');
+      const isPtBrSubs = l.language.includes('Legendado') || l.language.includes('Dublado');
+
+      return {
+        id: l.id || `dl-${targetId}-${idx + 1}`,
+        type: isPkg ? 'pkg' : (isTorrent ? 'magnet' : 'direct'),
+        format: (l.format.toLowerCase() as any) || 'pkg',
+        platform: formPlatform as any,
+        label: l.label.trim() || `Opção #${idx + 1} (${l.format.toUpperCase()} • ${l.language})`,
+        url: l.url.trim(),
+        size: l.size.trim() || '1.5 GB',
+        titleId: formTitleId.trim() || `${formPlatform}-00000`,
+        firmware: `${formPlatform} CFW / HEN / Oficial`,
+        hostName: l.hostName.trim() || (l.url.includes('thezukostore') ? 'TheZukoStore' : l.url.includes('drive.google') ? 'Google Drive' : l.url.includes('mediafire') ? 'MediaFire' : 'Servidor Direto'),
+        language: l.language,
+        isPtBrAudio,
+        isPtBrSubs
+      };
+    });
+
+    const primaryLink = canonicalLinks[0];
 
     const savedGame: PkgGame = {
       id: targetId,
       title: formTitle.trim(),
       platform: formPlatform,
       titleId: formTitleId.trim() || `${formPlatform}-00000`,
-      fileUrl: formDownloadUrl.trim(),
-      fileSize: formFileSize.trim() || '1.0 GB',
-      format: formFormat.trim().toUpperCase() || 'PKG',
+      fileUrl: primaryLink.url,
+      fileSize: primaryLink.size,
+      format: (primaryLink.format || formFormat).toUpperCase(),
       firmware: `${formPlatform} CFW / HEN / Oficial`,
       region: 'NTSC-U',
       coverUrl: finalCover,
@@ -792,8 +978,8 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
       genres: formGenres.length > 0 ? formGenres : ['Ação', 'Clássico'],
       gamefaqsRating: formGamefaqsRating,
       gamefaqsDifficulty: 'Just Right',
-      ptBrSupport: formPtBrSupport,
-      zukoStorePageUrl: formDownloadUrl.trim(),
+      ptBrSupport: canonicalLinks.some(l => l.isPtBrAudio || l.isPtBrSubs) || formPtBrSupport,
+      zukoStorePageUrl: primaryLink.url,
       gamefaqsPageUrl: `https://gamefaqs.gamespot.com/${cleanPlatform}/search?game=${encodeURIComponent(formTitle)}`,
       gamefaqsBoxesUrl: formGamefaqsBoxesUrl.trim() || undefined,
       gamefaqsImagesUrl: formGamefaqsImagesUrl.trim() || undefined,
@@ -801,7 +987,8 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
       nexusModsUrl: formNexusModsUrl.trim() || `https://www.nexusmods.com/search/?gsearch=${encodeURIComponent(formTitle)}`,
       tags: [formPlatform, formFormat || 'PKG', 'TheZukoStore', 'GameFAQs'],
       cheats: formCheats,
-      mods: formMods
+      mods: formMods,
+      downloadLinks: canonicalLinks
     };
 
     // 1. Salvar no Laboratório local
@@ -841,28 +1028,12 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
       repackInfo: {
         repacker: existingStoreGame?.repackInfo?.repacker || `${formPlatform} Preservation Hub`,
         version: existingStoreGame?.repackInfo?.version || 'v1.0 Oficial',
-        repackSize: formFileSize.trim() || '1.5 GB',
-        originalSize: formFileSize.trim() || '1.5 GB',
+        repackSize: primaryLink.size || formFileSize.trim() || '1.5 GB',
+        originalSize: primaryLink.size || formFileSize.trim() || '1.5 GB',
         crackStatus: 'DRM Free',
         crackGroup: `${formPlatform} Scene`
       },
-      downloadLinks: [
-        {
-          id: `dl-${canonicalGameId}-primary`,
-          type: formFormat.toUpperCase() === 'PKG' ? 'pkg' : (formDownloadUrl.startsWith('magnet:') ? 'magnet' : 'direct'),
-          format: (formFormat.toLowerCase() as any) || 'pkg',
-          platform: formPlatform as any,
-          label: `${formFormat.toUpperCase()} ${formPlatform} (${formTitleId.trim() || 'Oficial'} - ${formFileSize})`,
-          url: formDownloadUrl.trim(),
-          size: formFileSize.trim() || '1.5 GB',
-          titleId: formTitleId.trim() || `${formPlatform}-00000`,
-          firmware: `${formPlatform} CFW / HEN / Oficial`,
-          isPtBrAudio: formPtBrSupport,
-          isPtBrSubs: formPtBrSupport,
-          hostName: formDownloadUrl.includes('thezukostore') ? 'TheZukoStore' : 'Vortex Archive'
-        },
-        ...(existingStoreGame?.downloadLinks?.filter(l => l.url !== formDownloadUrl.trim()) || [])
-      ],
+      downloadLinks: canonicalLinks,
       systemRequirements: existingStoreGame?.systemRequirements || {
         minimum: { os: `${formPlatform} ou Emulador`, processor: 'Dual Core 2.5GHz', memory: '4 GB RAM', graphics: 'DirectX 11', storage: formFileSize || '4 GB', directx: '11' },
         recommended: { os: `${formPlatform} ou Emulador`, processor: 'Quad Core 3.5GHz', memory: '8 GB RAM', graphics: 'DirectX 12', storage: formFileSize || '8 GB', directx: '12' }
@@ -872,12 +1043,13 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
       downloadsCount: existingStoreGame?.downloadsCount || 15400,
       viewsCount: existingStoreGame?.viewsCount || 42000,
       createdAt: existingStoreGame?.createdAt || new Date().toISOString(),
-      hasPtBrAudio: formPtBrSupport,
-      hasPtBrSubs: formPtBrSupport,
-      hasPkgFormat: formFormat.toUpperCase() === 'PKG' || existingStoreGame?.hasPkgFormat || false,
-      hasPcTorrent: formPlatform === 'PC' || formDownloadUrl.startsWith('magnet:') || existingStoreGame?.hasPcTorrent || false,
+      hasPtBrAudio: canonicalLinks.some(l => l.isPtBrAudio),
+      hasPtBrSubs: canonicalLinks.some(l => l.isPtBrSubs) || formPtBrSupport,
+      hasPkgFormat: canonicalLinks.some(l => l.format === 'pkg') || formFormat.toUpperCase() === 'PKG' || existingStoreGame?.hasPkgFormat || false,
+      hasPcTorrent: formPlatform === 'PC' || canonicalLinks.some(l => l.url.startsWith('magnet:') || l.format === 'torrent') || existingStoreGame?.hasPcTorrent || false,
       titleId: formTitleId.trim() || undefined,
       platform: formPlatform,
+      languages: Array.from(new Set(canonicalLinks.map(l => l.language || 'Português (PT-BR)'))),
       cheats: formCheats,
       mods: formMods,
       gamefaqsCheatsUrl: formGamefaqsCheatsUrl.trim() || undefined,
@@ -1430,106 +1602,311 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                       />
                     </div>
 
-                    {/* CAMPO DEDICADO DO LINK DE DOWNLOAD COM INFORMAÇÃO DA EXTENSÃO AO LADO */}
-                    <div className="sm:col-span-2">
-                      <label className="block text-[10px] font-bold text-emerald-400 uppercase mb-1 flex items-center justify-between flex-wrap gap-1">
-                        <span>Link de Download do Arquivo *</span>
-                        {(() => {
-                          const urlExtMatch = formDownloadUrl.match(/\.(pkg|iso|bin|cue|rar|zip|7z|torrent|cso|chd)\b/i);
-                          const detectedExt = urlExtMatch ? `.${urlExtMatch[1].toUpperCase()}` : (extractCleanGameTitle(formTitle || scraperInput).fileExtension || `.${formFormat.toUpperCase()}`);
-                          return (
-                            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                              [Detectado: {detectedExt}]
+                    {/* SEÇÃO MULTI-LINKS DE DOWNLOAD COM IDIOMA, FORMATO E SERVIDOR */}
+                    <div className="sm:col-span-2 lg:col-span-4 mt-2 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-emerald-500/30 space-y-4 shadow-lg">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-2">
+                            <span className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+                              <Download className="w-4 h-4" />
                             </span>
+                            <h4 className="text-sm font-black text-white uppercase tracking-wider font-display">
+                              Opções de Download &amp; Idiomas ({formDownloadLinks.length})
+                            </h4>
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                              Múltiplos Links Suportados
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-400">
+                            Adicione um ou mais links (ex: Servidor Principal, Google Drive, Dublado PT-BR, Legendado PT-BR, Original), cada um com seu idioma e formato exclusivo.
+                          </p>
+                        </div>
+
+                        {/* Botão Adicionar Mais um Link */}
+                        <button
+                          type="button"
+                          onClick={handleAddDownloadLink}
+                          className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs transition-all cursor-pointer shadow-md shadow-emerald-500/20 flex items-center gap-1.5 shrink-0 transform hover:scale-[1.02]"
+                        >
+                          <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                          <span>Adicionar Mais um Link</span>
+                        </button>
+                      </div>
+
+                      {/* Lista de Cards de DownloadLinks */}
+                      <div className="space-y-4">
+                        {formDownloadLinks.map((link, idx) => {
+                          const urlExtMatch = link.url.match(/\.(pkg|iso|bin|cue|rar|zip|7z|torrent|cso|chd)\b/i);
+                          const detectedExt = urlExtMatch ? `.${urlExtMatch[1].toUpperCase()}` : `.${link.format.toUpperCase()}`;
+
+                          return (
+                            <div
+                              key={link.id || idx}
+                              className={`p-4 rounded-xl border transition-all space-y-3 ${
+                                idx === 0
+                                  ? 'bg-slate-900/90 border-emerald-500/40 shadow-md ring-1 ring-emerald-500/20'
+                                  : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
+                              }`}
+                            >
+                              {/* Header do Card do Link */}
+                              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-2">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase font-mono ${
+                                    idx === 0 
+                                      ? 'bg-emerald-500 text-slate-950 shadow-sm' 
+                                      : 'bg-slate-800 text-slate-300 border border-slate-700'
+                                  }`}>
+                                    {idx === 0 ? '★ Link #1 (Principal)' : `Opção #${idx + 1}`}
+                                  </span>
+                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1">
+                                    <span>🗣️</span>
+                                    <span>{link.language || 'Legendado PT-BR'}</span>
+                                  </span>
+                                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">
+                                    .{link.format.toUpperCase()}
+                                  </span>
+                                </div>
+
+                                <div className="flex items-center gap-1.5 self-end sm:self-auto">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDuplicateDownloadLink(idx)}
+                                    className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer border border-slate-700"
+                                    title="Duplicar esta opção para criar um mirror ou versão alternativa"
+                                  >
+                                    <Copy className="w-3 h-3 text-cyan-400" />
+                                    <span>Duplicar</span>
+                                  </button>
+
+                                  {formDownloadLinks.length > 1 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveDownloadLink(idx)}
+                                      className="p-1 rounded-lg bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/30 transition-all cursor-pointer"
+                                      title="Remover este link"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Linha 1: Nome da Opção / Rótulo & URL */}
+                              <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                                <div className="md:col-span-4">
+                                  <label className="block text-[10px] font-bold text-slate-300 uppercase mb-1">
+                                    Nome / Rótulo da Opção
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={link.label}
+                                    onChange={e => handleUpdateDownloadLink(idx, { label: e.target.value })}
+                                    placeholder="Ex: Servidor Principal PKG, Google Drive, MediaFire..."
+                                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white font-semibold text-xs focus:outline-none focus:border-cyan-500"
+                                  />
+                                </div>
+
+                                <div className="md:col-span-8">
+                                  <div className="flex items-center justify-between mb-1">
+                                    <label className="block text-[10px] font-bold text-emerald-400 uppercase">
+                                      Link de Download do Arquivo (URL Direto / Magnet / Nuvem) *
+                                    </label>
+                                    <span className="text-[10px] font-mono text-emerald-300 font-bold">
+                                      [Detectado: {detectedExt}]
+                                    </span>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <input
+                                      type="url"
+                                      value={link.url}
+                                      onChange={e => {
+                                        const val = e.target.value;
+                                        const patch: Partial<FormDownloadLink> = { url: val };
+                                        const m = val.match(/\.(pkg|iso|bin|cue|rar|zip|7z|torrent|cso|chd)\b/i);
+                                        if (m) {
+                                          patch.format = m[1].toUpperCase();
+                                        }
+                                        if (val.includes('drive.google.com')) patch.hostName = 'Google Drive';
+                                        else if (val.includes('mediafire.com')) patch.hostName = 'MediaFire';
+                                        else if (val.includes('mega.nz')) patch.hostName = 'Mega';
+                                        else if (val.includes('thezukostore')) patch.hostName = 'TheZukoStore';
+                                        handleUpdateDownloadLink(idx, patch);
+                                      }}
+                                      placeholder="https://thezukostore.com/jogo.pkg ou https://drive.google.com/... ou magnet:?..."
+                                      className="flex-1 px-3 py-2 rounded-xl bg-slate-950 border border-emerald-500/50 text-emerald-300 font-mono text-xs focus:outline-none focus:border-emerald-400"
+                                    />
+                                    {link.url && (
+                                      <a
+                                        href={link.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-cyan-400 border border-slate-700 transition-all flex items-center gap-1 shrink-0"
+                                        title="Testar link no navegador"
+                                      >
+                                        <ExternalLink className="w-3.5 h-3.5" />
+                                        <span>Testar</span>
+                                      </a>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Linha 2: Idioma / Tradução + Formato + Tamanho + Servidor */}
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
+                                
+                                {/* IDIOMA DO ARQUIVO */}
+                                <div className="space-y-1">
+                                  <label className="block text-[10px] font-bold text-amber-300 uppercase flex items-center justify-between">
+                                    <span className="flex items-center gap-1">
+                                      <Languages className="w-3 h-3 text-amber-400" />
+                                      Idioma / Tradução *
+                                    </span>
+                                  </label>
+                                  <select
+                                    value={link.language}
+                                    onChange={e => handleUpdateDownloadLink(idx, { language: e.target.value })}
+                                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-amber-500/50 text-amber-200 font-bold text-xs focus:outline-none focus:border-amber-400 cursor-pointer"
+                                  >
+                                    <option value="Legendado PT-BR">🇧🇷 Legendado PT-BR (Textos &amp; Menus)</option>
+                                    <option value="Dublado PT-BR">🇧🇷🎙️ Dublado PT-BR (Vozes Brasileiras)</option>
+                                    <option value="Dublado &amp; Legendado PT-BR">🇧🇷✨ Dublado &amp; Legendado PT-BR</option>
+                                    <option value="Original">🌐 Original (Inglês / Sem Tradução)</option>
+                                    <option value="Multi-linguagens">🌍 Multi-linguagens (Multi-Idiomas)</option>
+                                    <option value="Espanhol">🇪🇸 Espanhol (Castellano / Latino)</option>
+                                    <option value="Japonês">🇯🇵 Japonês Original (Áudio JP)</option>
+                                  </select>
+
+                                  {/* Botões Rápidos de Idioma */}
+                                  <div className="flex items-center gap-1 flex-wrap pt-0.5">
+                                    {[
+                                      { label: '🇧🇷 Leg.', val: 'Legendado PT-BR' },
+                                      { label: '🇧🇷🎙️ Dub.', val: 'Dublado PT-BR' },
+                                      { label: '🇧🇷✨ Dub+Leg', val: 'Dublado & Legendado PT-BR' },
+                                      { label: '🌐 Original', val: 'Original' }
+                                    ].map(pill => (
+                                      <button
+                                        key={pill.val}
+                                        type="button"
+                                        onClick={() => handleUpdateDownloadLink(idx, { language: pill.val })}
+                                        className={`px-1.5 py-0.5 rounded text-[9px] font-bold transition-all cursor-pointer ${
+                                          link.language === pill.val
+                                            ? 'bg-amber-500 text-slate-950 font-black shadow-sm'
+                                            : 'bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-700'
+                                        }`}
+                                      >
+                                        {pill.label}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                {/* FORMATO DO ARQUIVO */}
+                                <div className="space-y-1">
+                                  <label className="block text-[10px] font-bold text-indigo-400 uppercase flex items-center justify-between">
+                                    <span>Formato do Arquivo *</span>
+                                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 font-bold">
+                                      .{link.format.toUpperCase()}
+                                    </span>
+                                  </label>
+                                  <select
+                                    value={link.format.toUpperCase()}
+                                    onChange={e => handleUpdateDownloadLink(idx, { format: e.target.value })}
+                                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-indigo-500/50 text-white font-bold text-xs focus:outline-none focus:border-indigo-400 cursor-pointer"
+                                  >
+                                    <option value="PKG">PKG (.pkg - Pacote PlayStation)</option>
+                                    <option value="ISO">ISO (.iso - Imagem de Disco)</option>
+                                    <option value="RAR">WinRAR / RAR (.rar - Compactado)</option>
+                                    <option value="TORRENT">Torrent (.torrent / Magnet)</option>
+                                    <option value="7Z">7-Zip (.7z - Compactação Ultra)</option>
+                                    <option value="ZIP">ZIP (.zip - Arquivo Compactado)</option>
+                                    <option value="BIN/CUE">BIN / CUE (.bin / .cue - CD/DVD)</option>
+                                    <option value="NSP">NSP (.nsp - Nintendo Switch)</option>
+                                    <option value="XCI">XCI (.xci - Nintendo Switch Cartucho)</option>
+                                    <option value="CSO">CSO (.cso - Imagem Comprimida PSP)</option>
+                                    <option value="CHD">CHD (.chd - Imagem Comprimida PS1/PS2)</option>
+                                  </select>
+
+                                  {/* Botões Rápidos de Formato */}
+                                  <div className="flex items-center gap-1 flex-wrap pt-0.5">
+                                    {['PKG', 'ISO', 'RAR', 'TORRENT', '7Z', 'ZIP'].map(fmt => (
+                                      <button
+                                        key={fmt}
+                                        type="button"
+                                        onClick={() => handleUpdateDownloadLink(idx, { format: fmt })}
+                                        className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold transition-all cursor-pointer ${
+                                          link.format.toUpperCase() === fmt
+                                            ? 'bg-indigo-500 text-white shadow-sm'
+                                            : 'bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-700'
+                                        }`}
+                                      >
+                                        .{fmt}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                {/* TAMANHO DO ARQUIVO */}
+                                <div className="space-y-1">
+                                  <label className="block text-[10px] font-bold text-slate-400 uppercase">
+                                    Tamanho do Arquivo
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={link.size}
+                                    onChange={e => handleUpdateDownloadLink(idx, { size: e.target.value })}
+                                    placeholder="Ex: 2.5 GB, 700 MB"
+                                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono font-semibold text-xs focus:outline-none focus:border-cyan-500"
+                                  />
+                                  <div className="flex items-center gap-1 flex-wrap pt-0.5">
+                                    {['700 MB', '1.5 GB', '2.5 GB', '4.2 GB'].map(sz => (
+                                      <button
+                                        key={sz}
+                                        type="button"
+                                        onClick={() => handleUpdateDownloadLink(idx, { size: sz })}
+                                        className="px-1.5 py-0.5 rounded text-[9px] font-mono text-slate-400 bg-slate-800 hover:text-white border border-slate-700 transition-all cursor-pointer"
+                                      >
+                                        {sz}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                {/* SERVIDOR / HOSPEDAGEM */}
+                                <div className="space-y-1">
+                                  <label className="block text-[10px] font-bold text-slate-400 uppercase">
+                                    Servidor / Host
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={link.hostName}
+                                    onChange={e => handleUpdateDownloadLink(idx, { hostName: e.target.value })}
+                                    placeholder="Ex: TheZukoStore, Google Drive..."
+                                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-cyan-300 font-semibold text-xs focus:outline-none focus:border-cyan-500"
+                                  />
+                                  <div className="flex items-center gap-1 flex-wrap pt-0.5">
+                                    {['TheZukoStore', 'Google Drive', 'MediaFire', 'Mega', 'Torrent'].map(h => (
+                                      <button
+                                        key={h}
+                                        type="button"
+                                        onClick={() => handleUpdateDownloadLink(idx, { hostName: h })}
+                                        className="px-1.5 py-0.5 rounded text-[9px] text-slate-400 bg-slate-800 hover:text-white border border-slate-700 transition-all cursor-pointer"
+                                      >
+                                        {h}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+
+                              </div>
+                            </div>
                           );
-                        })()}
-                      </label>
-                      <div className="flex gap-2">
-                        <input
-                          type="url"
-                          value={formDownloadUrl}
-                          onChange={e => {
-                            const val = e.target.value;
-                            setFormDownloadUrl(val);
-                            const m = val.match(/\.(pkg|iso|bin|cue|rar|zip|7z|torrent|cso|chd)\b/i);
-                            if (m) {
-                              setFormFormat(m[1].toUpperCase());
-                            }
-                          }}
-                          placeholder="https://thezukostore.com/ps2-pkg-exemplo.pkg ou link direto"
-                          className="flex-1 px-3 py-2 rounded-xl bg-slate-900 border border-emerald-500/50 text-emerald-300 font-mono text-xs focus:outline-none focus:border-emerald-400"
-                        />
-                        {formDownloadUrl && (
-                          <a
-                            href={formDownloadUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-cyan-400 border border-slate-700 transition-all flex items-center gap-1"
-                            title="Testar link no navegador"
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                            <span>Testar</span>
-                          </a>
-                        )}
+                        })}
                       </div>
-                      <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1.5 flex-wrap">
+
+                      <p className="text-[11px] text-slate-400 pt-1 flex items-center gap-1.5 flex-wrap">
                         <span className="text-emerald-400 font-bold">✓ Padrão Recomendado:</span>
-                        <span>O nome do jogo não contém extensões. O formato (.PKG, .ISO, etc.) é informado ao lado.</span>
+                        <span>O título do jogo não contém extensões. Cada opção de download acima possui seu próprio formato, tamanho e indicação clara de idioma (Original, Legendado ou Dublado).</span>
                       </p>
-                    </div>
-
-                    {/* FORMATO DO ARQUIVO (ENTRE LINK DE DOWNLOAD E TAMANHO DO ARQUIVO) */}
-                    <div>
-                      <label className="block text-[10px] font-bold text-indigo-400 uppercase mb-1 flex items-center justify-between">
-                        <span>Formato do Arquivo *</span>
-                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 font-bold">
-                          .{formFormat.toUpperCase()}
-                        </span>
-                      </label>
-                      <select
-                        value={formFormat}
-                        onChange={e => setFormFormat(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-indigo-500/50 text-white font-bold text-xs focus:outline-none focus:border-indigo-400 cursor-pointer"
-                      >
-                        <option value="PKG">PKG (.pkg - Pacote PlayStation)</option>
-                        <option value="ISO">ISO (.iso - Imagem de Disco)</option>
-                        <option value="RAR">WinRAR / RAR (.rar - Compactado)</option>
-                        <option value="TORRENT">Torrent (.torrent / Magnet)</option>
-                        <option value="7Z">7-Zip (.7z - Compactação Ultra)</option>
-                        <option value="ZIP">ZIP (.zip - Arquivo Compactado)</option>
-                        <option value="BIN/CUE">BIN / CUE (.bin / .cue - CD/DVD)</option>
-                        <option value="CSO">CSO (.cso - Imagem Comprimida PSP)</option>
-                        <option value="CHD">CHD (.chd - Imagem Comprimida PS1/PS2)</option>
-                      </select>
-                      <div className="mt-1 flex items-center gap-1 flex-wrap">
-                        {['PKG', 'ISO', 'RAR', 'TORRENT', '7Z', 'ZIP'].map(fmt => (
-                          <button
-                            key={fmt}
-                            type="button"
-                            onClick={() => setFormFormat(fmt)}
-                            className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold transition-all cursor-pointer ${
-                              formFormat.toUpperCase() === fmt
-                                ? 'bg-indigo-500 text-white shadow-sm'
-                                : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'
-                            }`}
-                          >
-                            .{fmt}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">
-                        Tamanho do Arquivo
-                      </label>
-                      <input
-                        type="text"
-                        value={formFileSize}
-                        onChange={e => setFormFileSize(e.target.value)}
-                        placeholder="Ex: 4.2 GB"
-                        className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-cyan-500 font-semibold"
-                      />
                     </div>
                   </div>
                 </div>
@@ -2492,43 +2869,60 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                         ))}
                       </div>
 
-                      {/* Botões de Download da Prévia com Informação da Extensão ao Lado */}
-                      <div className="pt-2 flex flex-wrap items-center gap-3">
-                        <a
-                          href={formDownloadUrl || '#'}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs shadow-lg shadow-cyan-500/25 transition-all cursor-pointer transform hover:scale-[1.02]"
-                        >
-                          <Download className="w-4 h-4" />
-                          <span>Baixar {formFormat || 'PKG'} (TheZukoStore • {formFileSize})</span>
-                        </a>
+                      {/* Botões de Download da Prévia com Informação do Idioma e Extensão */}
+                      <div className="pt-2 space-y-2.5">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                          Links de Download Configurados ({formDownloadLinks.filter(l => l.url.trim()).length || 1})
+                        </span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                          {formDownloadLinks.map((dl, i) => (
+                            <div
+                              key={dl.id || i}
+                              className="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 space-y-2 flex flex-col justify-between"
+                            >
+                              <div className="flex items-center justify-between gap-1 flex-wrap">
+                                <span className="text-xs font-bold text-white truncate max-w-[200px]">
+                                  {dl.label || `Opção #${i + 1}`}
+                                </span>
+                                <div className="flex items-center gap-1">
+                                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                                    🗣️ {dl.language || 'Legendado PT-BR'}
+                                  </span>
+                                  <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">
+                                    .{dl.format.toUpperCase()}
+                                  </span>
+                                </div>
+                              </div>
 
-                        {/* Extensão e Informações do Arquivo informadas ao lado do download */}
-                        {(() => {
-                          const urlExtMatch = formDownloadUrl.match(/\.(pkg|iso|bin|cue|rar|zip|7z|torrent|cso|chd)\b/i);
-                          const detectedExt = urlExtMatch ? `.${urlExtMatch[1].toUpperCase()}` : (extractCleanGameTitle(formTitle || scraperInput).fileExtension || `.${formFormat.toUpperCase()}`);
-                          return (
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="px-2.5 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-mono font-bold flex items-center gap-1.5 shadow-sm" title="Extensão identificada para o arquivo de download">
-                                <span className="text-slate-400 font-sans text-[10px] uppercase">Extensão:</span>
-                                <strong>{detectedExt}</strong>
-                              </span>
-                              <span className="px-2.5 py-1.5 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-xs font-semibold">
-                                Formato: .{formFormat.toUpperCase()} ({formPlatform})
-                              </span>
+                              <div className="text-[11px] text-slate-400 font-mono flex items-center gap-2">
+                                <span>Tamanho: <strong className="text-slate-200">{dl.size || '1.5 GB'}</strong></span>
+                                <span>•</span>
+                                <span>Host: <strong className="text-cyan-400">{dl.hostName || 'TheZukoStore'}</strong></span>
+                              </div>
+
+                              <div className="flex items-center gap-2 pt-1">
+                                <a
+                                  href={dl.url || '#'}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs shadow-md transition-all cursor-pointer"
+                                >
+                                  <Download className="w-3.5 h-3.5" />
+                                  <span>Baixar .{dl.format.toUpperCase()}</span>
+                                </a>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleCopy(dl.url)}
+                                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs transition-all cursor-pointer"
+                                  title="Copiar link"
+                                >
+                                  <Copy className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
                             </div>
-                          );
-                        })()}
-
-                        <button
-                          type="button"
-                          onClick={() => handleCopy(formDownloadUrl)}
-                          className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-700 transition-all cursor-pointer"
-                        >
-                          {copiedLink ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-slate-400" />}
-                          <span>{copiedLink ? 'Link Copiado!' : 'Copiar Link PKG'}</span>
-                        </button>
+                          ))}
+                        </div>
                       </div>
 
                     </div>
@@ -2834,58 +3228,125 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                         ))}
                       </div>
 
-                      {/* Ações de Download e Links com Extensão ao Lado */}
-                      <div className="pt-2 flex flex-wrap items-center gap-3">
-                        <a
-                          href={selectedGame.fileUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs shadow-lg shadow-cyan-500/25 transition-all cursor-pointer transform hover:scale-[1.02]"
-                        >
-                          <Download className="w-4 h-4" />
-                          <span>Baixar PKG (TheZukoStore • {selectedGame.fileSize})</span>
-                        </a>
+                      {/* Ações de Download e Múltiplas Opções com Idioma */}
+                      <div className="pt-2 space-y-3">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                          Links de Download Disponíveis ({selectedGame.downloadLinks?.length || 1})
+                        </span>
+                        
+                        {selectedGame.downloadLinks && selectedGame.downloadLinks.length > 1 ? (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {selectedGame.downloadLinks.map((dl, i) => (
+                              <div
+                                key={dl.id || i}
+                                className="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 space-y-2 flex flex-col justify-between"
+                              >
+                                <div className="flex items-center justify-between gap-1 flex-wrap">
+                                  <span className="text-xs font-bold text-white truncate max-w-[200px]">
+                                    {dl.label}
+                                  </span>
+                                  <div className="flex items-center gap-1">
+                                    {dl.language && (
+                                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                                        🗣️ {dl.language}
+                                      </span>
+                                    )}
+                                    <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">
+                                      .{(dl.format || 'PKG').toUpperCase()}
+                                    </span>
+                                  </div>
+                                </div>
 
-                        {/* Extensão Informada ao Lado do Arquivo de Download */}
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="px-2.5 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-mono font-bold flex items-center gap-1.5 shadow-sm">
-                            <span className="text-slate-400 font-sans text-[10px] uppercase">Extensão:</span>
-                            <strong>.{selectedGame.format || 'PKG'}</strong>
-                          </span>
-                          <span className="px-2.5 py-1.5 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-xs font-semibold">
-                            {selectedGame.platform} PKG Direct
-                          </span>
-                        </div>
+                                <div className="text-[11px] text-slate-400 font-mono flex items-center gap-2">
+                                  <span>Tamanho: <strong className="text-slate-200">{dl.size}</strong></span>
+                                  <span>•</span>
+                                  <span>Host: <strong className="text-cyan-400">{dl.hostName || 'TheZukoStore'}</strong></span>
+                                </div>
 
-                        <button
-                          onClick={() => handleCopy(selectedGame.fileUrl)}
-                          className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-700 transition-all cursor-pointer"
-                          title="Copiar link direto do arquivo PKG"
-                        >
-                          {copiedLink ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-slate-400" />}
-                          <span>{copiedLink ? 'Link Copiado!' : 'Copiar Link PKG'}</span>
-                        </button>
+                                <div className="flex items-center gap-2 pt-1">
+                                  <a
+                                    href={dl.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs shadow-md transition-all cursor-pointer"
+                                  >
+                                    <Download className="w-3.5 h-3.5" />
+                                    <span>Baixar .{(dl.format || 'PKG').toUpperCase()}</span>
+                                  </a>
 
-                        <button
-                          onClick={() => handleEditGame(selectedGame)}
-                          className="flex items-center gap-1.5 px-4 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition-all cursor-pointer shadow-md"
-                          title="Editar título, fotos, link, cheats ou mods"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                          <span>Editar Publicação</span>
-                        </button>
+                                  <button
+                                    onClick={() => handleCopy(dl.url)}
+                                    className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs transition-all cursor-pointer"
+                                    title="Copiar link"
+                                  >
+                                    <Copy className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="flex flex-wrap items-center gap-3">
+                            <a
+                              href={selectedGame.fileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs shadow-lg shadow-cyan-500/25 transition-all cursor-pointer transform hover:scale-[1.02]"
+                            >
+                              <Download className="w-4 h-4" />
+                              <span>Baixar {selectedGame.format || 'PKG'} ({selectedGame.fileSize})</span>
+                            </a>
 
-                        {selectedGame.gamefaqsPageUrl && (
-                          <a
-                            href={selectedGame.gamefaqsPageUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 px-3.5 py-3 rounded-2xl bg-slate-800/60 hover:bg-slate-800 text-xs font-bold text-slate-400 hover:text-white transition-all"
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                            <span>Ficha GameFAQs</span>
-                          </a>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="px-2.5 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-mono font-bold flex items-center gap-1.5 shadow-sm">
+                                <span className="text-slate-400 font-sans text-[10px] uppercase">Extensão:</span>
+                                <strong>.{selectedGame.format || 'PKG'}</strong>
+                              </span>
+                              <span className="px-2.5 py-1.5 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-xs font-semibold">
+                                {selectedGame.platform} Direct
+                              </span>
+                            </div>
+
+                            <button
+                              onClick={() => handleCopy(selectedGame.fileUrl)}
+                              className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-700 transition-all cursor-pointer"
+                              title="Copiar link direto"
+                            >
+                              {copiedLink ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-slate-400" />}
+                              <span>{copiedLink ? 'Link Copiado!' : 'Copiar Link'}</span>
+                            </button>
+                          </div>
                         )}
+
+                        <div className="flex items-center gap-2 pt-1 flex-wrap">
+                          <button
+                            onClick={() => {
+                              const matchedStore = storeGames.find(g => g.id === selectedGame.id);
+                              if (matchedStore) {
+                                handleEditStoreGame(matchedStore);
+                              } else {
+                                handleEditGame(selectedGame);
+                              }
+                            }}
+                            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition-all cursor-pointer shadow-md"
+                            title="Editar título, fotos, link, cheats ou mods"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                            <span>Editar Publicação</span>
+                          </button>
+
+                          {selectedGame.gamefaqsPageUrl && (
+                            <a
+                              href={selectedGame.gamefaqsPageUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-xs font-bold text-slate-400 hover:text-white transition-all"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                              <span>Ficha GameFAQs</span>
+                            </a>
+                          )}
+                        </div>
                       </div>
 
                     </div>

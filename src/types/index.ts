@@ -13,6 +13,7 @@ export interface DownloadLink {
   firmware?: string; // Ex: FW 5.05 - 11.00 ou RPCS3 / ShadPS4
   isPtBrAudio?: boolean; // Dublado em Português
   isPtBrSubs?: boolean; // Legendado em Português
+  language?: 'Original' | 'Dublado PT-BR' | 'Legendado PT-BR' | 'Dublado & Legendado PT-BR' | 'Multi-linguagens' | 'Espanhol' | 'Japonês' | string;
 }
 
 export interface SystemSpec {

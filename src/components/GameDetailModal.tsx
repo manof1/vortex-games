@@ -940,9 +940,17 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                             </span>
                           </div>
 
-                          <h5 className="text-sm font-bold text-white font-display">
-                            {link.label}
-                          </h5>
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <h5 className="text-sm font-bold text-white font-display">
+                              {link.label}
+                            </h5>
+                            {link.language && (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1">
+                                <span>🗣️</span>
+                                <span>{link.language}</span>
+                              </span>
+                            )}
+                          </div>
 
                           <div className="flex items-center gap-2 text-xs text-slate-400">
                             <span>Tamanho: <strong className="text-white font-mono">{link.size}</strong></span>
@@ -1032,9 +1040,17 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                             )}
                           </div>
 
-                          <h5 className="text-sm font-bold text-white font-display">
-                            {link.label}
-                          </h5>
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <h5 className="text-sm font-bold text-white font-display">
+                              {link.label}
+                            </h5>
+                            {link.language && (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1">
+                                <span>🗣️</span>
+                                <span>{link.language}</span>
+                              </span>
+                            )}
+                          </div>
 
                           <div className="flex items-center gap-2 text-xs text-slate-400">
                             <span>Tamanho: <strong className="text-white font-mono">{link.size}</strong></span>
@@ -1086,9 +1102,17 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                               </span>
                             </div>
 
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
                             <h5 className="text-sm font-bold text-white font-display">
                               {link.label}
                             </h5>
+                            {link.language && (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1">
+                                <span>🗣️</span>
+                                <span>{link.language}</span>
+                              </span>
+                            )}
+                          </div>
 
                             <div className="flex items-center gap-2 text-xs text-slate-400 flex-wrap">
                               <span>Tamanho: <strong className="text-white font-mono">{link.size}</strong></span>
@@ -1133,9 +1157,16 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                               <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-rose-600 text-white flex items-center gap-1">
                                 <Disc className="w-3 h-3" /> NINTENDO SWITCH DUMP
                               </span>
-                              <span className="text-xs text-rose-300 font-mono font-bold">
-                                {link.format?.toUpperCase() || 'NSP'}
-                              </span>
+                              <div className="flex items-center gap-1.5">
+                                {link.language && (
+                                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                                    🗣️ {link.language}
+                                  </span>
+                                )}
+                                <span className="text-xs text-rose-300 font-mono font-bold">
+                                  {link.format?.toUpperCase() || 'NSP'}
+                                </span>
+                              </div>
                             </div>
 
                             <h5 className="text-sm font-bold text-white font-display">
@@ -1244,6 +1275,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                           <p className="text-xs font-bold text-white truncate">{link.label}</p>
                           <div className="flex items-center gap-1.5 text-[11px] text-slate-400 font-mono">
                             <span>{link.size}</span>
+                            {link.language && <span className="text-emerald-400 font-medium">• 🗣️ {link.language}</span>}
                             {link.hostName && <span>• {link.hostName}</span>}
                           </div>
                         </div>

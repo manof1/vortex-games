@@ -1,4 +1,4 @@
-import { GameCheat, GameMod } from '../types';
+import { GameCheat, GameMod, DownloadLink } from '../types';
 
 export interface PkgGame {
   id: string;
@@ -32,6 +32,7 @@ export interface PkgGame {
   mods?: GameMod[]; // Mods e patches recomendados do Nexus Mods
   gamefaqsCheatsUrl?: string; // Link da página de Cheats no GameFAQs
   nexusModsUrl?: string; // Link do jogo no Nexus Mods
+  downloadLinks?: DownloadLink[]; // Múltiplas opções de download com idioma e formatos dedicados
 }
 
 export const INITIAL_PKG_GAMES: PkgGame[] = [
