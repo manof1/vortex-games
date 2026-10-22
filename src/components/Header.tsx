@@ -90,8 +90,10 @@ export const Header: React.FC = () => {
   });
 
   const [isTopMenuOpen, setIsTopMenuOpen] = useState(false);
+  const [isConsolesMenuOpen, setIsConsolesMenuOpen] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const topDropdownRef = useRef<HTMLDivElement>(null);
+  const consolesDropdownRef = useRef<HTMLDivElement>(null);
 
   // Sync recent searches to localStorage
   useEffect(() => {
@@ -110,6 +112,9 @@ export const Header: React.FC = () => {
       }
       if (topDropdownRef.current && !topDropdownRef.current.contains(e.target as Node)) {
         setIsTopMenuOpen(false);
+      }
+      if (consolesDropdownRef.current && !consolesDropdownRef.current.contains(e.target as Node)) {
+        setIsConsolesMenuOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -384,6 +389,131 @@ export const Header: React.FC = () => {
               )}
             </div>
 
+            {/* NOVO: MENU DROPDOWN DE CONSOLES (PLAYSTATION & NINTENDO & LAB) */}
+            <div className="relative" ref={consolesDropdownRef}>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsConsolesMenuOpen(!isConsolesMenuOpen);
+                  setIsTopMenuOpen(false);
+                }}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                  filters.platform && filters.platform !== 'all'
+                    ? 'bg-purple-600 text-white border-purple-400 shadow-md shadow-purple-600/25 ring-1 ring-purple-300'
+                    : 'text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-800'
+                }`}
+                title="Consoles: PlayStation, Nintendo, PKGs, ISOs e Emuladores"
+              >
+                <Gamepad2 className="w-3.5 h-3.5 text-purple-400" />
+                <span>Consoles</span>
+                <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${isConsolesMenuOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {isConsolesMenuOpen && (
+                <div className="absolute right-0 sm:left-0 sm:right-auto mt-2 w-72 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-2 z-50 animate-fadeIn">
+                  <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800/80 mb-1">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-purple-500 block">
+                      Preservação de Consoles
+                    </span>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                      Filtrar títulos por plataforma ou abrir ambiente do criador:
+                    </p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveGame(null);
+                        setIsLibraryOpen(false);
+                        setIsUserMenuOpen(false);
+                        setIsConsolesMenuOpen(false);
+                        setFilters(prev => ({ ...prev, platform: 'playstation', search: '' }));
+                        document.getElementById('catalogo-section')?.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                      className="w-full flex items-center gap-2.5 p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all text-slate-800 dark:text-slate-200 text-xs font-bold cursor-pointer"
+                    >
+                      <span className="w-7 h-7 rounded-lg bg-blue-500/15 text-blue-400 flex items-center justify-center text-xs font-black shrink-0">
+                        PS
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <span className="font-black text-slate-900 dark:text-white">PlayStation</span>
+                          <span className="text-[9px] px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-400 font-mono">PS4/PS3/PS2/PS1</span>
+                        </div>
+                        <p className="text-[10px] text-slate-400 truncate">Pacotes PKG diretos & ISOs limpas</p>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveGame(null);
+                        setIsLibraryOpen(false);
+                        setIsUserMenuOpen(false);
+                        setIsConsolesMenuOpen(false);
+                        setFilters(prev => ({ ...prev, platform: 'nintendo', search: '' }));
+                        document.getElementById('catalogo-section')?.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                      className="w-full flex items-center gap-2.5 p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all text-slate-800 dark:text-slate-200 text-xs font-bold cursor-pointer"
+                    >
+                      <span className="w-7 h-7 rounded-lg bg-red-500/15 text-red-400 flex items-center justify-center text-xs font-black shrink-0">
+                        N
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <span className="font-black text-slate-900 dark:text-white">Nintendo</span>
+                          <span className="text-[9px] px-1.5 py-0.2 rounded bg-red-500/20 text-red-400 font-mono">Switch/N64/GBA</span>
+                        </div>
+                        <p className="text-[10px] text-slate-400 truncate">Arquivos NSP, XCI e ROMs para emulador</p>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveGame(null);
+                        setIsLibraryOpen(false);
+                        setIsUserMenuOpen(false);
+                        setIsConsolesMenuOpen(false);
+                        setFilters(prev => ({ ...prev, platform: 'retro', search: '' }));
+                        document.getElementById('catalogo-section')?.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                      className="w-full flex items-center gap-2.5 p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all text-slate-800 dark:text-slate-200 text-xs font-bold cursor-pointer"
+                    >
+                      <span className="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center text-xs font-black shrink-0">
+                        👾
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <span className="font-black text-slate-900 dark:text-white">Retrô & Clássicos</span>
+                          <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-mono">RomsPure</span>
+                        </div>
+                        <p className="text-[10px] text-slate-400 truncate">DuckStation, PCSX2 e mGBA prontos</p>
+                      </div>
+                    </button>
+
+                    <div className="pt-1 mt-1 border-t border-slate-100 dark:border-slate-800">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsConsolesMenuOpen(false);
+                          openCreatorLab();
+                        }}
+                        className="w-full flex items-center gap-2 p-2 rounded-xl text-left bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 text-xs font-bold transition-all cursor-pointer border border-purple-500/30"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <span className="font-black text-purple-300">Laboratório & Testes PKG</span>
+                          <p className="text-[10px] text-purple-400/80 truncate">Ambiente de publicação do Criador</p>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* BOTÃO CATÁLOGO (MANTIDO E RESTAURADO) */}
             <button
               onClick={() => {
@@ -467,15 +597,14 @@ export const Header: React.FC = () => {
               {theme === 'dark' ? <Moon className="w-4 h-4 text-indigo-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
             </button>
 
-            {/* Bolinha Discreta no canto do cabeçalho: Ambiente de Testes PKG do Criador (manof1@gmail.com) */}
+            {/* Botão de Acesso ao Laboratório do Criador */}
             <button
               type="button"
               onClick={openCreatorLab}
-              className="group relative p-2 rounded-xl text-slate-400 hover:text-cyan-400 hover:bg-slate-100 dark:hover:bg-slate-900 transition-all cursor-pointer flex items-center justify-center"
-              title="Ambiente de Testes PKG • TheZukoStore + GameFAQs (Criador)"
+              className="p-2 rounded-xl text-slate-400 hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-slate-900 transition-all cursor-pointer flex items-center justify-center border border-transparent hover:border-purple-500/30"
+              title="Ambiente de Testes PKG & Consoles (Criador)"
             >
-              <span className="w-2.5 h-2.5 rounded-full bg-cyan-500/80 group-hover:bg-cyan-400 group-hover:scale-125 transition-all shadow-[0_0_8px_rgba(6,182,212,0.6)]" />
-              <span className="sr-only">Ambiente de Testes PKG</span>
+              <Gamepad2 className="w-4 h-4 text-purple-400" />
             </button>
           </div>
 

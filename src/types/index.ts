@@ -1,7 +1,7 @@
 export interface DownloadLink {
   id: string;
   type: 'magnet' | 'torrent' | 'direct' | 'mirror' | 'pkg' | 'pt_br_patch';
-  format?: 'torrent' | 'pkg' | 'direct' | 'magnet' | 'pt_br_patch' | 'iso' | 'rom' | 'nsp';
+  format?: 'torrent' | 'pkg' | 'direct' | 'magnet' | 'pt_br_patch' | 'iso' | 'rom' | 'nsp' | 'xci' | 'bin/cue';
   platform?: 'PC' | 'PS4' | 'PS3' | 'PS5' | 'PS1' | 'PS2' | 'PSP' | 'PS Vita' | 'Switch' | 'Nintendo Switch' | 'N64' | 'GBA' | 'GameCube' | 'Wii' | 'Emulador';
   label: string;
   url: string;
@@ -140,6 +140,7 @@ export interface Game {
   mods?: GameMod[]; // Mods populares do Nexus Mods (https://www.nexusmods.com/)
   gamefaqsCheatsUrl?: string; // Link direto para a página de cheats do GameFAQs
   nexusModsUrl?: string; // Link da central do jogo no Nexus Mods
+  platform?: string; // Plataforma principal / tag canônica (ex: PC, PS2, Switch)
 }
 
 export type LibraryStatus = 'wishlist' | 'playing' | 'completed' | 'backlog' | 'downloaded';
@@ -195,10 +196,11 @@ export interface FilterState {
   repacker: string;
   sizeRange: string;
   sortBy: 'latest' | 'popular' | 'rating' | 'downloads' | 'sizeAsc' | 'sizeDesc' | 'top_rating' | 'top_critic' | 'top_user' | 'top_views' | 'top_downloads';
-  minRating: number;
   onlyPtBr?: boolean; // Exibir apenas jogos dublados ou legendados em PT-BR
-  formatFilter?: 'all' | 'torrent' | 'pkg'; // Filtrar por formato específico (Torrent PC vs PKG Console)
+  formatFilter?: 'all' | 'torrent' | 'pkg' | 'iso_rom'; // Filtrar por formato específico (Torrent PC vs PKG Console vs ISO/ROM)
   yearRange?: 'all' | '2024-2026' | '2020-2023' | '2015-2019' | 'retro'; // Filtro por Faixa de Ano
+  platform?: 'all' | 'pc' | 'playstation' | 'nintendo' | 'retro'; // Filtro por Plataforma / Console
+  minRating?: number; // Filtro de nota mínima (ex: 4.5+)
 }
 
 export interface GameRequest {

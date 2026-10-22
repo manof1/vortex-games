@@ -30,9 +30,12 @@ import {
   Volume2,
   FileArchive,
   Upload,
-  AlertTriangle
+  AlertTriangle,
+  Zap,
+  Package,
+  Info
 } from 'lucide-react';
-import { Game, IgdbSearchResult } from '../types';
+import { Game, IgdbSearchResult, GameCheat, GameMod } from '../types';
 import { useGame } from '../context/GameContext';
 import { searchIgdbGames, convertIgdbResultToGame } from '../services/igdbService';
 import { getFitGirlPresetCatalog, parseFitGirlRssXml, FITGIRL_SUPABASE_SYNC_SCRIPT } from '../services/fitgirlService';
@@ -40,7 +43,7 @@ import { GITHUB_ACTIONS_WORKFLOW_YAML, VERCEL_CRON_JSON } from '../services/auto
 import { ZUKO_TAPOCHEK_PRESETS } from '../data/zukoTapochekPresets';
 import { createZukoTapochekGame, ZUKO_TAPOCHEK_SUPABASE_SCRIPT } from '../services/zukoTapochekService';
 import { ROMSPURE_DLPS_PRESETS, ROMSPURE_DLPS_SUPABASE_SCRIPT } from '../data/romspureDlpsPresets';
-import { pullGameDataFromSources } from '../services/pkgScraperService';
+import { pullGameDataFromSources, importCheatsFromGameFaqs, fetchNexusModsForGame } from '../services/pkgScraperService';
 import { normalizeTitleForComparison } from '../data/playstationGameMedia';
 import { SUPABASE_SCHEMA_SQL } from '../services/supabaseSchemaService';
 import { SUPABASE_URL, SUPABASE_ANON_KEY, testSupabaseConnection, upsertGameToSupabase } from '../services/supabaseClient';
@@ -185,6 +188,29 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
 
   // Editing existing game modal state
   const [editingGame, setEditingGame] = useState<Game | null>(null);
+  const [editTab, setEditTab] = useState<'general' | 'cheats' | 'mods'>('general');
+  const [editingCheats, setEditingCheats] = useState<GameCheat[]>([]);
+  const [editingMods, setEditingMods] = useState<GameMod[]>([]);
+  const [isFetchingCheats, setIsFetchingCheats] = useState(false);
+  const [isFetchingMods, setIsFetchingMods] = useState(false);
+  const [editNotification, setEditNotification] = useState<string | null>(null);
+
+  // Manual Cheat input state (for edit modal)
+  const [manualCheatTitle, setManualCheatTitle] = useState('');
+  const [manualCheatCode, setManualCheatCode] = useState('');
+  const [manualCheatCategory, setManualCheatCategory] = useState('Geral');
+
+  // Manual Mod input state (for edit modal)
+  const [manualModTitle, setManualModTitle] = useState('');
+  const [manualModUrl, setManualModUrl] = useState('');
+  const [manualModDesc, setManualModDesc] = useState('');
+  const [manualModCategory, setManualModCategory] = useState('Gameplay');
+
+  // Cheats & Mods state for IGDB Publish form
+  const [publishCheats, setPublishCheats] = useState<GameCheat[]>([]);
+  const [publishMods, setPublishMods] = useState<GameMod[]>([]);
+  const [isPublishFetchingCheats, setIsPublishFetchingCheats] = useState(false);
+  const [isPublishFetchingMods, setIsPublishFetchingMods] = useState(false);
 
   // Search IGDB API
   const handleSearchIgdb = async (e?: React.FormEvent) => {
@@ -205,8 +231,42 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
   // Select an IGDB game to prepare publish
   const handleSelectIgdb = (item: IgdbSearchResult) => {
     setSelectedIgdb(item);
+    setPublishCheats([]);
+    setPublishMods([]);
     // Auto-generate suggested magnet link
     setMagnetUrl(`magnet:?xt=urn:btih:${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}&dn=${encodeURIComponent(item.name + '-' + repacker)}&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce`);
+  };
+
+  // Import Cheats for IGDB Publish
+  const handleImportCheatsForPublish = async () => {
+    if (!selectedIgdb?.name) return;
+    setIsPublishFetchingCheats(true);
+    try {
+      const res = await importCheatsFromGameFaqs(selectedIgdb.name);
+      if (res && res.cheats && res.cheats.length > 0) {
+        setPublishCheats(res.cheats);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsPublishFetchingCheats(false);
+    }
+  };
+
+  // Sync Mods for IGDB Publish
+  const handleSyncModsForPublish = async () => {
+    if (!selectedIgdb?.name) return;
+    setIsPublishFetchingMods(true);
+    try {
+      const res = await fetchNexusModsForGame(selectedIgdb.name);
+      if (res && res.mods && res.mods.length > 0) {
+        setPublishMods(res.mods);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsPublishFetchingMods(false);
+    }
   };
 
   // Publish game to store
@@ -245,6 +305,13 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
       });
     }
 
+    if (publishCheats.length > 0) {
+      newGame.cheats = publishCheats;
+    }
+    if (publishMods.length > 0) {
+      newGame.mods = publishMods;
+    }
+
     addGame(newGame);
     setPublishedSuccess(true);
     setSelectedIgdb(null);
@@ -252,6 +319,8 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
     setIgdbResults([]);
     setPkgUrl('');
     setTitleId('');
+    setPublishCheats([]);
+    setPublishMods([]);
 
     setTimeout(() => {
       setPublishedSuccess(false);
@@ -308,11 +377,11 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
         coverUrl: scraped.coverUrl || 'https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Boxarts/Castlevania%20-%20Symphony%20of%20the%20Night%20(USA).png',
         bannerUrl: scraped.bannerUrl || scraped.coverUrl,
         shortDescription: `Edição preservada do clássico ${scraped.title} para ${scraped.platform}. Dumps e arquivos verificados via ${sourceWeb}. Formato: ${scraped.format || 'ISO/ROM'}, tamanho estimado de ${scraped.fileSize || '1.2 GB'}.`,
-        description: scraped.synopsis || `Mergulhe no universo de ${scraped.title} no console ${scraped.platform}. Jogo testado para rodar em emuladores modernos (PCSX2, DuckStation, RetroArch, PPSSPP) ou consoles desbloqueados.`,
+        description: scraped.description || `Mergulhe no universo de ${scraped.title} no console ${scraped.platform}. Jogo testado para rodar em emuladores modernos (PCSX2, DuckStation, RetroArch, PPSSPP) ou consoles desbloqueados.`,
         genres: ['Ação', 'Aventura', 'Console Clássico'],
         categories: [scraped.platform, 'Preservação de Consoles', sourceWeb],
-        releaseYear: scraped.releaseYear ? parseInt(scraped.releaseYear) : 2005,
-        releaseDate: scraped.releaseYear ? `01/01/${scraped.releaseYear}` : '01/01/2005',
+        releaseYear: typeof scraped.releaseYear === 'number' ? scraped.releaseYear : parseInt(String(scraped.releaseYear || '2005')),
+        releaseDate: scraped.releaseDate || (scraped.releaseYear ? `01/01/${scraped.releaseYear}` : '01/01/2005'),
         developer: scraped.developer || 'Estúdio Oficial',
         publisher: scraped.publisher || 'Distribuidora Oficial',
         rating: 4.8,
@@ -362,11 +431,112 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
     }
   };
 
+  // Start editing game
+  const handleStartEditing = (game: Game) => {
+    setEditingGame({ ...game });
+    setEditingCheats(game.cheats ? [...game.cheats] : []);
+    setEditingMods(game.mods ? [...game.mods] : []);
+    setEditTab('general');
+    setEditNotification(null);
+  };
+
+  // Import cheats from GameFAQs for currently editing game
+  const handleImportCheatsForEditing = async () => {
+    if (!editingGame || !editingGame.title) return;
+    setIsFetchingCheats(true);
+    setEditNotification(null);
+    try {
+      const res = await importCheatsFromGameFaqs(editingGame.title);
+      if (res && res.cheats && res.cheats.length > 0) {
+        setEditingCheats(prev => {
+          const existing = new Set(prev.map(c => (c.title + c.codeOrEffect).toLowerCase()));
+          const newOnes = res.cheats.filter(c => !existing.has((c.title + c.codeOrEffect).toLowerCase()));
+          return [...prev, ...newOnes];
+        });
+        setEditNotification(`⚡ ${res.cheats.length} cheats carregados do GameFAQs com sucesso!`);
+      } else {
+        setEditNotification('Nenhum cheat encontrado no GameFAQs para este título.');
+      }
+    } catch {
+      setEditNotification('Falha ao importar cheats do GameFAQs.');
+    } finally {
+      setIsFetchingCheats(false);
+    }
+  };
+
+  // Sync Nexus Mods for currently editing game
+  const handleSyncModsForEditing = async () => {
+    if (!editingGame || !editingGame.title) return;
+    setIsFetchingMods(true);
+    setEditNotification(null);
+    try {
+      const res = await fetchNexusModsForGame(editingGame.title);
+      if (res && res.mods && res.mods.length > 0) {
+        setEditingMods(prev => {
+          const existing = new Set(prev.map(m => m.nexusUrl.toLowerCase()));
+          const newOnes = res.mods.filter(m => !existing.has(m.nexusUrl.toLowerCase()));
+          return [...prev, ...newOnes];
+        });
+        setEditNotification(`🧩 ${res.mods.length} mods do Nexus Mods sincronizados com sucesso!`);
+      } else {
+        setEditNotification('Nenhum mod encontrado no Nexus Mods.');
+      }
+    } catch {
+      setEditNotification('Falha ao buscar mods no Nexus Mods.');
+    } finally {
+      setIsFetchingMods(false);
+    }
+  };
+
+  const handleAddManualCheatToEditing = () => {
+    if (!manualCheatTitle.trim() || !manualCheatCode.trim()) return;
+    const newCheat: GameCheat = {
+      id: `cheat-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      title: manualCheatTitle.trim(),
+      codeOrEffect: manualCheatCode.trim(),
+      category: manualCheatCategory,
+      source: 'Manual'
+    };
+    setEditingCheats(prev => [newCheat, ...prev]);
+    setManualCheatTitle('');
+    setManualCheatCode('');
+    setEditNotification('Cheat manual adicionado com sucesso!');
+  };
+
+  const handleRemoveCheatFromEditing = (id: string) => {
+    setEditingCheats(prev => prev.filter(c => c.id !== id));
+  };
+
+  const handleAddManualModToEditing = () => {
+    if (!manualModTitle.trim() || !manualModUrl.trim()) return;
+    const newMod: GameMod = {
+      id: `mod-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      title: manualModTitle.trim(),
+      nexusUrl: manualModUrl.trim(),
+      description: manualModDesc.trim() || 'Mod verificado para computador.',
+      category: manualModCategory
+    };
+    setEditingMods(prev => [newMod, ...prev]);
+    setManualModTitle('');
+    setManualModUrl('');
+    setManualModDesc('');
+    setEditNotification('Mod manual adicionado com sucesso!');
+  };
+
+  const handleRemoveModFromEditing = (id: string) => {
+    setEditingMods(prev => prev.filter(m => m.id !== id));
+  };
+
   // Handle Editing Game submit
   const handleSaveEdit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingGame) return;
-    updateGame(editingGame);
+    const updatedGame: Game = {
+      ...editingGame,
+      cheats: editingCheats,
+      mods: editingMods
+    };
+    updateGame(updatedGame);
     setEditingGame(null);
   };
 
@@ -726,6 +896,60 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
                         placeholder="https://thezukostore.com/... ou link direto do arquivo .pkg"
                         className="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
                       />
+                    </div>
+                  </div>
+
+                  {/* Cheats & Mods Opcionais para Computador (GameFAQs & Nexus Mods) */}
+                  <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-3">
+                    <span className="text-xs font-bold text-slate-300 uppercase tracking-wide flex items-center gap-1.5">
+                      <Zap className="w-3.5 h-3.5 text-amber-400" />
+                      Cheats (GameFAQs) & Mods (Nexus Mods) para Computador
+                    </span>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                      {/* GameFAQs Cheats */}
+                      <div className="p-3 rounded-lg bg-slate-950 border border-slate-800 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-slate-300 flex items-center gap-1.5">
+                            <Zap className="w-3.5 h-3.5 text-amber-400" />
+                            Cheats GameFAQs:
+                          </span>
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold">
+                            {publishCheats.length} códigos
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          disabled={isPublishFetchingCheats}
+                          onClick={handleImportCheatsForPublish}
+                          className="w-full py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center justify-center gap-1.5 disabled:opacity-50 transition-all cursor-pointer"
+                        >
+                          {isPublishFetchingCheats ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
+                          <span>{isPublishFetchingCheats ? 'Buscando Cheats...' : '⚡ Puxar Cheats do GameFAQs'}</span>
+                        </button>
+                      </div>
+
+                      {/* Nexus Mods */}
+                      <div className="p-3 rounded-lg bg-slate-950 border border-slate-800 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-slate-300 flex items-center gap-1.5">
+                            <Package className="w-3.5 h-3.5 text-orange-400" />
+                            Mods Nexus Mods:
+                          </span>
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-orange-500/20 text-orange-400 font-bold">
+                            {publishMods.length} mods
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          disabled={isPublishFetchingMods}
+                          onClick={handleSyncModsForPublish}
+                          className="w-full py-1.5 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-300 border border-orange-500/30 text-xs font-bold flex items-center justify-center gap-1.5 disabled:opacity-50 transition-all cursor-pointer"
+                        >
+                          {isPublishFetchingMods ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Package className="w-3.5 h-3.5" />}
+                          <span>{isPublishFetchingMods ? 'Sincronizando Mods...' : '🧩 Puxar Mods do Nexus Mods'}</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -1852,15 +2076,15 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
                           <td className="p-3 text-emerald-400 font-bold">+{game.downloadLinks[0]?.seeders || 2000}</td>
                           <td className="p-3 text-right space-x-1">
                             <button
-                              onClick={() => setEditingGame(game)}
-                              className="p-1.5 rounded-lg bg-slate-800 hover:bg-cyan-500 hover:text-slate-950 text-slate-300 transition-all"
-                              title="Editar Postagem"
+                              onClick={() => handleStartEditing(game)}
+                              className="p-1.5 rounded-lg bg-slate-800 hover:bg-cyan-500 hover:text-slate-950 text-slate-300 transition-all cursor-pointer"
+                              title="Editar Jogo, Cheats e Mods"
                             >
                               <Edit3 className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => deleteGame(game.id)}
-                              className="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-600 text-rose-400 hover:text-white transition-all"
+                              className="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-600 text-rose-400 hover:text-white transition-all cursor-pointer"
                               title="Excluir Postagem"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -1874,62 +2098,504 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
 
               {/* Editing Game Modal overlay */}
               {editingGame && (
-                <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-                  <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 w-full max-w-lg space-y-4">
-                    <h4 className="text-base font-bold text-white">Editar Jogo: {editingGame.title}</h4>
-                    
-                    <div className="space-y-3 text-xs">
-                      <div>
-                        <label className="block text-slate-400 mb-1">Título:</label>
-                        <input
-                          type="text"
-                          value={editingGame.title}
-                          onChange={e => setEditingGame({ ...editingGame, title: e.target.value })}
-                          className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 animate-fadeIn">
+                  <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-3xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+                    {/* Header */}
+                    <div className="px-6 py-4 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={getGameCover(editingGame)}
+                          alt={editingGame.title}
+                          referrerPolicy="no-referrer"
+                          onError={(e) => handleImageError(e, editingGame)}
+                          className="w-10 h-14 object-cover rounded-lg border border-slate-800"
                         />
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] px-2 py-0.5 rounded font-bold uppercase bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                              {editingGame.categories?.[0] || 'Jogo de Computador'}
+                            </span>
+                            <span className="text-[10px] text-slate-400">{editingGame.repackInfo?.repacker || 'PC'}</span>
+                          </div>
+                          <h4 className="text-base font-bold text-white font-display truncate max-w-md">
+                            Editar: {editingGame.title}
+                          </h4>
+                        </div>
                       </div>
 
-                      <div>
-                        <label className="block text-slate-400 mb-1">Tamanho Repack:</label>
-                        <input
-                          type="text"
-                          value={editingGame.repackInfo.repackSize}
-                          onChange={e => setEditingGame({
-                            ...editingGame,
-                            repackInfo: { ...editingGame.repackInfo, repackSize: e.target.value }
-                          })}
-                          className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-slate-400 mb-1">Link Magnet Principal:</label>
-                        <input
-                          type="text"
-                          value={editingGame.downloadLinks[0]?.url || ''}
-                          onChange={e => {
-                            const newLinks = [...editingGame.downloadLinks];
-                            if (newLinks[0]) newLinks[0].url = e.target.value;
-                            setEditingGame({ ...editingGame, downloadLinks: newLinks });
-                          }}
-                          className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end gap-2 pt-2">
                       <button
                         onClick={() => setEditingGame(null)}
-                        className="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white"
+                        className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all cursor-pointer"
                       >
-                        Cancelar
+                        <X className="w-4 h-4" />
                       </button>
+                    </div>
+
+                    {/* Subtab Navigation */}
+                    <div className="px-6 py-2.5 bg-slate-900 border-b border-slate-800 flex items-center gap-2 text-xs overflow-x-auto">
                       <button
-                        onClick={handleSaveEdit}
-                        className="px-4 py-2 rounded-xl text-xs font-bold bg-cyan-500 text-slate-950"
+                        type="button"
+                        onClick={() => setEditTab('general')}
+                        className={`px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                          editTab === 'general'
+                            ? 'bg-cyan-500 text-slate-950'
+                            : 'bg-slate-800 text-slate-300 hover:text-white'
+                        }`}
                       >
-                        Salvar Alterações
+                        <Edit3 className="w-3.5 h-3.5" />
+                        <span>Informações Gerais</span>
                       </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setEditTab('cheats')}
+                        className={`px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                          editTab === 'cheats'
+                            ? 'bg-amber-500 text-slate-950'
+                            : 'bg-slate-800 text-slate-300 hover:text-white'
+                        }`}
+                      >
+                        <Zap className="w-3.5 h-3.5 text-amber-400 group-hover:text-amber-300" />
+                        <span>Cheats GameFAQs ({editingCheats.length})</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setEditTab('mods')}
+                        className={`px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                          editTab === 'mods'
+                            ? 'bg-orange-500 text-slate-950'
+                            : 'bg-slate-800 text-slate-300 hover:text-white'
+                        }`}
+                      >
+                        <Package className="w-3.5 h-3.5 text-orange-400" />
+                        <span>Mods Nexus Mods ({editingMods.length})</span>
+                      </button>
+                    </div>
+
+                    {/* Notification Toast */}
+                    {editNotification && (
+                      <div className="mx-6 mt-3 p-3 rounded-xl bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 text-xs font-semibold flex items-center justify-between">
+                        <span>{editNotification}</span>
+                        <button
+                          type="button"
+                          onClick={() => setEditNotification(null)}
+                          className="text-cyan-400 hover:text-white ml-2"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Modal Body */}
+                    <div className="p-6 overflow-y-auto space-y-4 flex-1">
+                      {/* SUBTAB 1: GENERAL INFO */}
+                      {editTab === 'general' && (
+                        <div className="space-y-4 text-xs">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-slate-400 mb-1 font-semibold">Título do Jogo:</label>
+                              <input
+                                type="text"
+                                value={editingGame.title}
+                                onChange={e => setEditingGame({ ...editingGame, title: e.target.value })}
+                                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-500"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-slate-400 mb-1 font-semibold">Tamanho Repack / Download:</label>
+                              <input
+                                type="text"
+                                value={editingGame.repackInfo.repackSize}
+                                onChange={e => setEditingGame({
+                                  ...editingGame,
+                                  repackInfo: { ...editingGame.repackInfo, repackSize: e.target.value }
+                                })}
+                                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-500"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                              <label className="block text-slate-400 mb-1 font-semibold">Repacker / Grupo:</label>
+                              <input
+                                type="text"
+                                value={editingGame.repackInfo.repacker}
+                                onChange={e => setEditingGame({
+                                  ...editingGame,
+                                  repackInfo: { ...editingGame.repackInfo, repacker: e.target.value }
+                                })}
+                                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-500"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-slate-400 mb-1 font-semibold">Ano de Lançamento:</label>
+                              <input
+                                type="number"
+                                value={editingGame.releaseYear}
+                                onChange={e => setEditingGame({
+                                  ...editingGame,
+                                  releaseYear: parseInt(e.target.value) || 2024
+                                })}
+                                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-500"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-slate-400 mb-1 font-semibold">Desenvolvedora:</label>
+                              <input
+                                type="text"
+                                value={editingGame.developer}
+                                onChange={e => setEditingGame({ ...editingGame, developer: e.target.value })}
+                                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-500"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-slate-400 mb-1 font-semibold">Sinopse / Descrição:</label>
+                            <textarea
+                              rows={3}
+                              value={editingGame.description}
+                              onChange={e => setEditingGame({ ...editingGame, description: e.target.value })}
+                              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-500 leading-relaxed"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-slate-400 mb-1 font-semibold">Link Magnet Principal (PC):</label>
+                            <input
+                              type="text"
+                              value={editingGame.downloadLinks[0]?.url || ''}
+                              onChange={e => {
+                                const newLinks = [...editingGame.downloadLinks];
+                                if (newLinks[0]) {
+                                  newLinks[0].url = e.target.value;
+                                } else {
+                                  newLinks.push({
+                                    id: `dl-${Date.now()}`,
+                                    type: 'magnet',
+                                    format: 'torrent',
+                                    platform: 'PC',
+                                    label: 'Download Magnet Torrent PC',
+                                    url: e.target.value,
+                                    size: editingGame.repackInfo?.repackSize || '45 GB'
+                                  });
+                                }
+                                setEditingGame({ ...editingGame, downloadLinks: newLinks });
+                              }}
+                              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono focus:outline-none focus:border-cyan-500"
+                            />
+                          </div>
+
+                          <div className="flex items-center gap-4 pt-1">
+                            <label className="flex items-center gap-2 cursor-pointer text-slate-300">
+                              <input
+                                type="checkbox"
+                                checked={editingGame.hasPtBrAudio}
+                                onChange={e => setEditingGame({ ...editingGame, hasPtBrAudio: e.target.checked })}
+                                className="w-4 h-4 rounded text-cyan-500 bg-slate-950 border-slate-700"
+                              />
+                              <span>Dublado em Português (PT-BR)</span>
+                            </label>
+
+                            <label className="flex items-center gap-2 cursor-pointer text-slate-300">
+                              <input
+                                type="checkbox"
+                                checked={editingGame.hasPtBrSubs}
+                                onChange={e => setEditingGame({ ...editingGame, hasPtBrSubs: e.target.checked })}
+                                className="w-4 h-4 rounded text-cyan-500 bg-slate-950 border-slate-700"
+                              />
+                              <span>Legendas em Português (PT-BR)</span>
+                            </label>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* SUBTAB 2: CHEATS GAMEFAQS */}
+                      {editTab === 'cheats' && (
+                        <div className="space-y-4">
+                          <div className="p-4 rounded-2xl bg-amber-950/20 border border-amber-500/30 flex items-center justify-between flex-wrap gap-3">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <Zap className="w-4 h-4 text-amber-400" />
+                                <h5 className="text-xs font-bold uppercase text-white">Cheats e Trapaças Oficiais (GameFAQs)</h5>
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300">
+                                  {editingCheats.length} códigos ativos
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-slate-300">
+                                Busque e sincronize códigos completos de GameFAQs ou insira novos cheats manualmente.
+                              </p>
+                            </div>
+
+                            <button
+                              type="button"
+                              disabled={isFetchingCheats || !editingGame.title}
+                              onClick={handleImportCheatsForEditing}
+                              className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 disabled:opacity-50 text-slate-950 font-black text-xs transition-all cursor-pointer shadow-lg shadow-amber-500/20 flex items-center gap-1.5"
+                            >
+                              {isFetchingCheats ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
+                              <span>{isFetchingCheats ? 'Buscando GameFAQs...' : '⚡ Puxar Cheats do GameFAQs'}</span>
+                            </button>
+                          </div>
+
+                          {/* Cheats List */}
+                          <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                            {editingCheats.length === 0 ? (
+                              <div className="p-6 rounded-2xl bg-slate-950/60 border border-slate-800 text-center text-xs text-slate-400">
+                                Nenhum cheat cadastrado ainda para este jogo. Clique no botão amarelo acima para buscar no GameFAQs ou adicione manualmente abaixo.
+                              </div>
+                            ) : (
+                              editingCheats.map((cheat, idx) => (
+                                <div
+                                  key={cheat.id || idx}
+                                  className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 flex items-start justify-between gap-3 hover:border-amber-500/30 transition-all"
+                                >
+                                  <div className="space-y-1 flex-1">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs font-bold text-white">{cheat.title}</span>
+                                      <span className="text-[10px] px-2 py-0.2 rounded-md font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                        {cheat.category || 'Geral'}
+                                      </span>
+                                      {cheat.source && (
+                                        <span className="text-[10px] text-slate-400">Fonte: {cheat.source}</span>
+                                      )}
+                                    </div>
+                                    <div className="p-2 rounded-lg bg-slate-900 border border-slate-800 font-mono text-[11px] text-amber-200 break-all select-all">
+                                      {cheat.codeOrEffect}
+                                    </div>
+                                  </div>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveCheatFromEditing(cheat.id)}
+                                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-500/30 text-slate-400 hover:text-rose-300 transition-all cursor-pointer"
+                                    title="Remover cheat"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              ))
+                            )}
+                          </div>
+
+                          {/* Add Manual Cheat Form */}
+                          <div className="pt-3 border-t border-slate-800 space-y-2">
+                            <span className="text-[11px] font-bold text-slate-300 uppercase block">
+                              + Adicionar Cheat / Trapaça Manualmente:
+                            </span>
+                            <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 text-xs">
+                              <div className="sm:col-span-5">
+                                <input
+                                  type="text"
+                                  value={manualCheatTitle}
+                                  onChange={e => setManualCheatTitle(e.target.value)}
+                                  placeholder="Título (ex: Vida Infinita, Desbloquear Tudo)"
+                                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                                />
+                              </div>
+                              <div className="sm:col-span-4">
+                                <input
+                                  type="text"
+                                  value={manualCheatCode}
+                                  onChange={e => setManualCheatCode(e.target.value)}
+                                  placeholder="Código ou comando..."
+                                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 font-mono focus:outline-none focus:border-amber-500"
+                                />
+                              </div>
+                              <div className="sm:col-span-2">
+                                <select
+                                  value={manualCheatCategory}
+                                  onChange={e => setManualCheatCategory(e.target.value)}
+                                  className="w-full px-2 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500 cursor-pointer"
+                                >
+                                  <option value="Geral">Geral</option>
+                                  <option value="Armas">Armas</option>
+                                  <option value="Veículos">Veículos</option>
+                                  <option value="Vidas/Energia">Vidas/Energia</option>
+                                  <option value="Dinheiro">Dinheiro</option>
+                                  <option value="Desbloqueáveis">Desbloqueáveis</option>
+                                  <option value="Senhas">Senhas</option>
+                                </select>
+                              </div>
+                              <div className="sm:col-span-1">
+                                <button
+                                  type="button"
+                                  onClick={handleAddManualCheatToEditing}
+                                  className="w-full h-full py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition-all cursor-pointer flex items-center justify-center"
+                                  title="Inserir cheat"
+                                >
+                                  <Plus className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* SUBTAB 3: MODS NEXUS MODS */}
+                      {editTab === 'mods' && (
+                        <div className="space-y-4">
+                          <div className="p-4 rounded-2xl bg-orange-950/20 border border-orange-500/30 flex items-center justify-between flex-wrap gap-3">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <Package className="w-4 h-4 text-orange-400" />
+                                <h5 className="text-xs font-bold uppercase text-white">Mods Populares (Nexus Mods)</h5>
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/20 text-orange-300">
+                                  {editingMods.length} mods ativos
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-slate-300">
+                                Sincronize mods populares do Nexus Mods ou adicione traduções e texturas 4K.
+                              </p>
+                            </div>
+
+                            <button
+                              type="button"
+                              disabled={isFetchingMods || !editingGame.title}
+                              onClick={handleSyncModsForEditing}
+                              className="px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-400 hover:to-amber-500 disabled:opacity-50 text-slate-950 font-black text-xs transition-all cursor-pointer shadow-lg shadow-orange-500/20 flex items-center gap-1.5"
+                            >
+                              {isFetchingMods ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Package className="w-3.5 h-3.5" />}
+                              <span>{isFetchingMods ? 'Sincronizando Nexus...' : '🧩 Sincronizar Nexus Mods'}</span>
+                            </button>
+                          </div>
+
+                          {/* Mods List */}
+                          <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                            {editingMods.length === 0 ? (
+                              <div className="p-6 rounded-2xl bg-slate-950/60 border border-slate-800 text-center text-xs text-slate-400">
+                                Nenhum mod cadastrado ainda para este jogo. Clique no botão laranja acima para buscar no Nexus Mods ou adicione manualmente abaixo.
+                              </div>
+                            ) : (
+                              editingMods.map((mod, idx) => (
+                                <div
+                                  key={mod.id || idx}
+                                  className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 flex items-start justify-between gap-3 hover:border-orange-500/30 transition-all"
+                                >
+                                  <div className="space-y-1 flex-1">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs font-bold text-white">{mod.title}</span>
+                                      <span className="text-[10px] px-2 py-0.2 rounded-md font-bold bg-orange-500/20 text-orange-300 border border-orange-500/30">
+                                        {mod.category || 'Gameplay'}
+                                      </span>
+                                      {mod.downloadsCount && (
+                                        <span className="text-[10px] text-slate-400">Downloads: {mod.downloadsCount}</span>
+                                      )}
+                                    </div>
+                                    <p className="text-[11px] text-slate-300">{mod.description}</p>
+                                    <a
+                                      href={mod.nexusUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-[11px] font-mono text-cyan-400 hover:underline flex items-center gap-1"
+                                    >
+                                      <ExternalLink className="w-3 h-3" />
+                                      <span>{mod.nexusUrl}</span>
+                                    </a>
+                                  </div>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveModFromEditing(mod.id)}
+                                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-500/30 text-slate-400 hover:text-rose-300 transition-all cursor-pointer"
+                                    title="Remover mod"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              ))
+                            )}
+                          </div>
+
+                          {/* Add Manual Mod Form */}
+                          <div className="pt-3 border-t border-slate-800 space-y-2">
+                            <span className="text-[11px] font-bold text-slate-300 uppercase block">
+                              + Adicionar Mod do Nexus Mods Manualmente:
+                            </span>
+                            <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 text-xs">
+                              <div className="sm:col-span-3">
+                                <input
+                                  type="text"
+                                  value={manualModTitle}
+                                  onChange={e => setManualModTitle(e.target.value)}
+                                  placeholder="Nome do Mod (ex: 4K Textures)"
+                                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-orange-500"
+                                />
+                              </div>
+                              <div className="sm:col-span-4">
+                                <input
+                                  type="url"
+                                  value={manualModUrl}
+                                  onChange={e => setManualModUrl(e.target.value)}
+                                  placeholder="https://www.nexusmods.com/.../mods/..."
+                                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-orange-500"
+                                />
+                              </div>
+                              <div className="sm:col-span-3">
+                                <input
+                                  type="text"
+                                  value={manualModDesc}
+                                  onChange={e => setManualModDesc(e.target.value)}
+                                  placeholder="Descrição do mod..."
+                                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-orange-500"
+                                />
+                              </div>
+                              <div className="sm:col-span-1">
+                                <select
+                                  value={manualModCategory}
+                                  onChange={e => setManualModCategory(e.target.value)}
+                                  className="w-full px-1 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-[10px] focus:outline-none focus:border-orange-500 cursor-pointer"
+                                >
+                                  <option value="Gameplay">Gameplay</option>
+                                  <option value="Tradução">Tradução</option>
+                                  <option value="Gráficos/4K">Gráficos</option>
+                                  <option value="Fix/FPS">Fix/FPS</option>
+                                  <option value="Skins">Skins</option>
+                                </select>
+                              </div>
+                              <div className="sm:col-span-1">
+                                <button
+                                  type="button"
+                                  onClick={handleAddManualModToEditing}
+                                  className="w-full h-full py-2 rounded-xl bg-orange-500 hover:bg-orange-400 text-slate-950 font-black text-xs transition-all cursor-pointer flex items-center justify-center"
+                                  title="Inserir mod"
+                                >
+                                  <Plus className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Footer */}
+                    <div className="px-6 py-4 bg-slate-950/80 border-t border-slate-800 flex justify-between items-center">
+                      <span className="text-[11px] text-slate-400">
+                        {editingCheats.length} cheats • {editingMods.length} mods anexados
+                      </span>
+
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setEditingGame(null)}
+                          className="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white transition-all cursor-pointer"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleSaveEdit}
+                          className="px-5 py-2 rounded-xl text-xs font-bold bg-cyan-500 hover:bg-cyan-400 text-slate-950 transition-all cursor-pointer shadow-lg shadow-cyan-500/20"
+                        >
+                          Salvar Alterações
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

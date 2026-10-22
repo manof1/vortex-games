@@ -2,6 +2,7 @@ import React, { useState, Component, ErrorInfo, ReactNode } from 'react';
 import { 
   X, 
   ArrowLeft, 
+  ArrowRight,
   Download, 
   Copy, 
   Check, 

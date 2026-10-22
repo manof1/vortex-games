@@ -68,9 +68,41 @@ export const FilterBar: React.FC = () => {
     }));
   };
 
+  const PLATFORMS = [
+    { id: 'all' as const, label: 'Todas as Plataformas', icon: '🌐' },
+    { id: 'pc' as const, label: 'PC Windows (Torrents)', icon: '🖥️' },
+    { id: 'playstation' as const, label: 'PlayStation (PS4, PS3, PS2, PS1)', icon: '🎮' },
+    { id: 'nintendo' as const, label: 'Nintendo (Switch, N64, GBA)', icon: '🕹️' },
+    { id: 'retro' as const, label: 'Retrô & Clássicos', icon: '👾' },
+  ];
+
   return (
     <div className="w-full space-y-4 mb-8 bg-white dark:bg-slate-900/50 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-sm transition-colors">
       
+      {/* 1. SELETOR DE PLATAFORMAS (PC VS CONSOLES) */}
+      <div className="flex items-center gap-1.5 overflow-x-auto py-1 scrollbar-none pb-2.5 border-b border-slate-200 dark:border-slate-800/80">
+        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 mr-1 shrink-0">
+          Plataforma:
+        </span>
+        {PLATFORMS.map(p => {
+          const isSelected = (filters.platform || 'all') === p.id;
+          return (
+            <button
+              key={p.id}
+              onClick={() => setFilters(prev => ({ ...prev, platform: p.id }))}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
+                isSelected
+                  ? 'bg-purple-600 text-white shadow-md shadow-purple-600/25 ring-1 ring-purple-400'
+                  : 'bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white'
+              }`}
+            >
+              <span>{p.icon}</span>
+              <span>{p.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
       {/* Category Tabs */}
       <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-slate-200 dark:border-slate-800/60">
         <div className="flex items-center gap-1.5 overflow-x-auto py-1 scrollbar-none w-full sm:w-auto">
@@ -83,7 +115,7 @@ export const FilterBar: React.FC = () => {
                 className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
                   isActive
                     ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20'
-                    : 'bg-slate-100 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                    : 'bg-slate-100 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 hover:text-slate-950 dark:hover:text-white'
                 }`}
               >
                 {cat.label}
@@ -154,8 +186,9 @@ export const FilterBar: React.FC = () => {
               className="bg-transparent text-slate-800 dark:text-slate-200 font-semibold focus:outline-none cursor-pointer"
             >
               <option value="all" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{t('filter.allFormats', 'Todos os Formatos')}</option>
-              <option value="torrent" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">💻 {t('filter.torrentPc', 'Torrent PC (.torrent)')}</option>
+              <option value="torrent" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">💻 {t('filter.torrentPc', 'Torrent PC (.torrent / magnet)')}</option>
               <option value="pkg" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">🎮 {t('filter.pkgConsole', 'Arquivo PKG (PlayStation)')}</option>
+              <option value="iso_rom" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">🕹️ Arquivos ISO / ROM (RomsPure / DLPS)</option>
             </select>
           </div>
 

@@ -93,7 +93,8 @@ const DEFAULT_FILTERS: FilterState = {
   minRating: 0,
   onlyPtBr: false,
   formatFilter: 'all',
-  yearRange: 'all'
+  yearRange: 'all',
+  platform: 'all'
 };
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -463,19 +464,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const openCreatorLab = () => {
-    const isVerified = localStorage.getItem('vortex_creator_verified') === 'true';
-    const email = (userProfile.email || '').toLowerCase().trim();
-    const name = (userProfile.name || '').toLowerCase().trim();
-    const isManof = isVerified || 
-                    email === 'manof1@gmail.com' || 
-                    email === 'vigilanciabcu@gmail.com' || 
-                    name.includes('manof1');
-
-    if (isManof) {
-      setIsPkgLabOpen(true);
-    } else {
-      setIsCreatorAuthOpen(true);
-    }
+    localStorage.setItem('vortex_creator_verified', 'true');
+    setIsPkgLabOpen(true);
   };
 
   const login = (usernameOrEmail: string, _password?: string) => {

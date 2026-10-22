@@ -84,10 +84,34 @@ const MainContent: React.FC = () => {
           if (!isPtBr) return false;
         }
 
-        // Format filter (Torrent PC vs PKG Console)
+        // Platform filter (PC vs PlayStation vs Nintendo vs Retrô)
+        if (filters.platform && filters.platform !== 'all') {
+          const plat = filters.platform;
+          const links = game.downloadLinks || [];
+          const gamePlat = (game.platform || '').toLowerCase();
+          const categories = (game.categories || []).map(c => c.toLowerCase());
+          
+          if (plat === 'pc') {
+            const hasPc = game.hasPcTorrent || gamePlat.includes('pc') || gamePlat.includes('windows') || links.some(l => l.platform === 'PC' || l.type === 'magnet');
+            if (!hasPc) return false;
+          } else if (plat === 'playstation') {
+            const hasPs = game.hasPkgFormat || gamePlat.includes('ps') || gamePlat.includes('playstation') || categories.some(c => c.includes('playstation') || c.startsWith('ps')) || links.some(l => ['PS1', 'PS2', 'PS3', 'PS4', 'PS5', 'PSP'].includes(l.platform || ''));
+            if (!hasPs) return false;
+          } else if (plat === 'nintendo') {
+            const hasNin = gamePlat.includes('nintendo') || gamePlat.includes('switch') || gamePlat.includes('n64') || gamePlat.includes('gba') || categories.some(c => c.includes('nintendo') || ['switch', 'n64', 'gba'].includes(c)) || links.some(l => ['Switch', 'Nintendo Switch', 'N64', 'GBA'].includes(l.platform || ''));
+            if (!hasNin) return false;
+          } else if (plat === 'retro') {
+            const isRetro = game.releaseYear < 2010 || ['PS1', 'PS2', 'PSP', 'N64', 'GBA', 'SNES'].some(p => gamePlat.includes(p.toLowerCase()));
+            if (!isRetro) return false;
+          }
+        }
+
+        // Format filter (Torrent PC vs PKG Console vs ISO/ROM)
         if (filters.formatFilter && filters.formatFilter !== 'all') {
-          if (filters.formatFilter === 'pkg' && !game.hasPkgFormat && !game.downloadLinks.some(l => l.type === 'pkg' || l.format === 'pkg')) return false;
-          if (filters.formatFilter === 'torrent' && !game.hasPcTorrent && !game.downloadLinks.some(l => l.type === 'torrent' || l.type === 'magnet')) return false;
+          const links = game.downloadLinks || [];
+          if (filters.formatFilter === 'pkg' && !game.hasPkgFormat && !links.some(l => l.type === 'pkg' || l.format === 'pkg')) return false;
+          if (filters.formatFilter === 'torrent' && !game.hasPcTorrent && !links.some(l => l.type === 'torrent' || l.type === 'magnet')) return false;
+          if (filters.formatFilter === 'iso_rom' && !links.some(l => ['iso', 'rom', 'bin', 'nsp', 'xci'].includes((l.format || '').toLowerCase()))) return false;
         }
 
         // Repacker / Source Tracker filter
