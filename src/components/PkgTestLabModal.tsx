@@ -34,7 +34,8 @@ import {
   Layers,
   Bookmark,
   Upload,
-  Clipboard
+  Clipboard,
+  Globe
 } from 'lucide-react';
 import { PkgGame, getStoredPkgGames, savePkgGames, resetPkgGamesToDefault, updateStoredPkgGame, deleteStoredPkgGame } from '../data/pkgTestLabGames';
 import { 
@@ -50,7 +51,9 @@ import {
   fetchLiveGameMedia
 } from '../services/pkgScraperService';
 import { generateCustomGameCoverSvg, normalizeTitleForComparison } from '../data/playstationGameMedia';
-import { GameCheat, GameMod } from '../types';
+import { Game, GameCheat, GameMod, DownloadLink } from '../types';
+import { useGame } from '../context/GameContext';
+import { getGameCover, handleImageError } from '../utils/imageUtils';
 
 interface PkgTestLabModalProps {
   isOpen: boolean;
@@ -123,6 +126,12 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
   // Modo no editor: 'form' | 'preview'
   const [editorSubTab, setEditorSubTab] = useState<'form' | 'preview'>('form');
 
+  // Integração com jogos da loja Vortex
+  const { games: storeGames, addGame, updateGame, deleteGame: deleteStoreGame } = useGame();
+  const [catalogSource, setCatalogSource] = useState<'store' | 'lab'>('store');
+  const [editingStoreGameId, setEditingStoreGameId] = useState<string | null>(null);
+  const [storeFilterPlatform, setStoreFilterPlatform] = useState<'consoles' | 'all' | 'playstation' | 'nintendo' | 'pc'>('consoles');
+
   const [selectedPlatform, setSelectedPlatform] = useState<'ALL' | 'PS1' | 'PS2' | 'PS3' | 'PS4' | 'PS5' | 'PSP' | 'PS Vita' | string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGame, setSelectedGame] = useState<PkgGame | null>(null);
@@ -184,7 +193,46 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
     setTimeout(() => setSuccessToast(null), 4000);
   };
 
-  // Filtragem dos jogos no catálogo
+  // Conversor inteligente de Game (Loja Oficial) para PkgGame (Ambiente de Testes)
+  const convertStoreGameToPkgGame = (game: Game): PkgGame => {
+    const primaryLink = game.downloadLinks?.[0];
+    const detectedPlatform = primaryLink?.platform || game.platform || (game.categories?.find(c => ['PS1', 'PS2', 'PS3', 'PS4', 'PS5', 'PSP', 'PS Vita', 'Switch', 'Nintendo Switch', 'N64', 'GBA', 'PC'].includes(c)) || 'PS2');
+
+    return {
+      id: game.id,
+      title: game.title,
+      platform: detectedPlatform,
+      titleId: game.titleId || primaryLink?.titleId || `${detectedPlatform}-00000`,
+      fileUrl: primaryLink?.url || '',
+      fileSize: game.repackInfo?.repackSize || primaryLink?.size || '1.5 GB',
+      format: (primaryLink?.format?.toUpperCase() || (game.hasPkgFormat ? 'PKG' : 'ISO')),
+      firmware: primaryLink?.firmware || `${detectedPlatform} CFW / Emulador`,
+      region: 'NTSC-U',
+      coverUrl: getGameCover(game),
+      bannerUrl: game.bannerUrl || getGameCover(game),
+      screenshots: game.screenshots?.length ? game.screenshots : [getGameCover(game)],
+      description: game.description || game.shortDescription || '',
+      releaseYear: game.releaseYear || 2004,
+      releaseDate: game.releaseDate || `${game.releaseYear || 2004}`,
+      developer: game.developer || 'Estúdio Oficial',
+      publisher: game.publisher || 'Distribuidora',
+      genres: game.genres || ['Ação', 'Console'],
+      gamefaqsRating: game.rating || 4.8,
+      gamefaqsDifficulty: 'Equilibrado',
+      ptBrSupport: !!(game.hasPtBrAudio || game.hasPtBrSubs),
+      zukoStorePageUrl: game.originalTrackerUrl || '',
+      gamefaqsPageUrl: `https://gamefaqs.gamespot.com/search?game=${encodeURIComponent(game.title)}`,
+      gamefaqsBoxesUrl: '',
+      gamefaqsImagesUrl: '',
+      tags: game.tags || [],
+      cheats: game.cheats || [],
+      mods: game.mods || [],
+      gamefaqsCheatsUrl: game.gamefaqsCheatsUrl || '',
+      nexusModsUrl: game.nexusModsUrl || ''
+    };
+  };
+
+  // Filtragem dos jogos no catálogo local do laboratório
   const filteredGames = games.filter(g => {
     if (!g) return false;
     if (selectedPlatform !== 'ALL' && g.platform !== selectedPlatform) return false;
@@ -195,6 +243,40 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
       const genresList = Array.isArray(g.genres) ? g.genres : [];
       const matchGenre = genresList.some(gen => (gen || '').toLowerCase().includes(q));
       if (!matchTitle && !matchId && !matchGenre) return false;
+    }
+    return true;
+  });
+
+  // Filtragem dos jogos da loja oficial publicados no Portal Vortex
+  const filteredStoreGames = storeGames.filter(g => {
+    if (!g) return false;
+    
+    if (storeFilterPlatform === 'consoles') {
+      const isConsole = g.hasPkgFormat || 
+        g.categories?.some(c => ['PS1', 'PS2', 'PS3', 'PS4', 'PS5', 'PSP', 'PS Vita', 'Switch', 'Nintendo Switch', 'N64', 'GBA', 'GameCube', 'Wii', 'Consoles', 'Preservação de Consoles'].includes(c)) ||
+        g.downloadLinks?.some(l => ['PS1', 'PS2', 'PS3', 'PS4', 'PS5', 'PSP', 'PS Vita', 'Switch', 'Nintendo Switch', 'N64', 'GBA', 'GameCube', 'Wii', 'Emulador'].includes(l.platform || '') || l.format === 'pkg' || l.format === 'iso' || l.format === 'rom' || l.format === 'nsp' || l.format === 'xci');
+      if (!isConsole) return false;
+    } else if (storeFilterPlatform === 'playstation') {
+      const isPlayStation = g.hasPkgFormat || 
+        g.categories?.some(c => c.toLowerCase().includes('playstation') || ['PS1', 'PS2', 'PS3', 'PS4', 'PS5', 'PSP', 'PS Vita'].includes(c)) ||
+        g.downloadLinks?.some(l => ['PS1', 'PS2', 'PS3', 'PS4', 'PS5', 'PSP', 'PS Vita'].includes(l.platform || '') || l.format === 'pkg');
+      if (!isPlayStation) return false;
+    } else if (storeFilterPlatform === 'nintendo') {
+      const isNintendo = g.categories?.some(c => c.toLowerCase().includes('nintendo') || ['Switch', 'Nintendo Switch', 'N64', 'GBA', 'GameCube', 'Wii'].includes(c)) ||
+        g.downloadLinks?.some(l => ['Switch', 'Nintendo Switch', 'N64', 'GBA', 'GameCube', 'Wii'].includes(l.platform || '') || l.format === 'nsp' || l.format === 'xci');
+      if (!isNintendo) return false;
+    } else if (storeFilterPlatform === 'pc') {
+      const isPc = g.hasPcTorrent || g.downloadLinks?.some(l => l.platform === 'PC' || l.format === 'torrent' || l.type === 'magnet');
+      if (!isPc) return false;
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const matchTitle = (g.title || '').toLowerCase().includes(q);
+      const matchCategory = (g.categories || []).some(c => c.toLowerCase().includes(q));
+      const matchRepacker = (g.repackInfo?.repacker || '').toLowerCase().includes(q);
+      const matchTitleId = (g.titleId || '').toLowerCase().includes(q);
+      if (!matchTitle && !matchCategory && !matchRepacker && !matchTitleId) return false;
     }
     return true;
   });
@@ -548,6 +630,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
   // Iniciar criação de novo jogo do zero
   const handleStartNewGame = () => {
     setEditingGameId(null);
+    setEditingStoreGameId(null);
     setFormTitle('');
     setFormPlatform('PS2');
     setFormTitleId('SCUS-' + Math.floor(10000 + Math.random() * 89999));
@@ -576,9 +659,10 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
     setEditorSubTab('form');
   };
 
-  // Carregar jogo existente para Edição Posterior
+  // Carregar jogo existente do laboratório para Edição Posterior
   const handleEditGame = (game: PkgGame) => {
     setEditingGameId(game.id);
+    setEditingStoreGameId(null);
     setFormTitle(game.title);
     setFormPlatform(game.platform);
     setFormTitleId(game.titleId);
@@ -608,6 +692,49 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
     setEditorSubTab('form');
   };
 
+  // Carregar jogo já publicado no Portal Vortex para Edição (com Cheats & Mods)
+  const handleEditStoreGame = (game: Game) => {
+    const pkg = convertStoreGameToPkgGame(game);
+    setEditingStoreGameId(game.id);
+    setEditingGameId(pkg.id);
+    setFormTitle(pkg.title);
+    setFormPlatform(pkg.platform);
+    setFormTitleId(pkg.titleId);
+    setFormDownloadUrl(pkg.fileUrl);
+    setFormFormat(pkg.format || 'PKG');
+    setFormFileSize(pkg.fileSize);
+    setFormCoverUrl(pkg.coverUrl);
+    setCoverCandidates(pkg.coverOptions && pkg.coverOptions.length > 0 ? pkg.coverOptions : [pkg.coverUrl, pkg.bannerUrl].filter(Boolean));
+    setFormGamefaqsBoxesUrl(pkg.gamefaqsBoxesUrl || '');
+    setFormScreenshots(pkg.screenshots?.slice(0, 4) || ['', '', '', '']);
+    setScreenshotCandidates(pkg.screenshots || []);
+    setFormGamefaqsImagesUrl(pkg.gamefaqsImagesUrl || '');
+    setFormDescription(pkg.description);
+    setFormDeveloper(pkg.developer || '');
+    setFormPublisher(pkg.publisher || '');
+    setFormReleaseYear(pkg.releaseYear || 2004);
+    setFormGenres(pkg.genres || []);
+    setFormGamefaqsRating(pkg.gamefaqsRating || 4.8);
+    setFormPtBrSupport(pkg.ptBrSupport ?? true);
+    setFormCheats(game.cheats ? [...game.cheats] : (pkg.cheats || []));
+    setFormGamefaqsCheatsUrl(game.gamefaqsCheatsUrl || pkg.gamefaqsCheatsUrl || '');
+    setFormMods(game.mods ? [...game.mods] : (pkg.mods || []));
+    setFormNexusModsUrl(game.nexusModsUrl || pkg.nexusModsUrl || '');
+    setScraperInput(game.title);
+    setSelectedGame(null);
+    setCurrentTab('editor');
+    setEditorSubTab('form');
+    showNotification(`⚡ Jogo "${game.title}" aberto no ambiente de testes! Você pode adicionar/atualizar cheats e mods.`);
+  };
+
+  // Excluir jogo do catálogo oficial da loja
+  const handleDeleteStoreGame = (gameId: string, title: string) => {
+    if (window.confirm(`Tem certeza que deseja remover "${title}" do catálogo oficial do Portal Vortex?`)) {
+      deleteStoreGame(gameId);
+      showNotification(`🗑️ Jogo "${title}" excluído do Portal Vortex!`);
+    }
+  };
+
   // Excluir jogo do catálogo de testes
   const handleDeleteGame = (gameId: string, title: string) => {
     if (window.confirm(`Tem certeza que deseja remover "${title}" do catálogo de testes?`)) {
@@ -620,7 +747,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
     }
   };
 
-  // BOTÃO ENVIAR / SALVAR PUBLICAÇÃO
+  // BOTÃO ENVIAR / SALVAR / PUBLICAR NO PORTAL VORTEX
   const handleSaveOrPublish = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!formTitle.trim()) {
@@ -677,11 +804,95 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
       mods: formMods
     };
 
+    // 1. Salvar no Laboratório local
     const updatedCatalog = updateStoredPkgGame(savedGame);
     setGames(updatedCatalog);
+
+    // 2. Publicar ou Atualizar no Catálogo Oficial do Portal Vortex
+    const existingStoreGame = storeGames.find(g => 
+      (editingStoreGameId && g.id === editingStoreGameId) || 
+      g.id === targetId || 
+      g.title.toLowerCase() === formTitle.trim().toLowerCase()
+    );
+
+    const canonicalGameId = existingStoreGame ? existingStoreGame.id : (editingStoreGameId || `game-${cleanPlatform}-${Date.now()}`);
+
+    const canonicalGame: Game = {
+      id: canonicalGameId,
+      title: formTitle.trim(),
+      slug: formTitle.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      coverUrl: finalCover,
+      bannerUrl: formScreenshots.find(s => s && s.trim()) || finalCover,
+      shortDescription: cleanDesc.slice(0, 180) + '...',
+      description: cleanDesc || `${formTitle} em formato ${formFormat || 'PKG'} para ${formPlatform}.`,
+      genres: formGenres.length > 0 ? formGenres : ['Ação', 'Clássico'],
+      categories: Array.from(new Set([
+        formPlatform, 
+        'Preservação de Consoles', 
+        formFormat.toUpperCase(), 
+        ...(existingStoreGame?.categories || [])
+      ])),
+      releaseYear: formReleaseYear,
+      releaseDate: `${formReleaseYear}`,
+      developer: formDeveloper.trim() || 'PlayStation Scene',
+      publisher: formPublisher.trim() || 'TheZukoStore Archive',
+      rating: formGamefaqsRating,
+      totalVotes: existingStoreGame?.totalVotes || 8500,
+      repackInfo: {
+        repacker: existingStoreGame?.repackInfo?.repacker || `${formPlatform} Preservation Hub`,
+        version: existingStoreGame?.repackInfo?.version || 'v1.0 Oficial',
+        repackSize: formFileSize.trim() || '1.5 GB',
+        originalSize: formFileSize.trim() || '1.5 GB',
+        crackStatus: 'DRM Free',
+        crackGroup: `${formPlatform} Scene`
+      },
+      downloadLinks: [
+        {
+          id: `dl-${canonicalGameId}-primary`,
+          type: formFormat.toUpperCase() === 'PKG' ? 'pkg' : (formDownloadUrl.startsWith('magnet:') ? 'magnet' : 'direct'),
+          format: (formFormat.toLowerCase() as any) || 'pkg',
+          platform: formPlatform as any,
+          label: `${formFormat.toUpperCase()} ${formPlatform} (${formTitleId.trim() || 'Oficial'} - ${formFileSize})`,
+          url: formDownloadUrl.trim(),
+          size: formFileSize.trim() || '1.5 GB',
+          titleId: formTitleId.trim() || `${formPlatform}-00000`,
+          firmware: `${formPlatform} CFW / HEN / Oficial`,
+          isPtBrAudio: formPtBrSupport,
+          isPtBrSubs: formPtBrSupport,
+          hostName: formDownloadUrl.includes('thezukostore') ? 'TheZukoStore' : 'Vortex Archive'
+        },
+        ...(existingStoreGame?.downloadLinks?.filter(l => l.url !== formDownloadUrl.trim()) || [])
+      ],
+      systemRequirements: existingStoreGame?.systemRequirements || {
+        minimum: { os: `${formPlatform} ou Emulador`, processor: 'Dual Core 2.5GHz', memory: '4 GB RAM', graphics: 'DirectX 11', storage: formFileSize || '4 GB', directx: '11' },
+        recommended: { os: `${formPlatform} ou Emulador`, processor: 'Quad Core 3.5GHz', memory: '8 GB RAM', graphics: 'DirectX 12', storage: formFileSize || '8 GB', directx: '12' }
+      },
+      screenshots: finalScreenshots,
+      tags: [formPlatform, formFormat || 'PKG', 'TheZukoStore', 'GameFAQs', 'VortexGames'],
+      downloadsCount: existingStoreGame?.downloadsCount || 15400,
+      viewsCount: existingStoreGame?.viewsCount || 42000,
+      createdAt: existingStoreGame?.createdAt || new Date().toISOString(),
+      hasPtBrAudio: formPtBrSupport,
+      hasPtBrSubs: formPtBrSupport,
+      hasPkgFormat: formFormat.toUpperCase() === 'PKG' || existingStoreGame?.hasPkgFormat || false,
+      hasPcTorrent: formPlatform === 'PC' || formDownloadUrl.startsWith('magnet:') || existingStoreGame?.hasPcTorrent || false,
+      titleId: formTitleId.trim() || undefined,
+      platform: formPlatform,
+      cheats: formCheats,
+      mods: formMods,
+      gamefaqsCheatsUrl: formGamefaqsCheatsUrl.trim() || undefined,
+      nexusModsUrl: formNexusModsUrl.trim() || undefined
+    };
+
+    if (existingStoreGame) {
+      updateGame(canonicalGame);
+    } else {
+      addGame(canonicalGame);
+    }
+
     setSelectedGame(savedGame);
     setCurrentTab('catalog');
-    showNotification(editingGameId ? `✓ Publicação de "${savedGame.title}" atualizada com sucesso!` : `🚀 Jogo "${savedGame.title}" enviado e publicado com sucesso no catálogo!`);
+    showNotification(existingStoreGame ? `✓ Jogo "${savedGame.title}" e todos os cheats/mods atualizados no Portal Vortex!` : `🚀 Jogo "${savedGame.title}" publicado com sucesso no Portal Vortex com cheats e mods integrados!`);
   };
 
   // Gerenciamento de Screenshots (4 slots)
@@ -916,11 +1127,17 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-1 rounded-lg text-xs font-black bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 uppercase">
-                    {editingGameId ? 'Modo de Edição Posterior' : 'Nova Publicação PKG'}
+                  <span className={`px-2.5 py-1 rounded-lg text-xs font-black uppercase border ${
+                    editingStoreGameId 
+                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-sm'
+                      : (editingGameId ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30' : 'bg-purple-500/20 text-purple-300 border-purple-500/30')
+                  }`}>
+                    {editingStoreGameId ? '🌟 Editando Jogo Publicado no Portal' : (editingGameId ? 'Modo de Edição Posterior' : 'Nova Publicação PKG')}
                   </span>
                   <span className="text-xs text-slate-400">
-                    {editingGameId ? 'Altere capas, fotos, link de download, cheats e mods' : 'Puxe os dados ou configure do seu jeito'}
+                    {editingStoreGameId 
+                      ? 'Atualize capas, fotos, links e configure Cheats (GameFAQs) e Mods (Nexus Mods) para este jogo da loja' 
+                      : (editingGameId ? 'Altere capas, fotos, link de download, cheats e mods' : 'Puxe os dados ou configure do seu jeito')}
                   </span>
                 </div>
                 <h2 className="text-xl sm:text-2xl font-black text-white font-display">
@@ -965,7 +1182,11 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                   className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black text-xs transition-all cursor-pointer shadow-lg shadow-emerald-500/25 flex items-center gap-2 transform hover:scale-[1.02]"
                 >
                   <Send className="w-4 h-4" />
-                  <span>{editingGameId ? 'Salvar Alterações (Atualizar)' : 'Enviar / Publicar no Catálogo'}</span>
+                  <span>
+                    {editingStoreGameId 
+                      ? '🚀 Atualizar Jogo no Portal Vortex' 
+                      : (editingGameId ? 'Salvar Alterações (Atualizar)' : 'Enviar / Publicar no Catálogo')}
+                  </span>
                 </button>
               </div>
             </div>
@@ -2456,7 +2677,11 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                     className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black text-sm transition-all cursor-pointer shadow-xl shadow-emerald-500/30 flex items-center gap-2 transform hover:scale-[1.03]"
                   >
                     <Send className="w-5 h-5 stroke-[2.5]" />
-                    <span>{editingGameId ? 'Salvar Alterações (Atualizar Jogo)' : 'Enviar e Publicar Agora'}</span>
+                    <span>
+                      {editingStoreGameId 
+                        ? '🚀 Atualizar Jogo no Portal Vortex' 
+                        : (editingGameId ? 'Salvar Alterações (Atualizar Jogo)' : 'Enviar e Publicar Agora')}
+                    </span>
                   </button>
                 </div>
 
@@ -2488,7 +2713,14 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                   <div className="flex items-center gap-2">
                     {/* Botão de Edição Posterior a partir do Jogo Aberto */}
                     <button
-                      onClick={() => handleEditGame(selectedGame)}
+                      onClick={() => {
+                        const matchedStore = storeGames.find(g => g.id === selectedGame.id);
+                        if (matchedStore) {
+                          handleEditStoreGame(matchedStore);
+                        } else {
+                          handleEditGame(selectedGame);
+                        }
+                      }}
                       className="px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/40 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
@@ -2496,7 +2728,15 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                     </button>
 
                     <button
-                      onClick={() => handleDeleteGame(selectedGame.id, selectedGame.title)}
+                      onClick={() => {
+                        const matchedStore = storeGames.find(g => g.id === selectedGame.id);
+                        if (matchedStore) {
+                          handleDeleteStoreGame(matchedStore.id, matchedStore.title);
+                          setSelectedGame(null);
+                        } else {
+                          handleDeleteGame(selectedGame.id, selectedGame.title);
+                        }
+                      }}
                       className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/30 text-xs font-bold transition-all cursor-pointer"
                       title="Excluir este jogo"
                     >
@@ -2857,37 +3097,112 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
 
               </div>
             ) : (
-              /* Vista de Catálogo de Jogos com Botões de Editar Posterior */
+              /* Vista de Catálogo de Jogos (Jogos Publicados da Loja vs Rascunhos do Lab) */
               <div className="p-4 sm:p-6 space-y-6">
                 
-                {/* Filtros e Busca */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                  
-                  {/* Abas de Plataforma */}
-                  <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-950 border border-slate-800 w-full sm:w-auto overflow-x-auto">
-                    {[
-                      { id: 'ALL', label: `Todos (${games.length})`, activeCls: 'bg-cyan-500 text-slate-950 shadow-md' },
-                      { id: 'PS1', label: `PlayStation (${games.filter(g => g && g.platform === 'PS1').length})`, activeCls: 'bg-sky-600 text-white shadow-md' },
-                      { id: 'PS2', label: `PlayStation 2 (${games.filter(g => g && g.platform === 'PS2').length})`, activeCls: 'bg-indigo-700 text-amber-300 shadow-md' },
-                      { id: 'PS3', label: `PlayStation 3 (${games.filter(g => g && g.platform === 'PS3').length})`, activeCls: 'bg-rose-700 text-white shadow-md' },
-                      { id: 'PS4', label: `PlayStation 4 (${games.filter(g => g && g.platform === 'PS4').length})`, activeCls: 'bg-blue-600 text-white shadow-md' },
-                      { id: 'PS5', label: `PlayStation 5 (${games.filter(g => g && g.platform === 'PS5').length})`, activeCls: 'bg-slate-300 text-slate-950 shadow-md' },
-                      { id: 'PSP', label: `PSP (${games.filter(g => g && g.platform === 'PSP').length})`, activeCls: 'bg-teal-700 text-white shadow-md' },
-                      { id: 'PS Vita', label: `PS Vita (${games.filter(g => g && g.platform === 'PS Vita').length})`, activeCls: 'bg-purple-700 text-white shadow-md' },
-                    ].map(tab => (
+                {/* 1. SELETOR DE ORIGEM: JOGOS DA LOJA (COM FOCO NOS CONSOLES) VS RASCUNHOS DO LAB */}
+                <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shadow-lg">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">
+                      Origem:
+                    </span>
+                    <div className="flex p-1 rounded-xl bg-slate-900 border border-slate-800">
                       <button
-                        key={tab.id}
-                        onClick={() => setSelectedPlatform(tab.id)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                          selectedPlatform === tab.id
-                            ? tab.activeCls
+                        type="button"
+                        onClick={() => {
+                          setCatalogSource('store');
+                          setSelectedGame(null);
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                          catalogSource === 'store'
+                            ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-600/30 ring-1 ring-purple-400'
                             : 'text-slate-400 hover:text-white'
                         }`}
                       >
-                        {tab.label}
+                        <Globe className="w-3.5 h-3.5 text-purple-300" />
+                        <span>🎮 Jogos Publicados no Portal Vortex ({storeGames.length})</span>
                       </button>
-                    ))}
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCatalogSource('lab');
+                          setSelectedGame(null);
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                          catalogSource === 'lab'
+                            ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20 font-black'
+                            : 'text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        <Layers className="w-3.5 h-3.5" />
+                        <span>🔬 Rascunhos do Lab PKG ({games.length})</span>
+                      </button>
+                    </div>
                   </div>
+
+                  {/* Sub-filtros para Jogos da Loja (Foco Consoles) */}
+                  {catalogSource === 'store' && (
+                    <div className="flex items-center gap-1.5 overflow-x-auto text-xs pb-1 md:pb-0">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase shrink-0">Foco:</span>
+                      {[
+                        { id: 'consoles', label: '🎮 Consoles (PS, Switch, ROMs)' },
+                        { id: 'playstation', label: '🟦 PlayStation' },
+                        { id: 'nintendo', label: '🟥 Nintendo' },
+                        { id: 'pc', label: '🖥️ PC Windows' },
+                        { id: 'all', label: '🌐 Todos' },
+                      ].map(pill => (
+                        <button
+                          key={pill.id}
+                          type="button"
+                          onClick={() => setStoreFilterPlatform(pill.id as any)}
+                          className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap ${
+                            storeFilterPlatform === pill.id
+                              ? 'bg-purple-500 text-white shadow-sm ring-1 ring-purple-300'
+                              : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                          }`}
+                        >
+                          {pill.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. Filtros de Plataforma (quando em modo Lab) e Barra de Busca */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  {catalogSource === 'lab' ? (
+                    <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-950 border border-slate-800 w-full sm:w-auto overflow-x-auto">
+                      {[
+                        { id: 'ALL', label: `Todos (${games.length})`, activeCls: 'bg-cyan-500 text-slate-950 shadow-md' },
+                        { id: 'PS1', label: `PS1 (${games.filter(g => g && g.platform === 'PS1').length})`, activeCls: 'bg-sky-600 text-white shadow-md' },
+                        { id: 'PS2', label: `PS2 (${games.filter(g => g && g.platform === 'PS2').length})`, activeCls: 'bg-indigo-700 text-amber-300 shadow-md' },
+                        { id: 'PS3', label: `PS3 (${games.filter(g => g && g.platform === 'PS3').length})`, activeCls: 'bg-rose-700 text-white shadow-md' },
+                        { id: 'PS4', label: `PS4 (${games.filter(g => g && g.platform === 'PS4').length})`, activeCls: 'bg-blue-600 text-white shadow-md' },
+                        { id: 'PSP', label: `PSP (${games.filter(g => g && g.platform === 'PSP').length})`, activeCls: 'bg-teal-700 text-white shadow-md' },
+                        { id: 'PS Vita', label: `PS Vita (${games.filter(g => g && g.platform === 'PS Vita').length})`, activeCls: 'bg-purple-700 text-white shadow-md' },
+                      ].map(tab => (
+                        <button
+                          key={tab.id}
+                          onClick={() => setSelectedPlatform(tab.id)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                            selectedPlatform === tab.id
+                              ? tab.activeCls
+                              : 'text-slate-400 hover:text-white'
+                          }`}
+                        >
+                          {tab.label}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-xs text-slate-400">
+                      <span className="font-semibold text-white">
+                        {filteredStoreGames.length} {filteredStoreGames.length === 1 ? 'jogo encontrado' : 'jogos encontrados'} no Portal Vortex
+                      </span>
+                      <span>• Escolha qualquer um para editar, gerenciar cheats/mods ou excluir:</span>
+                    </div>
+                  )}
 
                   {/* Barra de Busca + Botão Nova Publicação */}
                   <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -2912,144 +3227,280 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
 
                     <button
                       onClick={handleStartNewGame}
-                      className="px-3.5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition-all cursor-pointer flex items-center gap-1.5 shrink-0 shadow-md"
+                      className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs transition-all cursor-pointer flex items-center gap-1.5 shrink-0 shadow-md"
                     >
                       <Plus className="w-4 h-4" />
-                      <span className="hidden sm:inline">Nova Publicação</span>
+                      <span>Nova Publicação</span>
                     </button>
                   </div>
-
                 </div>
 
-                {/* Grid de Jogos PKG com Opção de Editar Posterior */}
-                {filteredGames.length === 0 ? (
-                  <div className="p-12 text-center rounded-3xl bg-slate-950/40 border border-slate-800 space-y-3">
-                    <Gamepad2 className="w-12 h-12 text-slate-600 mx-auto" />
-                    <h4 className="text-sm font-bold text-white">Nenhum jogo PKG encontrado</h4>
-                    <p className="text-xs text-slate-400">Tente ajustar a busca ou use o botão "+ Nova Publicação" acima.</p>
-                    <button
-                      onClick={handleStartNewGame}
-                      className="px-4 py-2 rounded-xl bg-cyan-500 text-slate-950 font-bold text-xs"
-                    >
-                      + Criar Publicação Agora
-                    </button>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
-                    {filteredGames.map(game => (
-                      <div
-                        key={game.id}
-                        className="group relative rounded-2xl overflow-hidden bg-slate-950/70 border border-slate-800/80 hover:border-cyan-500/50 hover:shadow-xl hover:shadow-cyan-500/10 transition-all duration-300 flex flex-col"
+                {/* 3. GRID DE JOGOS: SELECIONAR JOGO PUBLICADO OU RASCUNHO */}
+                {catalogSource === 'store' ? (
+                  /* GRID DOS JOGOS DA LOJA (COM FOCO NOS CONSOLES) */
+                  filteredStoreGames.length === 0 ? (
+                    <div className="p-12 text-center rounded-3xl bg-slate-950/40 border border-slate-800 space-y-3">
+                      <Gamepad2 className="w-12 h-12 text-slate-600 mx-auto" />
+                      <h4 className="text-sm font-bold text-white">Nenhum jogo encontrado com os filtros selecionados</h4>
+                      <p className="text-xs text-slate-400">Tente buscar por outro termo ou selecione "Todos".</p>
+                      <button
+                        onClick={handleStartNewGame}
+                        className="px-4 py-2 rounded-xl bg-cyan-500 text-slate-950 font-bold text-xs cursor-pointer"
                       >
-                        {/* Box da Capa GameFAQs */}
-                        <div 
-                          onClick={() => setSelectedGame(game)}
-                          className="relative aspect-[3/4] overflow-hidden cursor-pointer"
+                        + Criar Novo Jogo Agora
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
+                      {filteredStoreGames.map(storeGame => {
+                        const platTag = storeGame.platform || storeGame.categories?.[0] || 'Console';
+                        const formatTag = storeGame.downloadLinks?.[0]?.format?.toUpperCase() || (storeGame.hasPkgFormat ? 'PKG' : 'TORRENT');
+                        const cheatsCount = storeGame.cheats?.length || 0;
+                        const modsCount = storeGame.mods?.length || 0;
+
+                        return (
+                          <div
+                            key={storeGame.id}
+                            className="group relative rounded-2xl overflow-hidden bg-slate-950/70 border border-slate-800/80 hover:border-purple-500/50 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300 flex flex-col"
+                          >
+                            {/* Capa */}
+                            <div 
+                              onClick={() => setSelectedGame(convertStoreGameToPkgGame(storeGame))}
+                              className="relative aspect-[3/4] overflow-hidden cursor-pointer"
+                            >
+                              <img
+                                src={getGameCover(storeGame)}
+                                alt={storeGame.title}
+                                referrerPolicy="no-referrer"
+                                onError={(e) => handleImageError(e, storeGame)}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              />
+
+                              {/* Selo da Plataforma */}
+                              <span className={`absolute top-2 left-2 px-2 py-0.5 rounded-lg text-[10px] font-black shadow-md border ${getPlatformBadge(platTag)}`}>
+                                {platTag} {formatTag}
+                              </span>
+
+                              {/* Selo Publicado Loja */}
+                              <span className="absolute top-2 right-2 px-1.5 py-0.5 rounded-lg text-[9px] font-bold bg-emerald-950/90 text-emerald-300 border border-emerald-500/50 shadow">
+                                PUBLICADO
+                              </span>
+
+                              {/* Badges de Cheats e Mods */}
+                              <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between gap-1 pointer-events-none">
+                                {cheatsCount > 0 ? (
+                                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 shadow-md flex items-center gap-0.5">
+                                    <Zap className="w-2.5 h-2.5 fill-slate-950" />
+                                    <span>{cheatsCount} Cheats</span>
+                                  </span>
+                                ) : (
+                                  <span />
+                                )}
+                                {modsCount > 0 && (
+                                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-orange-500 text-slate-950 shadow-md flex items-center gap-0.5 ml-auto">
+                                    <Package className="w-2.5 h-2.5" />
+                                    <span>{modsCount} Mods</span>
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Informações */}
+                            <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between space-y-3">
+                              <div>
+                                <div className="flex items-center justify-between text-[11px] mb-1">
+                                  <span className="text-amber-400 font-bold flex items-center gap-1">
+                                    <Star className="w-3 h-3 fill-amber-400" />
+                                    {storeGame.rating || 4.8}
+                                  </span>
+                                  <span className="text-slate-400 font-semibold flex items-center gap-1">
+                                    <HardDrive className="w-3 h-3 text-cyan-400" />
+                                    {storeGame.repackInfo?.repackSize || storeGame.downloadLinks?.[0]?.size || '1.5 GB'}
+                                  </span>
+                                </div>
+
+                                <h4 
+                                  onClick={() => setSelectedGame(convertStoreGameToPkgGame(storeGame))}
+                                  className="text-xs sm:text-sm font-bold text-white group-hover:text-purple-300 transition-colors line-clamp-2 cursor-pointer leading-tight"
+                                >
+                                  {storeGame.title}
+                                </h4>
+
+                                <span className="text-[10px] text-slate-500 block mt-1">
+                                  {storeGame.releaseYear} • {storeGame.developer || storeGame.repackInfo?.repacker || 'Oficial'}
+                                </span>
+                              </div>
+
+                              {/* Botões de Ação: Editar no Lab & Excluir */}
+                              <div className="space-y-1.5 pt-2 border-t border-slate-800/80">
+                                <div className="grid grid-cols-2 gap-1.5">
+                                  {/* BOTÃO EDITAR NO LAB (COM CHEATS & MODS) */}
+                                  <button
+                                    onClick={() => handleEditStoreGame(storeGame)}
+                                    className="py-1.5 px-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1 shadow-md shadow-purple-600/20"
+                                    title="Editar jogo no ambiente de testes (adicionar/alterar cheats, mods, capa e fotos)"
+                                  >
+                                    <Edit3 className="w-3 h-3" />
+                                    <span>Editar</span>
+                                  </button>
+
+                                  {/* BOTÃO EXCLUIR DA LOJA */}
+                                  <button
+                                    onClick={() => handleDeleteStoreGame(storeGame.id, storeGame.title)}
+                                    className="py-1.5 px-2 rounded-xl bg-slate-800 hover:bg-rose-600 text-rose-400 hover:text-white text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1"
+                                    title="Excluir este jogo do Portal Vortex"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                    <span>Excluir</span>
+                                  </button>
+                                </div>
+
+                                <button
+                                  onClick={() => setSelectedGame(convertStoreGameToPkgGame(storeGame))}
+                                  className="w-full py-1.5 px-3 rounded-xl bg-slate-800 hover:bg-purple-600 text-slate-300 hover:text-white text-xs font-bold transition-all cursor-pointer flex items-center justify-between gap-1.5 border border-slate-700"
+                                >
+                                  <span>Ver Ficha & Mídia</span>
+                                  <ArrowRight className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )
+                ) : (
+                  /* GRID DOS RASCUNHOS LOCAIS DO LABORATÓRIO */
+                  filteredGames.length === 0 ? (
+                    <div className="p-12 text-center rounded-3xl bg-slate-950/40 border border-slate-800 space-y-3">
+                      <Gamepad2 className="w-12 h-12 text-slate-600 mx-auto" />
+                      <h4 className="text-sm font-bold text-white">Nenhum rascunho de teste encontrado</h4>
+                      <p className="text-xs text-slate-400">Tente ajustar a busca ou use o botão "+ Nova Publicação" acima.</p>
+                      <button
+                        onClick={handleStartNewGame}
+                        className="px-4 py-2 rounded-xl bg-cyan-500 text-slate-950 font-bold text-xs"
+                      >
+                        + Criar Publicação Agora
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
+                      {filteredGames.map(game => (
+                        <div
+                          key={game.id}
+                          className="group relative rounded-2xl overflow-hidden bg-slate-950/70 border border-slate-800/80 hover:border-cyan-500/50 hover:shadow-xl hover:shadow-cyan-500/10 transition-all duration-300 flex flex-col"
                         >
-                          <img
-                            src={game.coverUrl}
-                            alt={game.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-                          
-                          {/* Selo da Plataforma */}
-                          <span className={`absolute top-2 left-2 px-2 py-0.5 rounded-lg text-[10px] font-black shadow-md border ${getPlatformBadge(game.platform)}`}>
-                            {game.platform} {game.format || 'PKG'}
-                          </span>
-
-                          {/* Title ID Chip */}
-                          <span className="absolute top-2 right-2 px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold bg-slate-900/90 text-cyan-300 border border-slate-700/80 shadow">
-                            {game.titleId}
-                          </span>
-
-                          {/* Selos de Cheats e Mods no Card */}
-                          <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between gap-1 pointer-events-none">
-                            {game.cheats && game.cheats.length > 0 && (
-                              <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-500/90 text-slate-950 shadow-md flex items-center gap-0.5">
-                                <Zap className="w-2.5 h-2.5 fill-slate-950" />
-                                <span>Cheats ON</span>
-                              </span>
-                            )}
-                            {game.mods && game.mods.length > 0 && (
-                              <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-orange-500/90 text-slate-950 shadow-md flex items-center gap-0.5 ml-auto">
-                                <Package className="w-2.5 h-2.5" />
-                                <span>Mods ON</span>
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Overlay Hover */}
-                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
-                            <span className="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
-                              <Maximize2 className="w-3.5 h-3.5" />
-                              Ver Ficha & 4 Fotos
+                          {/* Box da Capa GameFAQs */}
+                          <div 
+                            onClick={() => setSelectedGame(game)}
+                            className="relative aspect-[3/4] overflow-hidden cursor-pointer"
+                          >
+                            <img
+                              src={game.coverUrl}
+                              alt={game.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                            
+                            {/* Selo da Plataforma */}
+                            <span className={`absolute top-2 left-2 px-2 py-0.5 rounded-lg text-[10px] font-black shadow-md border ${getPlatformBadge(game.platform)}`}>
+                              {game.platform} {game.format || 'PKG'}
                             </span>
-                          </div>
-                        </div>
 
-                        {/* Box de Informações */}
-                        <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between space-y-3">
-                          <div>
-                            {/* Nota & Tamanho */}
-                            <div className="flex items-center justify-between text-[11px] mb-1">
-                              <span className="text-amber-400 font-bold flex items-center gap-1">
-                                <Star className="w-3 h-3 fill-amber-400" />
-                                {game.gamefaqsRating || 4.8}
+                            {/* Title ID Chip */}
+                            <span className="absolute top-2 right-2 px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold bg-slate-900/90 text-cyan-300 border border-slate-700/80 shadow">
+                              {game.titleId}
+                            </span>
+
+                            {/* Selos de Cheats e Mods no Card */}
+                            <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between gap-1 pointer-events-none">
+                              {game.cheats && game.cheats.length > 0 && (
+                                <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-500/90 text-slate-950 shadow-md flex items-center gap-0.5">
+                                  <Zap className="w-2.5 h-2.5 fill-slate-950" />
+                                  <span>Cheats ON</span>
+                                </span>
+                              )}
+                              {game.mods && game.mods.length > 0 && (
+                                <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-orange-500/90 text-slate-950 shadow-md flex items-center gap-0.5 ml-auto">
+                                  <Package className="w-2.5 h-2.5" />
+                                  <span>Mods ON</span>
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Overlay Hover */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
+                              <span className="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
+                                <Maximize2 className="w-3.5 h-3.5" />
+                                Ver Ficha & 4 Fotos
                               </span>
-                              <span className="text-slate-400 font-semibold flex items-center gap-1">
-                                <HardDrive className="w-3 h-3 text-cyan-400" />
-                                {game.fileSize}
+                            </div>
+                          </div>
+
+                          {/* Box de Informações */}
+                          <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between space-y-3">
+                            <div>
+                              {/* Nota & Tamanho */}
+                              <div className="flex items-center justify-between text-[11px] mb-1">
+                                <span className="text-amber-400 font-bold flex items-center gap-1">
+                                  <Star className="w-3 h-3 fill-amber-400" />
+                                  {game.gamefaqsRating || 4.8}
+                                </span>
+                                <span className="text-slate-400 font-semibold flex items-center gap-1">
+                                  <HardDrive className="w-3 h-3 text-cyan-400" />
+                                  {game.fileSize}
+                                </span>
+                              </div>
+
+                              {/* Título do Jogo */}
+                              <h4 
+                                onClick={() => setSelectedGame(game)}
+                                className="text-xs sm:text-sm font-bold text-white group-hover:text-cyan-400 transition-colors line-clamp-2 cursor-pointer leading-tight"
+                              >
+                                {game.title}
+                              </h4>
+
+                              <span className="text-[10px] text-slate-500 block mt-1">
+                                {(game.genres || []).slice(0, 2).join(' • ')}
                               </span>
                             </div>
 
-                            {/* Título do Jogo */}
-                            <h4 
-                              onClick={() => setSelectedGame(game)}
-                              className="text-xs sm:text-sm font-bold text-white group-hover:text-cyan-400 transition-colors line-clamp-2 cursor-pointer leading-tight"
-                            >
-                              {game.title}
-                            </h4>
+                            {/* Botões de Ação: Ver Ficha & EDITAR POSTERIOR */}
+                            <div className="space-y-1.5 pt-2 border-t border-slate-800/80">
+                              <div className="grid grid-cols-2 gap-1.5">
+                                <button
+                                  onClick={() => setSelectedGame(game)}
+                                  className="py-1.5 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-400 hover:text-cyan-300 text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1"
+                                >
+                                  <span>Ver</span>
+                                </button>
 
-                            <span className="text-[10px] text-slate-500 block mt-1">
-                              {(game.genres || []).slice(0, 2).join(' • ')}
-                            </span>
-                          </div>
+                                {/* BOTÃO EDITAR POSTERIOR */}
+                                <button
+                                  onClick={() => handleEditGame(game)}
+                                  className="py-1.5 px-2 rounded-xl bg-amber-500/15 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/30 text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1"
+                                  title="Editar esta postagem posteriormente"
+                                >
+                                  <Edit3 className="w-3 h-3" />
+                                  <span>Editar</span>
+                                </button>
+                              </div>
 
-                          {/* Botões de Ação: Ver Ficha & EDITAR POSTERIOR */}
-                          <div className="space-y-1.5 pt-2 border-t border-slate-800/80">
-                            <div className="grid grid-cols-2 gap-1.5">
                               <button
                                 onClick={() => setSelectedGame(game)}
-                                className="py-1.5 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-400 hover:text-cyan-300 text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1"
+                                className="w-full py-2 px-3 rounded-xl bg-slate-800 hover:bg-cyan-500 text-slate-300 hover:text-slate-950 text-xs font-bold transition-all cursor-pointer flex items-center justify-between gap-1.5 border border-slate-700 hover:border-cyan-400"
                               >
-                                <span>Ver</span>
-                              </button>
-
-                              {/* BOTÃO EDITAR POSTERIOR */}
-                              <button
-                                onClick={() => handleEditGame(game)}
-                                className="py-1.5 px-2 rounded-xl bg-amber-500/15 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/30 text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1"
-                                title="Editar esta postagem posteriormente"
-                              >
-                                <Edit3 className="w-3 h-3" />
-                                <span>Editar</span>
+                                <span>Ver Ficha & Downloads</span>
+                                <ArrowRight className="w-3.5 h-3.5" />
                               </button>
                             </div>
 
-                            <button
-                              onClick={() => setSelectedGame(game)}
-                              className="w-full py-2 px-3 rounded-xl bg-slate-800 hover:bg-cyan-500 text-slate-300 hover:text-slate-950 text-xs font-bold transition-all cursor-pointer flex items-center justify-between gap-1.5 border border-slate-700 hover:border-cyan-400"
-                            >
-                              <span>Ver Ficha & Downloads</span>
-                              <ArrowRight className="w-3.5 h-3.5" />
-                            </button>
                           </div>
 
                         </div>
-
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )
                 )}
 
               </div>
