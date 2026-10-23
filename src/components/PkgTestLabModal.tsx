@@ -57,6 +57,17 @@ import { generateCustomGameCoverSvg, normalizeTitleForComparison } from '../data
 import { Game, GameCheat, GameMod, DownloadLink } from '../types';
 import { useGame } from '../context/GameContext';
 import { getGameCover, handleImageError } from '../utils/imageUtils';
+import { upsertGameToSupabase, deleteGameFromSupabase } from '../services/supabaseClient';
+
+/**
+ * Remove qualquer marca/texto entre parênteses como (TheZukoStore), mantendo apenas números e MB/GB limpos.
+ * Exemplo: "342 MB (TheZukoStore)" -> "342 MB", "2.5 GB" -> "2.5 GB"
+ */
+export const formatCleanFileSize = (sizeStr?: string): string => {
+  if (!sizeStr) return '1.5 GB';
+  const cleaned = sizeStr.replace(/\s*\([^)]*\)/gi, '').trim();
+  return cleaned || sizeStr.trim();
+};
 
 export interface FormDownloadLink {
   id: string;
@@ -163,6 +174,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
   const [isFetchingBoxes, setIsFetchingBoxes] = useState(false);
   const [isFetchingImages, setIsFetchingImages] = useState(false);
   const [cheatCategoryFilter, setCheatCategoryFilter] = useState<string>('ALL');
+  const [isSavingToSupabase, setIsSavingToSupabase] = useState(false);
 
   // Campos do formulário
   const [formTitle, setFormTitle] = useState('');
@@ -289,7 +301,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
       platform: detectedPlatform,
       titleId: game.titleId || primaryLink?.titleId || `${detectedPlatform}-00000`,
       fileUrl: primaryLink?.url || '',
-      fileSize: game.repackInfo?.repackSize || primaryLink?.size || '1.5 GB',
+      fileSize: formatCleanFileSize(game.repackInfo?.repackSize || primaryLink?.size || '1.5 GB'),
       format: (primaryLink?.format?.toUpperCase() || (game.hasPkgFormat ? 'PKG' : 'ISO')),
       firmware: primaryLink?.firmware || `${detectedPlatform} CFW / Emulador`,
       region: 'NTSC-U',
@@ -772,7 +784,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
     setFormTitleId(game.titleId);
     setFormDownloadUrl(game.fileUrl);
     setFormFormat(game.format || 'PKG');
-    setFormFileSize(game.fileSize);
+    setFormFileSize(formatCleanFileSize(game.fileSize));
 
     if (game.downloadLinks && game.downloadLinks.length > 0) {
       setFormDownloadLinks(game.downloadLinks.map((dl, idx) => ({
@@ -781,8 +793,8 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
         url: dl.url || '',
         format: (dl.format || game.format || 'PKG').toUpperCase(),
         language: dl.language || (game.ptBrSupport ? 'Legendado PT-BR' : 'Original'),
-        size: dl.size || game.fileSize || '1.5 GB',
-        hostName: dl.hostName || (dl.url?.includes('thezukostore') ? 'TheZukoStore' : 'TheZukoStore')
+        size: formatCleanFileSize(dl.size || game.fileSize || '1.5 GB'),
+        hostName: dl.hostName || 'Servidor Principal'
       })));
     } else {
       setFormDownloadLinks([{
@@ -791,8 +803,8 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
         url: game.fileUrl || '',
         format: (game.format || 'PKG').toUpperCase(),
         language: game.ptBrSupport ? 'Legendado PT-BR' : 'Original',
-        size: game.fileSize || '1.5 GB',
-        hostName: game.fileUrl?.includes('thezukostore') ? 'TheZukoStore' : 'TheZukoStore'
+        size: formatCleanFileSize(game.fileSize || '1.5 GB'),
+        hostName: 'Servidor Principal'
       }]);
     }
 
@@ -829,7 +841,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
     setFormTitleId(pkg.titleId);
     setFormDownloadUrl(pkg.fileUrl);
     setFormFormat(pkg.format || 'PKG');
-    setFormFileSize(pkg.fileSize);
+    setFormFileSize(formatCleanFileSize(pkg.fileSize));
 
     if (game.downloadLinks && game.downloadLinks.length > 0) {
       setFormDownloadLinks(game.downloadLinks.map((dl, idx) => ({
@@ -838,8 +850,8 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
         url: dl.url || '',
         format: (dl.format || 'PKG').toUpperCase(),
         language: dl.language || (dl.isPtBrAudio && dl.isPtBrSubs ? 'Dublado & Legendado PT-BR' : (dl.isPtBrAudio ? 'Dublado PT-BR' : (dl.isPtBrSubs ? 'Legendado PT-BR' : 'Original'))),
-        size: dl.size || '1.5 GB',
-        hostName: dl.hostName || (dl.url?.includes('thezukostore') ? 'TheZukoStore' : dl.url?.includes('drive.google') ? 'Google Drive' : dl.url?.includes('mediafire') ? 'MediaFire' : dl.url?.includes('mega.nz') ? 'Mega' : (dl.url?.startsWith('magnet:') ? 'Torrent' : 'Servidor Direto'))
+        size: formatCleanFileSize(dl.size || '1.5 GB'),
+        hostName: dl.hostName || (dl.url?.includes('thezukostore') ? 'Servidor Dedicado' : dl.url?.includes('drive.google') ? 'Google Drive' : dl.url?.includes('mediafire') ? 'MediaFire' : dl.url?.includes('mega.nz') ? 'Mega' : (dl.url?.startsWith('magnet:') ? 'Torrent' : 'Servidor Direto'))
       })));
     } else {
       setFormDownloadLinks([{
@@ -848,8 +860,8 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
         url: pkg.fileUrl || '',
         format: (pkg.format || 'PKG').toUpperCase(),
         language: pkg.ptBrSupport ? 'Legendado PT-BR' : 'Original',
-        size: pkg.fileSize || '1.5 GB',
-        hostName: 'TheZukoStore'
+        size: formatCleanFileSize(pkg.fileSize || '1.5 GB'),
+        hostName: 'Servidor Principal'
       }]);
     }
 
@@ -877,11 +889,12 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
     showNotification(`⚡ Jogo "${game.title}" aberto no ambiente de testes! Você pode adicionar/atualizar cheats, links e idiomas.`);
   };
 
-  // Excluir jogo do catálogo oficial da loja
-  const handleDeleteStoreGame = (gameId: string, title: string) => {
+  // Excluir jogo do catálogo oficial da loja e do Supabase
+  const handleDeleteStoreGame = async (gameId: string, title: string) => {
     if (window.confirm(`Tem certeza que deseja remover "${title}" do catálogo oficial do Portal Vortex?`)) {
       deleteStoreGame(gameId);
-      showNotification(`🗑️ Jogo "${title}" excluído do Portal Vortex!`);
+      await deleteGameFromSupabase(gameId);
+      showNotification(`🗑️ Jogo "${title}" excluído do Portal Vortex e do banco de dados Supabase!`);
     }
   };
 
@@ -897,8 +910,8 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
     }
   };
 
-  // BOTÃO ENVIAR / SALVAR / PUBLICAR NO PORTAL VORTEX
-  const handleSaveOrPublish = (e?: React.FormEvent) => {
+  // BOTÃO ENVIAR / SALVAR / PUBLICAR NO PORTAL VORTEX & SUPABASE
+  const handleSaveOrPublish = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!formTitle.trim()) {
       alert('Por favor, informe o título do jogo.');
@@ -908,163 +921,181 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
     // Verificar se existe ao menos 1 link de download preenchido
     const validLinks = formDownloadLinks.filter(l => l.url.trim().length > 0);
     if (validLinks.length === 0 && !formDownloadUrl.trim()) {
-      alert('Por favor, adicione pelo menos um Link de Download válido (TheZukoStore PKG, Torrent, Google Drive ou link direto).');
+      alert('Por favor, adicione pelo menos um Link de Download válido (PKG, Torrent, Google Drive ou link direto).');
       return;
     }
 
-    const cleanPlatform = formPlatform.toLowerCase().replace(/[^a-z0-9]/g, '');
-    const targetId = editingGameId || `pkg-${cleanPlatform}-${Date.now()}`;
-    const cleanScreenshots = formScreenshots.filter(s => s && s.trim().startsWith('http'));
-    const finalScreenshots = cleanScreenshots.length > 0 
-      ? cleanScreenshots.slice(0, 4) 
-      : (formCoverUrl.trim() ? [formCoverUrl.trim()] : []);
+    setIsSavingToSupabase(true);
+    try {
+      const cleanPlatform = formPlatform.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const targetId = editingGameId || `pkg-${cleanPlatform}-${Date.now()}`;
+      const cleanScreenshots = formScreenshots.filter(s => s && s.trim().startsWith('http'));
+      const finalScreenshots = cleanScreenshots.length > 0 
+        ? cleanScreenshots.slice(0, 4) 
+        : (formCoverUrl.trim() ? [formCoverUrl.trim()] : []);
 
-    const cleanDesc = formDescription.replace(/^Sinopse GameFAQs:\s*/i, '').trim();
-    const finalCover = formCoverUrl.trim() || generateCustomGameCoverSvg(formTitle.trim(), formPlatform, 'Capa Oficial');
+      const cleanDesc = formDescription.replace(/^Sinopse GameFAQs:\s*/i, '').trim();
+      const finalCover = formCoverUrl.trim() || generateCustomGameCoverSvg(formTitle.trim(), formPlatform, 'Capa Oficial');
 
-    // Mapeamento dos múltiplos links para o formato DownloadLink oficial
-    const canonicalLinks: DownloadLink[] = (validLinks.length > 0 ? validLinks : [{
-      id: `dl-${targetId}-primary`,
-      label: `${formFormat.toUpperCase()} ${formPlatform} (Servidor Principal)`,
-      url: formDownloadUrl.trim(),
-      format: formFormat,
-      language: 'Legendado PT-BR',
-      size: formFileSize,
-      hostName: 'TheZukoStore'
-    }]).map((l, idx) => {
-      const isPkg = l.format.toUpperCase() === 'PKG';
-      const isTorrent = l.url.startsWith('magnet:') || l.format.toUpperCase() === 'TORRENT';
-      const isPtBrAudio = l.language.includes('Dublado');
-      const isPtBrSubs = l.language.includes('Legendado') || l.language.includes('Dublado');
+      // Mapeamento dos múltiplos links para o formato DownloadLink oficial (tamanho limpo, sem marcas adicionais)
+      const canonicalLinks: DownloadLink[] = (validLinks.length > 0 ? validLinks : [{
+        id: `dl-${targetId}-primary`,
+        label: `${formFormat.toUpperCase()} ${formPlatform} (Servidor Principal)`,
+        url: formDownloadUrl.trim(),
+        format: formFormat,
+        language: 'Legendado PT-BR',
+        size: formatCleanFileSize(formFileSize),
+        hostName: 'Servidor Principal'
+      }]).map((l, idx) => {
+        const isPkg = l.format.toUpperCase() === 'PKG';
+        const isTorrent = l.url.startsWith('magnet:') || l.format.toUpperCase() === 'TORRENT';
+        const isPtBrAudio = l.language.includes('Dublado');
+        const isPtBrSubs = l.language.includes('Legendado') || l.language.includes('Dublado');
 
-      return {
-        id: l.id || `dl-${targetId}-${idx + 1}`,
-        type: isPkg ? 'pkg' : (isTorrent ? 'magnet' : 'direct'),
-        format: (l.format.toLowerCase() as any) || 'pkg',
-        platform: formPlatform as any,
-        label: l.label.trim() || `Opção #${idx + 1} (${l.format.toUpperCase()} • ${l.language})`,
-        url: l.url.trim(),
-        size: l.size.trim() || '1.5 GB',
+        return {
+          id: l.id || `dl-${targetId}-${idx + 1}`,
+          type: isPkg ? 'pkg' : (isTorrent ? 'magnet' : 'direct'),
+          format: (l.format.toLowerCase() as any) || 'pkg',
+          platform: formPlatform as any,
+          label: l.label.trim() || `Opção #${idx + 1} (${l.format.toUpperCase()} • ${l.language})`,
+          url: l.url.trim(),
+          size: formatCleanFileSize(l.size.trim() || '1.5 GB'),
+          titleId: formTitleId.trim() || `${formPlatform}-00000`,
+          firmware: `${formPlatform} CFW / HEN / Oficial`,
+          hostName: l.hostName.trim() || (l.url.includes('thezukostore') ? 'Servidor Dedicado' : l.url.includes('drive.google') ? 'Google Drive' : l.url.includes('mediafire') ? 'MediaFire' : 'Servidor Direto'),
+          language: l.language,
+          isPtBrAudio,
+          isPtBrSubs
+        };
+      });
+
+      const primaryLink = canonicalLinks[0];
+      const cleanSize = formatCleanFileSize(primaryLink.size || formFileSize);
+
+      const savedGame: PkgGame = {
+        id: targetId,
+        title: formTitle.trim(),
+        platform: formPlatform,
         titleId: formTitleId.trim() || `${formPlatform}-00000`,
+        fileUrl: primaryLink.url,
+        fileSize: cleanSize,
+        format: (primaryLink.format || formFormat).toUpperCase(),
         firmware: `${formPlatform} CFW / HEN / Oficial`,
-        hostName: l.hostName.trim() || (l.url.includes('thezukostore') ? 'TheZukoStore' : l.url.includes('drive.google') ? 'Google Drive' : l.url.includes('mediafire') ? 'MediaFire' : 'Servidor Direto'),
-        language: l.language,
-        isPtBrAudio,
-        isPtBrSubs
+        region: 'NTSC-U',
+        coverUrl: finalCover,
+        coverOptions: coverCandidates.length > 0 ? coverCandidates : undefined,
+        bannerUrl: formScreenshots.find(s => s && s.trim()) || finalCover,
+        screenshots: finalScreenshots,
+        description: cleanDesc || `${formTitle} em formato ${formFormat || 'PKG'} para ${formPlatform}.`,
+        releaseYear: formReleaseYear,
+        releaseDate: `${formReleaseYear}`,
+        developer: formDeveloper.trim() || 'PlayStation Scene',
+        publisher: formPublisher.trim() || 'Vortex Archive',
+        genres: formGenres.length > 0 ? formGenres : ['Ação', 'Clássico'],
+        gamefaqsRating: formGamefaqsRating,
+        gamefaqsDifficulty: 'Just Right',
+        ptBrSupport: canonicalLinks.some(l => l.isPtBrAudio || l.isPtBrSubs) || formPtBrSupport,
+        zukoStorePageUrl: primaryLink.url,
+        gamefaqsPageUrl: `https://gamefaqs.gamespot.com/${cleanPlatform}/search?game=${encodeURIComponent(formTitle)}`,
+        gamefaqsBoxesUrl: formGamefaqsBoxesUrl.trim() || undefined,
+        gamefaqsImagesUrl: formGamefaqsImagesUrl.trim() || undefined,
+        gamefaqsCheatsUrl: formGamefaqsCheatsUrl.trim() || `https://gamefaqs.gamespot.com/${cleanPlatform}/search?game=${encodeURIComponent(formTitle)}+cheats`,
+        nexusModsUrl: formNexusModsUrl.trim() || `https://www.nexusmods.com/search/?gsearch=${encodeURIComponent(formTitle)}`,
+        tags: [formPlatform, formFormat || 'PKG', 'GameFAQs', 'VortexGames'],
+        cheats: formCheats,
+        mods: formMods,
+        downloadLinks: canonicalLinks
       };
-    });
 
-    const primaryLink = canonicalLinks[0];
+      // 1. Salvar no Laboratório local
+      const updatedCatalog = updateStoredPkgGame(savedGame);
+      setGames(updatedCatalog);
 
-    const savedGame: PkgGame = {
-      id: targetId,
-      title: formTitle.trim(),
-      platform: formPlatform,
-      titleId: formTitleId.trim() || `${formPlatform}-00000`,
-      fileUrl: primaryLink.url,
-      fileSize: primaryLink.size,
-      format: (primaryLink.format || formFormat).toUpperCase(),
-      firmware: `${formPlatform} CFW / HEN / Oficial`,
-      region: 'NTSC-U',
-      coverUrl: finalCover,
-      coverOptions: coverCandidates.length > 0 ? coverCandidates : undefined,
-      bannerUrl: formScreenshots.find(s => s && s.trim()) || finalCover,
-      screenshots: finalScreenshots,
-      description: cleanDesc || `${formTitle} em formato ${formFormat || 'PKG'} para ${formPlatform}.`,
-      releaseYear: formReleaseYear,
-      releaseDate: `${formReleaseYear}`,
-      developer: formDeveloper.trim() || 'PlayStation Scene',
-      publisher: formPublisher.trim() || 'TheZukoStore Archive',
-      genres: formGenres.length > 0 ? formGenres : ['Ação', 'Clássico'],
-      gamefaqsRating: formGamefaqsRating,
-      gamefaqsDifficulty: 'Just Right',
-      ptBrSupport: canonicalLinks.some(l => l.isPtBrAudio || l.isPtBrSubs) || formPtBrSupport,
-      zukoStorePageUrl: primaryLink.url,
-      gamefaqsPageUrl: `https://gamefaqs.gamespot.com/${cleanPlatform}/search?game=${encodeURIComponent(formTitle)}`,
-      gamefaqsBoxesUrl: formGamefaqsBoxesUrl.trim() || undefined,
-      gamefaqsImagesUrl: formGamefaqsImagesUrl.trim() || undefined,
-      gamefaqsCheatsUrl: formGamefaqsCheatsUrl.trim() || `https://gamefaqs.gamespot.com/${cleanPlatform}/search?game=${encodeURIComponent(formTitle)}+cheats`,
-      nexusModsUrl: formNexusModsUrl.trim() || `https://www.nexusmods.com/search/?gsearch=${encodeURIComponent(formTitle)}`,
-      tags: [formPlatform, formFormat || 'PKG', 'TheZukoStore', 'GameFAQs'],
-      cheats: formCheats,
-      mods: formMods,
-      downloadLinks: canonicalLinks
-    };
+      // 2. Publicar ou Atualizar no Catálogo Oficial do Portal Vortex
+      const existingStoreGame = storeGames.find(g => 
+        (editingStoreGameId && g.id === editingStoreGameId) || 
+        g.id === targetId || 
+        g.title.toLowerCase() === formTitle.trim().toLowerCase()
+      );
 
-    // 1. Salvar no Laboratório local
-    const updatedCatalog = updateStoredPkgGame(savedGame);
-    setGames(updatedCatalog);
+      const canonicalGameId = existingStoreGame ? existingStoreGame.id : (editingStoreGameId || `game-${cleanPlatform}-${Date.now()}`);
 
-    // 2. Publicar ou Atualizar no Catálogo Oficial do Portal Vortex
-    const existingStoreGame = storeGames.find(g => 
-      (editingStoreGameId && g.id === editingStoreGameId) || 
-      g.id === targetId || 
-      g.title.toLowerCase() === formTitle.trim().toLowerCase()
-    );
+      const canonicalGame: Game = {
+        id: canonicalGameId,
+        title: formTitle.trim(),
+        slug: formTitle.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        coverUrl: finalCover,
+        bannerUrl: formScreenshots.find(s => s && s.trim()) || finalCover,
+        shortDescription: cleanDesc.slice(0, 180) + '...',
+        description: cleanDesc || `${formTitle} em formato ${formFormat || 'PKG'} para ${formPlatform}.`,
+        genres: formGenres.length > 0 ? formGenres : ['Ação', 'Clássico'],
+        categories: Array.from(new Set([
+          formPlatform, 
+          'Preservação de Consoles', 
+          formFormat.toUpperCase(), 
+          ...(existingStoreGame?.categories || [])
+        ])),
+        releaseYear: formReleaseYear,
+        releaseDate: `${formReleaseYear}`,
+        developer: formDeveloper.trim() || 'PlayStation Scene',
+        publisher: formPublisher.trim() || 'Vortex Archive',
+        rating: formGamefaqsRating,
+        totalVotes: existingStoreGame?.totalVotes || 8500,
+        repackInfo: {
+          repacker: existingStoreGame?.repackInfo?.repacker || `${formPlatform} Preservation Hub`,
+          version: existingStoreGame?.repackInfo?.version || 'v1.0 Oficial',
+          repackSize: cleanSize,
+          originalSize: cleanSize,
+          crackStatus: 'DRM Free',
+          crackGroup: `${formPlatform} Scene`
+        },
+        downloadLinks: canonicalLinks,
+        systemRequirements: existingStoreGame?.systemRequirements || {
+          minimum: { os: `${formPlatform} ou Emulador`, processor: 'Dual Core 2.5GHz', memory: '4 GB RAM', graphics: 'DirectX 11', storage: cleanSize || '4 GB', directx: '11' },
+          recommended: { os: `${formPlatform} ou Emulador`, processor: 'Quad Core 3.5GHz', memory: '8 GB RAM', graphics: 'DirectX 12', storage: cleanSize || '8 GB', directx: '12' }
+        },
+        screenshots: finalScreenshots,
+        tags: [formPlatform, formFormat || 'PKG', 'GameFAQs', 'VortexGames'],
+        downloadsCount: existingStoreGame?.downloadsCount || 15400,
+        viewsCount: existingStoreGame?.viewsCount || 42000,
+        createdAt: existingStoreGame?.createdAt || new Date().toISOString(),
+        hasPtBrAudio: canonicalLinks.some(l => l.isPtBrAudio),
+        hasPtBrSubs: canonicalLinks.some(l => l.isPtBrSubs) || formPtBrSupport,
+        hasPkgFormat: canonicalLinks.some(l => l.format === 'pkg') || formFormat.toUpperCase() === 'PKG' || existingStoreGame?.hasPkgFormat || false,
+        hasPcTorrent: formPlatform === 'PC' || canonicalLinks.some(l => l.url.startsWith('magnet:') || l.format === 'torrent') || existingStoreGame?.hasPcTorrent || false,
+        titleId: formTitleId.trim() || undefined,
+        platform: formPlatform,
+        languages: Array.from(new Set(canonicalLinks.map(l => l.language || 'Português (PT-BR)'))),
+        cheats: formCheats,
+        mods: formMods,
+        gamefaqsCheatsUrl: formGamefaqsCheatsUrl.trim() || undefined,
+        nexusModsUrl: formNexusModsUrl.trim() || undefined
+      };
 
-    const canonicalGameId = existingStoreGame ? existingStoreGame.id : (editingStoreGameId || `game-${cleanPlatform}-${Date.now()}`);
+      // 3. PERSISTIR NO BANCO DE DADOS SUPABASE (Nuvem em tempo real)
+      const cloudRes = await upsertGameToSupabase(canonicalGame);
+      if (!cloudRes.success) {
+        console.warn('Aviso ao sincronizar com Supabase:', cloudRes.error);
+      }
 
-    const canonicalGame: Game = {
-      id: canonicalGameId,
-      title: formTitle.trim(),
-      slug: formTitle.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-      coverUrl: finalCover,
-      bannerUrl: formScreenshots.find(s => s && s.trim()) || finalCover,
-      shortDescription: cleanDesc.slice(0, 180) + '...',
-      description: cleanDesc || `${formTitle} em formato ${formFormat || 'PKG'} para ${formPlatform}.`,
-      genres: formGenres.length > 0 ? formGenres : ['Ação', 'Clássico'],
-      categories: Array.from(new Set([
-        formPlatform, 
-        'Preservação de Consoles', 
-        formFormat.toUpperCase(), 
-        ...(existingStoreGame?.categories || [])
-      ])),
-      releaseYear: formReleaseYear,
-      releaseDate: `${formReleaseYear}`,
-      developer: formDeveloper.trim() || 'PlayStation Scene',
-      publisher: formPublisher.trim() || 'TheZukoStore Archive',
-      rating: formGamefaqsRating,
-      totalVotes: existingStoreGame?.totalVotes || 8500,
-      repackInfo: {
-        repacker: existingStoreGame?.repackInfo?.repacker || `${formPlatform} Preservation Hub`,
-        version: existingStoreGame?.repackInfo?.version || 'v1.0 Oficial',
-        repackSize: primaryLink.size || formFileSize.trim() || '1.5 GB',
-        originalSize: primaryLink.size || formFileSize.trim() || '1.5 GB',
-        crackStatus: 'DRM Free',
-        crackGroup: `${formPlatform} Scene`
-      },
-      downloadLinks: canonicalLinks,
-      systemRequirements: existingStoreGame?.systemRequirements || {
-        minimum: { os: `${formPlatform} ou Emulador`, processor: 'Dual Core 2.5GHz', memory: '4 GB RAM', graphics: 'DirectX 11', storage: formFileSize || '4 GB', directx: '11' },
-        recommended: { os: `${formPlatform} ou Emulador`, processor: 'Quad Core 3.5GHz', memory: '8 GB RAM', graphics: 'DirectX 12', storage: formFileSize || '8 GB', directx: '12' }
-      },
-      screenshots: finalScreenshots,
-      tags: [formPlatform, formFormat || 'PKG', 'TheZukoStore', 'GameFAQs', 'VortexGames'],
-      downloadsCount: existingStoreGame?.downloadsCount || 15400,
-      viewsCount: existingStoreGame?.viewsCount || 42000,
-      createdAt: existingStoreGame?.createdAt || new Date().toISOString(),
-      hasPtBrAudio: canonicalLinks.some(l => l.isPtBrAudio),
-      hasPtBrSubs: canonicalLinks.some(l => l.isPtBrSubs) || formPtBrSupport,
-      hasPkgFormat: canonicalLinks.some(l => l.format === 'pkg') || formFormat.toUpperCase() === 'PKG' || existingStoreGame?.hasPkgFormat || false,
-      hasPcTorrent: formPlatform === 'PC' || canonicalLinks.some(l => l.url.startsWith('magnet:') || l.format === 'torrent') || existingStoreGame?.hasPcTorrent || false,
-      titleId: formTitleId.trim() || undefined,
-      platform: formPlatform,
-      languages: Array.from(new Set(canonicalLinks.map(l => l.language || 'Português (PT-BR)'))),
-      cheats: formCheats,
-      mods: formMods,
-      gamefaqsCheatsUrl: formGamefaqsCheatsUrl.trim() || undefined,
-      nexusModsUrl: formNexusModsUrl.trim() || undefined
-    };
+      if (existingStoreGame) {
+        updateGame(canonicalGame);
+      } else {
+        addGame(canonicalGame);
+      }
 
-    if (existingStoreGame) {
-      updateGame(canonicalGame);
-    } else {
-      addGame(canonicalGame);
+      setSelectedGame(savedGame);
+      setCurrentTab('catalog');
+      const actionMsg = existingStoreGame 
+        ? `✓ Jogo "${savedGame.title}" e todos os cheats/mods atualizados e salvos no Supabase (Nuvem) com sucesso!` 
+        : `🚀 Jogo "${savedGame.title}" publicado e salvo no Supabase (Nuvem) com sucesso!`;
+      showNotification(actionMsg);
+    } catch (err: any) {
+      console.error('Erro ao salvar no Supabase / Portal:', err);
+      showNotification(`Erro ao salvar: ${err?.message || 'Falha na gravação'}`);
+    } finally {
+      setIsSavingToSupabase(false);
     }
-
-    setSelectedGame(savedGame);
-    setCurrentTab('catalog');
-    showNotification(existingStoreGame ? `✓ Jogo "${savedGame.title}" e todos os cheats/mods atualizados no Portal Vortex!` : `🚀 Jogo "${savedGame.title}" publicado com sucesso no Portal Vortex com cheats e mods integrados!`);
   };
 
   // Gerenciamento de Screenshots (4 slots)
@@ -1347,17 +1378,24 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                   </button>
                 </div>
 
-                {/* BOTÃO ENVIAR / SALVAR */}
+                {/* BOTÃO ENVIAR / SALVAR NO SUPABASE */}
                 <button
                   type="button"
                   onClick={() => handleSaveOrPublish()}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black text-xs transition-all cursor-pointer shadow-lg shadow-emerald-500/25 flex items-center gap-2 transform hover:scale-[1.02]"
+                  disabled={isSavingToSupabase}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black text-xs transition-all cursor-pointer shadow-lg shadow-emerald-500/25 flex items-center gap-2 transform hover:scale-[1.02] disabled:opacity-60"
                 >
-                  <Send className="w-4 h-4" />
+                  {isSavingToSupabase ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
                   <span>
-                    {editingStoreGameId 
-                      ? '🚀 Atualizar Jogo no Portal Vortex' 
-                      : (editingGameId ? 'Salvar Alterações (Atualizar)' : 'Enviar / Publicar no Catálogo')}
+                    {isSavingToSupabase 
+                      ? 'Salvando no Supabase (Nuvem)...' 
+                      : (editingStoreGameId 
+                          ? '🚀 Salvar no Supabase & Portal' 
+                          : (editingGameId ? '✓ Salvar Alterações no Supabase' : '🚀 Salvar e Publicar no Supabase'))}
                   </span>
                 </button>
               </div>
@@ -1502,7 +1540,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                 <div className="p-5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-4">
                   <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2 text-cyan-400">
                     <HardDrive className="w-4 h-4" />
-                    1. Dados do Jogo e Link de Download (TheZukoStore)
+                    1. Dados do Jogo e Links de Download (PKG / Torrent / Nuvem)
                   </h3>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
@@ -2743,10 +2781,15 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                     <button
                       type="button"
                       onClick={() => handleSaveOrPublish()}
-                      className="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black text-xs transition-all cursor-pointer shadow-xl shadow-emerald-500/25 flex items-center gap-2 transform hover:scale-[1.02]"
+                      disabled={isSavingToSupabase}
+                      className="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black text-xs transition-all cursor-pointer shadow-xl shadow-emerald-500/25 flex items-center gap-2 transform hover:scale-[1.02] disabled:opacity-60"
                     >
-                      <Send className="w-4 h-4" />
-                      <span>{editingGameId ? '✓ Salvar Alterações (Atualizar Jogo)' : '🚀 Enviar / Publicar no Catálogo'}</span>
+                      {isSavingToSupabase ? (
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Send className="w-4 h-4" />
+                      )}
+                      <span>{isSavingToSupabase ? 'Salvando no Supabase...' : (editingGameId ? '✓ Salvar Alterações no Supabase' : '🚀 Publicar no Supabase & Vortex')}</span>
                     </button>
                   </div>
                 </div>
@@ -2775,10 +2818,11 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                     <button
                       type="button"
                       onClick={() => handleSaveOrPublish()}
-                      className="px-4 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs cursor-pointer shadow-md flex items-center gap-1.5"
+                      disabled={isSavingToSupabase}
+                      className="px-4 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs cursor-pointer shadow-md flex items-center gap-1.5 disabled:opacity-60"
                     >
-                      <Send className="w-3.5 h-3.5" />
-                      <span>{editingGameId ? 'Salvar Alterações' : 'Enviar Publicação'}</span>
+                      {isSavingToSupabase ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                      <span>{isSavingToSupabase ? 'Salvando...' : (editingGameId ? 'Salvar no Supabase' : 'Enviar Publicação')}</span>
                     </button>
                   </div>
                 </div>
@@ -2852,7 +2896,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
 
                         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold">
                           <HardDrive className="w-3.5 h-3.5 text-cyan-400" />
-                          <span>{formFileSize} (TheZukoStore)</span>
+                          <span>{formatCleanFileSize(formFileSize)}</span>
                         </div>
 
                         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold">
@@ -3068,13 +3112,20 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                   <button
                     type="button"
                     onClick={() => handleSaveOrPublish()}
-                    className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black text-sm transition-all cursor-pointer shadow-xl shadow-emerald-500/30 flex items-center gap-2 transform hover:scale-[1.03]"
+                    disabled={isSavingToSupabase}
+                    className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black text-sm transition-all cursor-pointer shadow-xl shadow-emerald-500/30 flex items-center gap-2 transform hover:scale-[1.03] disabled:opacity-60"
                   >
-                    <Send className="w-5 h-5 stroke-[2.5]" />
+                    {isSavingToSupabase ? (
+                      <RefreshCw className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <Send className="w-5 h-5 stroke-[2.5]" />
+                    )}
                     <span>
-                      {editingStoreGameId 
-                        ? '🚀 Atualizar Jogo no Portal Vortex' 
-                        : (editingGameId ? 'Salvar Alterações (Atualizar Jogo)' : 'Enviar e Publicar Agora')}
+                      {isSavingToSupabase
+                        ? 'Gravando no Supabase (Nuvem)...'
+                        : (editingStoreGameId 
+                            ? '🚀 Salvar no Supabase & Portal Vortex' 
+                            : (editingGameId ? '✓ Salvar Alterações no Supabase' : '🚀 Salvar e Publicar no Supabase'))}
                     </span>
                   </button>
                 </div>
@@ -3211,7 +3262,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
 
                         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold">
                           <HardDrive className="w-3.5 h-3.5 text-cyan-400" />
-                          <span>{selectedGame.fileSize} (TheZukoStore)</span>
+                          <span>{formatCleanFileSize(selectedGame.fileSize)}</span>
                         </div>
 
                         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold">
@@ -3505,7 +3556,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
 
                     <div className="pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400 flex-wrap gap-2">
                       <span>Desenvolvedora: <strong className="text-slate-200">{selectedGame.developer || 'PlayStation Scene'}</strong></span>
-                      <span>Publicadora: <strong className="text-slate-200">{selectedGame.publisher || 'TheZukoStore'}</strong></span>
+                      <span>Publicadora: <strong className="text-slate-200">{selectedGame.publisher || 'Vortex Archive'}</strong></span>
                     </div>
                   </div>
 
@@ -3513,7 +3564,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                   <div className="p-6 rounded-3xl bg-slate-950/60 border border-slate-800 space-y-4">
                     <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 text-indigo-400">
                       <Disc className="w-4 h-4" />
-                      Ficha Técnica PKG (TheZukoStore)
+                      Ficha Técnica do Jogo (Instalador &amp; Pacote)
                     </h3>
 
                     <div className="space-y-2.5 text-xs">
@@ -3527,7 +3578,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                       </div>
                       <div className="flex justify-between py-1.5 border-b border-slate-800/60">
                         <span className="text-slate-400">Tamanho:</span>
-                        <strong className="text-white">{selectedGame.fileSize}</strong>
+                        <strong className="text-white">{formatCleanFileSize(selectedGame.fileSize)}</strong>
                       </div>
                       <div className="flex justify-between py-1.5 border-b border-slate-800/60">
                         <span className="text-slate-400">Formato:</span>
@@ -3535,7 +3586,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                       </div>
                       <div className="flex justify-between py-1.5 border-b border-slate-800/60">
                         <span className="text-slate-400">Origem Arquivo:</span>
-                        <strong className="text-white">TheZukoStore.com</strong>
+                        <strong className="text-white">Servidor Dedicado / PKG</strong>
                       </div>
                       <div className="flex justify-between py-1.5">
                         <span className="text-slate-400">Dados & Fotos:</span>
@@ -3776,7 +3827,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                                   </span>
                                   <span className="text-slate-400 font-semibold flex items-center gap-1">
                                     <HardDrive className="w-3 h-3 text-cyan-400" />
-                                    {storeGame.repackInfo?.repackSize || storeGame.downloadLinks?.[0]?.size || '1.5 GB'}
+                                    {formatCleanFileSize(storeGame.repackInfo?.repackSize || storeGame.downloadLinks?.[0]?.size || '1.5 GB')}
                                   </span>
                                 </div>
 
@@ -3909,7 +3960,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                                 </span>
                                 <span className="text-slate-400 font-semibold flex items-center gap-1">
                                   <HardDrive className="w-3 h-3 text-cyan-400" />
-                                  {game.fileSize}
+                                  {formatCleanFileSize(game.fileSize)}
                                 </span>
                               </div>
 

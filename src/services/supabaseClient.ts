@@ -120,7 +120,12 @@ export async function fetchGamesFromSupabase(): Promise<Game[] | null> {
       viewsCount: Number(item.views_count || item.viewsCount || 0),
       isFeatured: item.is_featured ?? item.isFeatured ?? false,
       isTrending: item.is_trending ?? item.isTrending ?? false,
-      createdAt: item.created_at || item.createdAt || new Date().toISOString()
+      createdAt: item.created_at || item.createdAt || new Date().toISOString(),
+      cheats: Array.isArray(item.cheats) ? item.cheats : [],
+      mods: Array.isArray(item.mods) ? item.mods : [],
+      platform: item.platform || (item.has_pkg_format ? 'PlayStation' : 'PC'),
+      gamefaqsCheatsUrl: item.gamefaqs_cheats_url || item.gamefaqsCheatsUrl || undefined,
+      nexusModsUrl: item.nexus_mods_url || item.nexusModsUrl || undefined
     }));
   } catch (err) {
     console.warn('Exceção ao buscar do Supabase:', err);
@@ -129,11 +134,11 @@ export async function fetchGamesFromSupabase(): Promise<Game[] | null> {
 }
 
 /**
- * Salva ou atualiza um jogo no Supabase
+ * Salva ou atualiza um jogo no Supabase (com cheats, mods, links e plataforma)
  */
 export async function upsertGameToSupabase(game: Game): Promise<{ success: boolean; error?: string }> {
   try {
-    const payload = {
+    const payload: any = {
       id: game.id,
       title: game.title,
       slug: game.slug,
@@ -154,6 +159,7 @@ export async function upsertGameToSupabase(game: Game): Promise<{ success: boole
       crack_status: game.repackInfo?.crackStatus,
       crack_group: game.repackInfo?.crackGroup,
       title_id: game.titleId,
+      firmware: game.downloadLinks?.find(l => l.firmware)?.firmware || undefined,
       source_origin: game.sourceOrigin,
       has_pkg_format: game.hasPkgFormat,
       has_pc_torrent: game.hasPcTorrent,
@@ -171,16 +177,36 @@ export async function upsertGameToSupabase(game: Game): Promise<{ success: boole
       downloads_count: game.downloadsCount,
       views_count: game.viewsCount,
       is_featured: game.isFeatured,
-      is_trending: game.isTrending
+      is_trending: game.isTrending,
+      cheats: game.cheats || [],
+      mods: game.mods || [],
+      platform: game.platform || (game.hasPkgFormat ? 'PlayStation' : 'PC')
     };
 
     const { error } = await supabase.from('games').upsert(payload, { onConflict: 'id' });
+    if (error) {
+      console.error('Erro ao salvar no Supabase:', error.message);
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (err: any) {
+    console.error('Exceção ao salvar no Supabase:', err);
+    return { success: false, error: err?.message || 'Erro desconhecido' };
+  }
+}
+
+/**
+ * Remove um jogo da tabela do Supabase
+ */
+export async function deleteGameFromSupabase(gameId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase.from('games').delete().eq('id', gameId);
     if (error) {
       return { success: false, error: error.message };
     }
     return { success: true };
   } catch (err: any) {
-    return { success: false, error: err?.message || 'Erro desconhecido' };
+    return { success: false, error: err?.message || 'Erro ao excluir' };
   }
 }
 

@@ -9,7 +9,7 @@ import {
   DEFAULT_SYNC_CONFIG, 
   checkForNewFitGirlReleases 
 } from '../services/autoSyncService';
-import { fetchGamesFromSupabase, saveCloudSyncData, getCloudSyncData } from '../services/supabaseClient';
+import { fetchGamesFromSupabase, upsertGameToSupabase, deleteGameFromSupabase, saveCloudSyncData, getCloudSyncData } from '../services/supabaseClient';
 import { sanitizeMagnetLink } from '../utils/magnetUtils';
 import { getGameCover, getGameBanner, DEFAULT_GAME_COVER, DEFAULT_GAME_BANNER } from '../utils/imageUtils';
 import { enrichGameWithCheatsAndMods, enrichAllGames } from '../utils/cheatsModsGenerator';
@@ -138,9 +138,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const preset = initialMap.get(pg.id);
             if (preset) {
               return {
+                ...preset,
                 ...pg,
-                coverUrl: preset.coverUrl,
-                bannerUrl: preset.bannerUrl
+                // Preserve user-chosen coverUrl if present; otherwise fallback to preset cover
+                coverUrl: pg.coverUrl || preset.coverUrl,
+                bannerUrl: pg.bannerUrl || preset.bannerUrl
               };
             }
             if (pg.coverUrl?.includes('1091500') && !pg.title?.toLowerCase().includes('cyberpunk')) {
@@ -729,6 +731,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const addGame = (newGame: Game) => {
     setGames(prev => [newGame, ...prev]);
 
+    // Persistir automaticamente no banco de dados Supabase (Nuvem)
+    upsertGameToSupabase(newGame).catch(err => {
+      console.warn('Falha ao sincronizar novo jogo com Supabase:', err);
+    });
+
     // Send a new notification to users!
     const notif: SiteNotification = {
       id: `notif-${Date.now()}`,
@@ -748,6 +755,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (activeGame?.id === updatedGame.id) {
       setActiveGame(updatedGame);
     }
+    // Persistir atualização imediatamente no banco Supabase
+    upsertGameToSupabase(updatedGame).catch(err => {
+      console.warn('Falha ao atualizar jogo no Supabase:', err);
+    });
   };
 
   const deleteGame = (gameId: string) => {
@@ -755,6 +766,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (activeGame?.id === gameId) {
       setActiveGame(null);
     }
+    // Remover do banco de dados Supabase
+    deleteGameFromSupabase(gameId).catch(err => {
+      console.warn('Falha ao excluir jogo do Supabase:', err);
+    });
   };
 
   const incrementDownload = (gameId: string) => {
