@@ -170,10 +170,6 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
   };
 
   const handleCopyMagnet = (url: string) => {
-    if (!isLoggedIn) {
-      setIsAuthModalOpen(true);
-      return;
-    }
     const cleanUrl = url.startsWith('magnet:')
       ? sanitizeMagnetLink(url, `${game.title} [${game.repackInfo?.repacker || 'Vortex'}]`)
       : url;
@@ -183,10 +179,6 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
   };
 
   const handleDownloadClick = (url: string) => {
-    if (!isLoggedIn) {
-      setIsAuthModalOpen(true);
-      return;
-    }
     incrementDownload(game.id);
     if (url.startsWith('magnet:')) {
       const cleanUrl = sanitizeMagnetLink(url, `${game.title} [${game.repackInfo?.repacker || 'Vortex'}]`);
@@ -588,7 +580,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
             }`}
           >
             <Download className="w-4 h-4" />
-            <span>Links de Download Torrent</span>
+            <span>Links de Download</span>
           </button>
           <button
             onClick={() => setActiveTab('specs')}
@@ -746,56 +738,24 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                 </div>
               )}
 
-              {/* MEMBER EXCLUSIVE BANNER / LOCK STATUS */}
-              {isLoggedIn ? (
-                <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-3 text-xs shadow-sm">
-                  <div className="flex items-center gap-2.5">
-                    <div className="p-2 rounded-xl bg-emerald-500 text-slate-950 font-black">
-                      ✓
-                    </div>
-                    <div>
-                      <p className="font-bold text-slate-900 dark:text-white">Membro Conectado: {userProfile.name}</p>
-                      <p className="text-slate-600 dark:text-slate-400 text-[11px]">Todos os links de download direto, torrents, magnets e servidores rápidos estão liberados.</p>
-                    </div>
+              {/* STATUS DE DOWNLOADS DIRETOS E LIBERADOS */}
+              <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 flex items-center justify-between gap-3 text-xs shadow-sm">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-cyan-500 text-slate-950 font-black">
+                    <Download className="w-4 h-4" />
                   </div>
-                  <span className="hidden sm:inline-block px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-bold text-[11px]">
-                    Acesso Total Liberado
-                  </span>
-                </div>
-              ) : (
-                <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-amber-500/15 via-cyan-500/10 to-blue-500/15 border-2 border-cyan-500/40 space-y-4 shadow-xl">
-                  <div className="flex items-start justify-between gap-3 flex-wrap sm:flex-nowrap">
-                    <div className="flex items-start gap-3">
-                      <div className="p-3 rounded-2xl bg-cyan-500 text-slate-950 font-black shrink-0 mt-0.5">
-                        <Lock className="w-6 h-6 animate-pulse" />
-                      </div>
-                      <div className="space-y-1">
-                        <h4 className="text-base sm:text-lg font-black text-slate-900 dark:text-white font-display">
-                          Links de Download Exclusivos para Membros Cadastrados
-                        </h4>
-                        <p className="text-xs text-slate-600 dark:text-slate-300 max-w-xl">
-                          Para proteger os torrents contra bots e garantir alta velocidade de seeds para toda a comunidade, o acesso aos links diretos, magnets e patches PT-BR é exclusivo para membros cadastrados.
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 w-full sm:w-auto">
-                      <button
-                        onClick={() => setIsAuthModalOpen(true)}
-                        className="flex-1 sm:flex-initial px-5 py-3 rounded-xl font-black text-xs bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-md shadow-cyan-500/30 transition-all cursor-pointer transform hover:scale-105 whitespace-nowrap"
-                      >
-                        🔓 Cadastrar Grátis & Liberar Links
-                      </button>
-                      <button
-                        onClick={() => setIsAuthModalOpen(true)}
-                        className="px-4 py-3 rounded-xl font-bold text-xs bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 transition-all cursor-pointer whitespace-nowrap"
-                      >
-                        Já sou Membro
-                      </button>
-                    </div>
+                  <div>
+                    <p className="font-bold text-white flex items-center gap-2">
+                      <span>Links de Download Diretos & Verificados</span>
+                      <span className="px-2 py-0.2 rounded-full text-[10px] bg-emerald-500/20 text-emerald-300 font-mono border border-emerald-500/30">100% Liberados</span>
+                    </p>
+                    <p className="text-slate-400 text-[11px]">Todos os links diretos, magnets torrent e instaladores PKG/ISO estão prontos para download imediato.</p>
                   </div>
                 </div>
-              )}
+                <span className="hidden sm:inline-block px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 font-bold text-[11px]">
+                  {game.downloadLinks.length} opções disponíveis
+                </span>
+              </div>
 
               {/* DISTINCT DOWNLOAD BUTTONS SECTION & UNIVERSAL PLATFORM HUB */}
               <div className="space-y-4">
@@ -934,6 +894,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                       game.downloadLinks.filter(l => l.type === 'magnet' || l.type === 'torrent' || l.format === 'torrent').map(link => (
                       <div 
                         key={link.id}
+                        style={{ width: '570.508px', maxWidth: '100%' }}
                         className="p-5 rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-cyan-950/30 border-2 border-cyan-500/50 space-y-3 flex flex-col justify-between shadow-xl"
                       >
                         <div className="space-y-1.5">
@@ -978,32 +939,20 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                         </div>
 
                         <div className="flex items-center gap-2 pt-2">
-                          {isLoggedIn ? (
-                            <a
-                              href={sanitizeMagnetLink(link.url, `${game.title} [${game.repackInfo?.repacker || 'Vortex'}]`)}
-                              onClick={() => incrementDownload(game.id)}
-                              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-xs bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-md shadow-cyan-500/30 transition-all transform hover:scale-[1.02] cursor-pointer"
-                              title="Enviar link Magnet limpo direto para seu aplicativo de torrent (qBittorrent / uTorrent)"
-                            >
-                              <Download className="w-4 h-4 stroke-[2.5]" />
-                              <span>Baixar Torrent PC (Abrir no qBittorrent / uTorrent)</span>
-                            </a>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => setIsAuthModalOpen(true)}
-                              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-xs bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-md shadow-cyan-500/30 transition-all transform hover:scale-[1.02] cursor-pointer"
-                              title="Acesso exclusivo para membros. Clique para cadastrar grátis!"
-                            >
-                              <Lock className="w-4 h-4 stroke-[2.5]" />
-                              <span>🔒 Liberar Download Torrent (Exclusivo Membros)</span>
-                            </button>
-                          )}
+                          <a
+                            href={sanitizeMagnetLink(link.url, `${game.title} [${game.repackInfo?.repacker || 'Vortex'}]`)}
+                            onClick={() => incrementDownload(game.id)}
+                            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-xs bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-md shadow-cyan-500/30 transition-all transform hover:scale-[1.02] cursor-pointer"
+                            title="Enviar link Magnet limpo direto para seu aplicativo de torrent (qBittorrent / uTorrent)"
+                          >
+                            <Download className="w-4 h-4 stroke-[2.5]" />
+                            <span>Baixar Torrent PC (Abrir no qBittorrent / uTorrent)</span>
+                          </a>
 
                           <button
                             onClick={() => handleCopyMagnet(link.url)}
                             className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all shrink-0 cursor-pointer flex items-center gap-1.5"
-                            title={isLoggedIn ? 'Copiar Link Magnet Limpo (Sem erros de sintaxe no Windows/qBittorrent)' : '🔒 Cadastre-se para copiar o link'}
+                            title="Copiar Link Magnet Limpo (Sem erros de sintaxe no Windows/qBittorrent)"
                           >
                             {copiedMagnet ? (
                               <>
