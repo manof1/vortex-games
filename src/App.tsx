@@ -12,9 +12,10 @@ import { AuthModal } from './components/AuthModal';
 import { GameRequestModal } from './components/GameRequestModal';
 import { PkgTestLabModal } from './components/PkgTestLabModal';
 import { CreatorAuthModal } from './components/CreatorAuthModal';
+import { SundaySyncModal } from './components/SundaySyncModal';
 import { SidebarBanners } from './components/SidebarBanners';
 import { Footer } from './components/Footer';
-import { SearchX, Sparkles, Flame, Trophy, X, Star, Medal, Users, Eye, Download } from 'lucide-react';
+import { SearchX, Sparkles, Flame, Trophy, X, Star, Medal, Users, Eye, Download, Calendar } from 'lucide-react';
 import { TOP_OPTIONS } from './components/Header';
 
 const MainContent: React.FC = () => {
@@ -35,7 +36,10 @@ const MainContent: React.FC = () => {
     isPkgLabOpen,
     setIsPkgLabOpen,
     isCreatorAuthOpen,
-    setIsCreatorAuthOpen
+    setIsCreatorAuthOpen,
+    isSundaySyncOpen,
+    setIsSundaySyncOpen,
+    openSundaySyncModal
   } = useGame();
   const { t } = useLanguage();
 
@@ -294,8 +298,22 @@ const MainContent: React.FC = () => {
                 </span>
               </div>
 
-              <div className="hidden sm:flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
-                <span>{t('catalog.p2pVerified', 'Torrent P2P com Seeds Testados')}</span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={openSundaySyncModal}
+                  className="px-3 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500/15 via-yellow-400/15 to-amber-500/15 hover:from-amber-500/25 hover:to-amber-500/25 text-amber-700 dark:text-amber-300 border border-amber-500/40 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer hover:scale-105 active:scale-95"
+                  title="Atualização Semanal Automática de Cheats & Mods (Todo Domingo). Clique para gerenciar ou forçar agora!"
+                >
+                  <Calendar className="w-3.5 h-3.5 text-amber-500" />
+                  <span className="hidden sm:inline">Domingo Sync:</span>
+                  <span>Cheats & Mods</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                </button>
+
+                <div className="hidden lg:flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+                  <span>{t('catalog.p2pVerified', 'Torrent P2P com Seeds Testados')}</span>
+                </div>
               </div>
             </div>
 
@@ -363,6 +381,12 @@ const MainContent: React.FC = () => {
           setIsCreatorAuthOpen(false);
           setIsPkgLabOpen(true);
         }}
+      />
+
+      {/* Modal da Programação Semanal de Domingo (Cheats & Mods) */}
+      <SundaySyncModal
+        isOpen={isSundaySyncOpen}
+        onClose={() => setIsSundaySyncOpen(false)}
       />
     </div>
   );

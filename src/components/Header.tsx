@@ -13,7 +13,8 @@ import {
   Flame, 
   X,
   Trophy,
-  ChevronDown
+  ChevronDown,
+  Calendar
 } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -72,6 +73,7 @@ export const Header: React.FC = () => {
     setIsAuthModalOpen,
     setIsGameRequestOpen,
     openCreatorLab,
+    openSundaySyncModal,
     theme, 
     toggleTheme 
   } = useGame();
@@ -506,6 +508,21 @@ export const Header: React.FC = () => {
                         <div className="flex-1 min-w-0">
                           <span className="font-black text-purple-300">Laboratório & Testes PKG</span>
                           <p className="text-[10px] text-purple-400/80 truncate">Ambiente de publicação do Criador</p>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsConsolesMenuOpen(false);
+                          openSundaySyncModal();
+                        }}
+                        className="w-full flex items-center gap-2 p-2 mt-1 rounded-xl text-left bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 text-xs font-bold transition-all cursor-pointer border border-amber-500/30"
+                      >
+                        <Calendar className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <span className="font-black text-amber-300">Domingo Sync (Cheats & Mods)</span>
+                          <p className="text-[10px] text-amber-400/80 truncate">Atualização semanal para todos os games</p>
                         </div>
                       </button>
                     </div>

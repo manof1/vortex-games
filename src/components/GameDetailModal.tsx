@@ -66,10 +66,17 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
     incrementDownload,
     userProfile,
     isLoggedIn,
-    setIsAuthModalOpen
+    setIsAuthModalOpen,
+    activeGameInitialTab
   } = useGame();
 
-  const [activeTab, setActiveTab] = useState<'downloads' | 'specs' | 'screenshots' | 'instructions' | 'cheats' | 'mods'>('downloads');
+  const [activeTab, setActiveTab] = useState<'downloads' | 'specs' | 'screenshots' | 'instructions' | 'cheats' | 'mods'>(activeGameInitialTab || 'downloads');
+
+  useEffect(() => {
+    if (activeGameInitialTab) {
+      setActiveTab(activeGameInitialTab);
+    }
+  }, [activeGameInitialTab, game?.id]);
   const [selectedPlatformTab, setSelectedPlatformTab] = useState<'ALL' | 'PC' | 'PLAYSTATION' | 'NINTENDO' | 'EMULATORS'>('ALL');
   const [copiedMagnet, setCopiedMagnet] = useState(false);
   const [copiedCheatId, setCopiedCheatId] = useState<string | null>(null);
