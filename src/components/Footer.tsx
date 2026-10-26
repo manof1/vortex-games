@@ -121,12 +121,12 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Legal DMCA Notice */}
-        <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 text-[11px] text-slate-500 leading-relaxed space-y-1">
-          <p className="flex items-center gap-1.5 font-bold text-slate-400">
-            <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
+        <div className="p-4 rounded-2xl bg-slate-100 dark:bg-slate-900/90 border border-slate-300 dark:border-slate-800 text-[11px] text-black dark:text-slate-100 font-medium leading-relaxed space-y-1.5 shadow-sm">
+          <p className="flex items-center gap-1.5 font-black text-black dark:text-white">
+            <ShieldAlert className="w-3.5 h-3.5 text-amber-500" />
             Aviso Legal e Notificação DMCA
           </p>
-          <p>
+          <p className="text-black dark:text-slate-200 font-medium leading-relaxed">
             O VortexGames funciona exclusivamente como um indexador e catálogo de metadados da cultura gamer via IGDB. Nenhum arquivo binário ou imagem de disco com direitos autorais está hospedado em nossos servidores. O compartilhamento de arquivos P2P (Peer-to-Peer) é de responsabilidade exclusiva dos usuários da rede BitTorrent. Recomendamos apoiar os desenvolvedores e criadores comprando os jogos oficiais na Steam, GOG ou Epic Games Store quando puder.
           </p>
         </div>
