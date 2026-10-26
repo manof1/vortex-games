@@ -43,6 +43,7 @@ interface GameContextType {
   isGameRequestOpen: boolean;
   setIsGameRequestOpen: (open: boolean) => void;
   // Creator PKG Test Lab (manof1@gmail.com)
+  isCreator: boolean;
   isPkgLabOpen: boolean;
   setIsPkgLabOpen: (open: boolean) => void;
   isCreatorAuthOpen: boolean;
@@ -456,7 +457,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setActiveGame(game);
   };
 
-  const openSundaySyncModal = () => setIsSundaySyncOpen(true);
 
   // Rotina de Checagem Automática de Domingo ao Iniciar o Portal
   useEffect(() => {
@@ -543,9 +543,33 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
+  const isCreator = Boolean(
+    (isLoggedIn && (
+      userProfile?.email?.toLowerCase() === 'manof1@gmail.com' ||
+      userProfile?.email?.toLowerCase() === 'vigilanciabcu@gmail.com' ||
+      userProfile?.name?.toLowerCase().includes('manof1')
+    )) ||
+    (typeof window !== 'undefined' && (
+      localStorage.getItem('vortex_creator_verified') === 'true' ||
+      localStorage.getItem('vortex_creator_email') === 'manof1@gmail.com' ||
+      localStorage.getItem('vortex_creator_email') === 'vigilanciabcu@gmail.com'
+    ))
+  );
+
   const openCreatorLab = () => {
-    localStorage.setItem('vortex_creator_verified', 'true');
-    setIsPkgLabOpen(true);
+    if (isCreator) {
+      setIsPkgLabOpen(true);
+    } else {
+      setIsCreatorAuthOpen(true);
+    }
+  };
+
+  const openSundaySyncModal = () => {
+    if (isCreator) {
+      setIsSundaySyncOpen(true);
+    } else {
+      setIsCreatorAuthOpen(true);
+    }
   };
 
   const login = (usernameOrEmail: string, _password?: string) => {
@@ -1020,6 +1044,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsPkgLabOpen,
         isCreatorAuthOpen,
         setIsCreatorAuthOpen,
+        isCreator,
         openCreatorLab,
         userProfile,
         updateUserProfile,

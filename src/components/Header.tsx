@@ -74,6 +74,7 @@ export const Header: React.FC = () => {
     setIsGameRequestOpen,
     openCreatorLab,
     openSundaySyncModal,
+    isCreator,
     theme, 
     toggleTheme 
   } = useGame();
@@ -495,37 +496,39 @@ export const Header: React.FC = () => {
                       </div>
                     </button>
 
-                    <div className="pt-1 mt-1 border-t border-slate-100 dark:border-slate-800">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsConsolesMenuOpen(false);
-                          openCreatorLab();
-                        }}
-                        className="w-full flex items-center gap-2 p-2 rounded-xl text-left bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 text-xs font-bold transition-all cursor-pointer border border-purple-500/30"
-                      >
-                        <Sparkles className="w-3.5 h-3.5 text-purple-400 shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <span className="font-black text-purple-300">Laboratório & Testes PKG</span>
-                          <p className="text-[10px] text-purple-400/80 truncate">Ambiente de publicação do Criador</p>
-                        </div>
-                      </button>
+                    {isCreator && (
+                      <div className="pt-1 mt-1 border-t border-slate-100 dark:border-slate-800">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsConsolesMenuOpen(false);
+                            openCreatorLab();
+                          }}
+                          className="w-full flex items-center gap-2 p-2 rounded-xl text-left bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 text-xs font-bold transition-all cursor-pointer border border-purple-500/30"
+                        >
+                          <Sparkles className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <span className="font-black text-purple-300">Laboratório & Testes PKG</span>
+                            <p className="text-[10px] text-purple-400/80 truncate">Ambiente de publicação do Criador</p>
+                          </div>
+                        </button>
 
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsConsolesMenuOpen(false);
-                          openSundaySyncModal();
-                        }}
-                        className="w-full flex items-center gap-2 p-2 mt-1 rounded-xl text-left bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 text-xs font-bold transition-all cursor-pointer border border-amber-500/30"
-                      >
-                        <Calendar className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <span className="font-black text-amber-300">Domingo Sync (Cheats & Mods)</span>
-                          <p className="text-[10px] text-amber-400/80 truncate">Atualização semanal para todos os games</p>
-                        </div>
-                      </button>
-                    </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsConsolesMenuOpen(false);
+                            openSundaySyncModal();
+                          }}
+                          className="w-full flex items-center gap-2 p-2 mt-1 rounded-xl text-left bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 text-xs font-bold transition-all cursor-pointer border border-amber-500/30"
+                        >
+                          <Calendar className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <span className="font-black text-amber-300">Domingo Sync (Cheats & Mods)</span>
+                            <p className="text-[10px] text-amber-400/80 truncate">Atualização semanal para todos os games</p>
+                          </div>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -614,15 +617,17 @@ export const Header: React.FC = () => {
               {theme === 'dark' ? <Moon className="w-4 h-4 text-indigo-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
             </button>
 
-            {/* Botão de Acesso ao Laboratório do Criador */}
-            <button
-              type="button"
-              onClick={openCreatorLab}
-              className="p-2 rounded-xl text-slate-400 hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-slate-900 transition-all cursor-pointer flex items-center justify-center border border-transparent hover:border-purple-500/30"
-              title="Ambiente de Testes PKG & Consoles (Criador)"
-            >
-              <Gamepad2 className="w-4 h-4 text-purple-400" />
-            </button>
+            {/* Botão de Acesso ao Laboratório do Criador (Exclusivo manof1@gmail.com / Criador) */}
+            {isCreator && (
+              <button
+                type="button"
+                onClick={openCreatorLab}
+                className="p-2 rounded-xl text-slate-400 hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-slate-900 transition-all cursor-pointer flex items-center justify-center border border-transparent hover:border-purple-500/30"
+                title="Ambiente de Testes PKG & Consoles (Criador)"
+              >
+                <Gamepad2 className="w-4 h-4 text-purple-400" />
+              </button>
+            )}
           </div>
 
         </div>

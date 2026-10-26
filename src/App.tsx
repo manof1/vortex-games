@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { GameProvider, useGame } from './context/GameContext';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { Header } from './components/Header';
@@ -14,6 +14,7 @@ import { PkgTestLabModal } from './components/PkgTestLabModal';
 import { CreatorAuthModal } from './components/CreatorAuthModal';
 import { SundaySyncModal } from './components/SundaySyncModal';
 import { SidebarBanners } from './components/SidebarBanners';
+import { Pagination } from './components/Pagination';
 import { Footer } from './components/Footer';
 import { SearchX, Sparkles, Flame, Trophy, X, Star, Medal, Users, Eye, Download, Calendar } from 'lucide-react';
 import { TOP_OPTIONS } from './components/Header';
@@ -39,7 +40,8 @@ const MainContent: React.FC = () => {
     setIsCreatorAuthOpen,
     isSundaySyncOpen,
     setIsSundaySyncOpen,
-    openSundaySyncModal
+    openSundaySyncModal,
+    isCreator
   } = useGame();
   const { t } = useLanguage();
 
@@ -175,6 +177,34 @@ const MainContent: React.FC = () => {
       });
   }, [games, filters]);
 
+  // Sistema de Paginação: 10 linhas de 4 jogos = 40 jogos por página
+  const GAMES_PER_PAGE = 40;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Reseta para a página 1 ao alterar qualquer filtro de busca/categoria/ordem
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
+
+  const totalPages = Math.ceil(filteredGames.length / GAMES_PER_PAGE) || 1;
+  const activePage = Math.min(Math.max(1, currentPage), totalPages);
+  const startIndex = (activePage - 1) * GAMES_PER_PAGE;
+  const endIndex = Math.min(startIndex + GAMES_PER_PAGE, filteredGames.length);
+
+  const paginatedGames = useMemo(() => {
+    return filteredGames.slice(startIndex, endIndex);
+  }, [filteredGames, startIndex, endIndex]);
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    const target = document.getElementById('catalogo-section');
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      window.scrollTo({ top: 350, behavior: 'smooth' });
+    }
+  };
+
   const showHero = !filters.search && (filters.category === 'Todos' || filters.category === 'Lançamentos');
 
   return (
@@ -299,17 +329,19 @@ const MainContent: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={openSundaySyncModal}
-                  className="px-3 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500/15 via-yellow-400/15 to-amber-500/15 hover:from-amber-500/25 hover:to-amber-500/25 text-amber-700 dark:text-amber-300 border border-amber-500/40 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer hover:scale-105 active:scale-95"
-                  title="Atualização Semanal Automática de Cheats & Mods (Todo Domingo). Clique para gerenciar ou forçar agora!"
-                >
-                  <Calendar className="w-3.5 h-3.5 text-amber-500" />
-                  <span className="hidden sm:inline">Domingo Sync:</span>
-                  <span>Cheats & Mods</span>
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                </button>
+                {isCreator && (
+                  <button
+                    type="button"
+                    onClick={openSundaySyncModal}
+                    className="px-3 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500/15 via-yellow-400/15 to-amber-500/15 hover:from-amber-500/25 hover:to-amber-500/25 text-amber-700 dark:text-amber-300 border border-amber-500/40 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer hover:scale-105 active:scale-95"
+                    title="Atualização Semanal Automática de Cheats & Mods (Todo Domingo). Clique para gerenciar ou forçar agora!"
+                  >
+                    <Calendar className="w-3.5 h-3.5 text-amber-500" />
+                    <span className="hidden sm:inline">Domingo Sync:</span>
+                    <span>Cheats & Mods</span>
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  </button>
+                )}
 
                 <div className="hidden lg:flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
                   <span>{t('catalog.p2pVerified', 'Torrent P2P com Seeds Testados')}</span>
@@ -339,15 +371,26 @@ const MainContent: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 sm:gap-6 pb-12">
-                {filteredGames.map((game, index) => (
-                  <GameCard 
-                    key={game.id} 
-                    game={game} 
-                    rank={filters.sortBy.startsWith('top_') ? index + 1 : undefined}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 sm:gap-6 pb-6">
+                  {paginatedGames.map((game, index) => (
+                    <GameCard 
+                      key={game.id} 
+                      game={game} 
+                      rank={filters.sortBy.startsWith('top_') ? startIndex + index + 1 : undefined}
+                    />
+                  ))}
+                </div>
+
+                {/* Paginação do Catálogo (40 jogos por página = 10 linhas de 4) */}
+                <Pagination
+                  currentPage={activePage}
+                  totalPages={totalPages}
+                  totalItems={filteredGames.length}
+                  itemsPerPage={GAMES_PER_PAGE}
+                  onPageChange={handlePageChange}
+                />
+              </>
             )}
           </div>
         )}
