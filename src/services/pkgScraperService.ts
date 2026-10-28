@@ -1233,129 +1233,14 @@ export async function importCheatsFromGameFaqs(gameTitleOrRaw: string): Promise<
     };
   }
 
-  // Se não estiver na base estática, sintetiza cheats oficiais realistas do GameFAQs para o título limpo
-  const targetName = cleanInfo.primaryClean || cleanInfo.simplifiedClean || gameTitleOrRaw;
-  const gamefaqsCheatsUrl = `https://gamefaqs.gamespot.com/search?game=${encodeURIComponent(cleanInfo.simplifiedClean)}+cheats`;
-
-  const generatedCheats: GameCheat[] = [
-    {
-      id: `cheat-${Date.now()}-1`,
-      title: 'Console de Comandos & Modo Desenvolvedor',
-      codeOrEffect: 'Pressione ` (til) ou F1 no teclado, ou no controle: L1 + R1 + L2 + R2 + Cima + Triângulo',
-      category: 'Geral',
-      description: `Habilita a linha de comando e debug oficial no GameFAQs para ${cleanInfo.primaryClean}.`,
-      source: 'GameFAQs'
-    },
-    {
-      id: `cheat-${Date.now()}-2`,
-      title: 'Vidas / Saúde & Energia Infinita (God Mode)',
-      codeOrEffect: 'god 1 (ou no controle: Cima, Cima, Baixo, Baixo, Quadrado, Círculo)',
-      category: 'Vidas/Energia',
-      description: 'Impede que o personagem sofra qualquer dano físico, elemental ou quedas.',
-      source: 'GameFAQs'
-    },
-    {
-      id: `cheat-${Date.now()}-3`,
-      title: 'Munição Infinita & Arsenal Completo',
-      codeOrEffect: 'give all / give ammo 9999 (ou L1 + R2 + Quadrado + Círculo)',
-      category: 'Armas',
-      description: 'Preenche a munição de todas as armas e slots de consumíveis sem necessidade de recarga.',
-      source: 'GameFAQs'
-    },
-    {
-      id: `cheat-${Date.now()}-4`,
-      title: 'Dinheiro & Moedas Máximas no Inventário',
-      codeOrEffect: 'player.addmoney 9999999 (ou R1 + R2 + L1 + Triângulo no menu de pausa)',
-      category: 'Dinheiro',
-      description: 'Garante o número máximo de moedas para compras imediatas com ferreiros e mercadores.',
-      source: 'GameFAQs'
-    },
-    {
-      id: `cheat-${Date.now()}-5`,
-      title: 'Desbloquear Todos os Níveis & Seleção de Capítulos (New Game+)',
-      codeOrEffect: 'map_unlock_all (ou zerar qualquer dificuldade mantendo o save original)',
-      category: 'Desbloqueáveis',
-      description: 'Permite selecionar qualquer fase, chefe ou capítulo a partir do menu inicial.',
-      source: 'GameFAQs'
-    },
-    {
-      id: `cheat-${Date.now()}-6`,
-      title: 'Desbloquear Todas as Armas & Trajes Secretos',
-      codeOrEffect: 'unlock_all_weapons_and_costumes (ou L2 + R2 + X + Quadrado)',
-      category: 'Desbloqueáveis',
-      description: 'Libera o arsenal secreto, skins especiais e armaduras raras do jogo sem restrições.',
-      source: 'GameFAQs'
-    },
-    {
-      id: `cheat-${Date.now()}-7`,
-      title: 'Invisibilidade / Inimigos Não Atacam (No Target Mode)',
-      codeOrEffect: 'notarget 1 (ou segurar L1 + R1 e apertar Select no controle)',
-      category: 'Segredos',
-      description: 'Inimigos, monstros e chefes comuns ignoram o personagem permitindo exploração livre.',
-      source: 'GameFAQs'
-    },
-    {
-      id: `cheat-${Date.now()}-8`,
-      title: 'Restaurar Totalmente Vida, Mana e Estamina',
-      codeOrEffect: 'heal_full (ou no controle: Cima, Cima, Cima, Triângulo, Círculo)',
-      category: 'Vidas/Energia',
-      description: 'Recupera instantaneamente todos os pontos de vida e resistência a qualquer momento.',
-      source: 'GameFAQs'
-    },
-    {
-      id: `cheat-${Date.now()}-9`,
-      title: 'Multiplicador de Velocidade x2 & Super Corrida',
-      codeOrEffect: 'game.speed 2.0 (ou Segurar R2 + L3 durante a movimentação)',
-      category: 'Geral',
-      description: 'Acelera a locomoção do protagonista pelo cenário economizando tempo de travessia.',
-      source: 'GameFAQs'
-    },
-    {
-      id: `cheat-${Date.now()}-10`,
-      title: 'Glitch de Duplicação de Itens no Inventário',
-      codeOrEffect: 'Mova o item para o baú enquanto simultaneamente abre o menu de descarte e aperte X + Triângulo',
-      category: 'Glitches',
-      description: 'Duplica componentes raros, minérios de aprimoramento e poções infinitamente.',
-      source: 'GameFAQs'
-    },
-    {
-      id: `cheat-${Date.now()}-11`,
-      title: 'Revelar Mapa 100% sem Névoa de Guerra',
-      codeOrEffect: 'game.revealmap true (ou L1 + L2 + R1 + R2 + Start na tela de mapa)',
-      category: 'Segredos',
-      description: 'Elimina a névoa de guerra exibindo todas as salas secretas, baús e passagens ocultas.',
-      source: 'GameFAQs'
-    },
-    {
-      id: `cheat-${Date.now()}-12`,
-      title: 'Sem Tempo de Recarga para Habilidades & Magias',
-      codeOrEffect: 'cooldown_zero true (ou Cima, Baixo, Esquerda, Direita, Triângulo, X)',
-      category: 'Geral',
-      description: 'Permite disparar magias e habilidades especiais consecutivas sem esperar o tempo de cooldown.',
-      source: 'GameFAQs'
-    },
-    {
-      id: `cheat-${Date.now()}-13`,
-      title: 'Desbloquear Galeria de Vídeos, Músicas & Finais Especiais',
-      codeOrEffect: 'cinema_unlock_all (ou segurar L1 + R1 na tela de título por 5 segundos)',
-      category: 'Desbloqueáveis',
-      description: 'Habilita todas as cinematics, trilhas sonoras e artes conceituais do acervo.',
-      source: 'GameFAQs'
-    },
-    {
-      id: `cheat-${Date.now()}-14`,
-      title: 'Modo Dano Crítico Máximo (One Hit Kill)',
-      codeOrEffect: 'onehitkill 1 (ou R1 + R2 + Triângulo + Círculo)',
-      category: 'Armas',
-      description: 'Multiplica o dano de qualquer golpe para 99.999 eliminando alvos no primeiro impacto.',
-      source: 'GameFAQs'
-    }
-  ];
+  // Se não estiver na base estática, NÃO inventar cheats falsos!
+  // Retorna vazio (0 cheats) com link direto para a busca oficial de cheats no GameFAQs
+  const gamefaqsCheatsUrl = `https://gamefaqs.gamespot.com/search?game=${encodeURIComponent(cleanInfo.simplifiedClean || cleanInfo.primaryClean)}+cheats`;
 
   return {
-    cheats: generatedCheats,
+    cheats: [],
     gamefaqsCheatsUrl,
-    queryUsed: cleanInfo.simplifiedClean
+    queryUsed: cleanInfo.primaryClean || cleanInfo.simplifiedClean || gameTitleOrRaw
   };
 }
 

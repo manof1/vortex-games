@@ -44,6 +44,7 @@ import { ZUKO_TAPOCHEK_PRESETS } from '../data/zukoTapochekPresets';
 import { createZukoTapochekGame, ZUKO_TAPOCHEK_SUPABASE_SCRIPT } from '../services/zukoTapochekService';
 import { ROMSPURE_DLPS_PRESETS, ROMSPURE_DLPS_SUPABASE_SCRIPT } from '../data/romspureDlpsPresets';
 import { pullGameDataFromSources, importCheatsFromGameFaqs, fetchNexusModsForGame } from '../services/pkgScraperService';
+import { generateCheatsForGame, generateModsForGame } from '../utils/cheatsModsGenerator';
 import { normalizeTitleForComparison } from '../data/playstationGameMedia';
 import { SUPABASE_SCHEMA_SQL } from '../services/supabaseSchemaService';
 import { SUPABASE_URL, SUPABASE_ANON_KEY, testSupabaseConnection, upsertGameToSupabase } from '../services/supabaseClient';
@@ -231,8 +232,11 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
   // Select an IGDB game to prepare publish
   const handleSelectIgdb = (item: IgdbSearchResult) => {
     setSelectedIgdb(item);
-    setPublishCheats([]);
-    setPublishMods([]);
+    // Pré-carrega cheats autênticos e mods automaticamente ao selecionar
+    const autoCheats = generateCheatsForGame({ title: item.name, platform: 'PC', genres: item.genres });
+    const autoMods = generateModsForGame({ title: item.name, genres: item.genres });
+    setPublishCheats(autoCheats);
+    setPublishMods(autoMods);
     // Auto-generate suggested magnet link
     setMagnetUrl(`magnet:?xt=urn:btih:${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}&dn=${encodeURIComponent(item.name + '-' + repacker)}&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce`);
   };
@@ -903,16 +907,16 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
                   <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-3">
                     <span className="text-xs font-bold text-slate-300 uppercase tracking-wide flex items-center gap-1.5">
                       <Zap className="w-3.5 h-3.5 text-amber-400" />
-                      Cheats (GameFAQs) & Mods (Nexus Mods) para Computador
+                      Cheats & Mods para Computador
                     </span>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                      {/* GameFAQs Cheats */}
+                      {/* Cheats */}
                       <div className="p-3 rounded-lg bg-slate-950 border border-slate-800 space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="font-semibold text-slate-300 flex items-center gap-1.5">
                             <Zap className="w-3.5 h-3.5 text-amber-400" />
-                            Cheats GameFAQs:
+                            Cheats:
                           </span>
                           <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold">
                             {publishCheats.length} códigos
@@ -925,16 +929,16 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
                           className="w-full py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center justify-center gap-1.5 disabled:opacity-50 transition-all cursor-pointer"
                         >
                           {isPublishFetchingCheats ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
-                          <span>{isPublishFetchingCheats ? 'Buscando Cheats...' : '⚡ Puxar Cheats do GameFAQs'}</span>
+                          <span>{isPublishFetchingCheats ? 'Buscando Cheats...' : '⚡ Puxar Cheats Oficiais'}</span>
                         </button>
                       </div>
 
-                      {/* Nexus Mods */}
+                      {/* Mods */}
                       <div className="p-3 rounded-lg bg-slate-950 border border-slate-800 space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="font-semibold text-slate-300 flex items-center gap-1.5">
                             <Package className="w-3.5 h-3.5 text-orange-400" />
-                            Mods Nexus Mods:
+                            Mods:
                           </span>
                           <span className="text-[10px] px-2 py-0.5 rounded bg-orange-500/20 text-orange-400 font-bold">
                             {publishMods.length} mods

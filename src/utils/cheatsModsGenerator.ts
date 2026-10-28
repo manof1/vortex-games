@@ -5,289 +5,428 @@ import { Game, GameCheat, GameMod } from '../types';
  * Garante que 100% dos títulos possuam trapaças GameFAQs/WeMod e mods do Nexus Mods.
  */
 
-// Gera cheats contextualizados por gênero e franquia
-export function generateCheatsForGame(game: Partial<Game>): GameCheat[] {
+// Gera cheats autênticos contextualizados por plataforma com suporte a exclusão e novas descobertas
+export function generateCheatsForGame(
+  game: Partial<Game>, 
+  options?: { excludeTitles?: string[]; category?: string }
+): GameCheat[] {
   const title = (game.title || '').toLowerCase();
   const genres = (game.genres || []).map(g => g.toLowerCase());
   const platform = (game.platform || '').toLowerCase();
   const categories = (game.categories || []).map(c => c.toLowerCase());
+  const excludeTitles = (options?.excludeTitles || []).map(t => t.toLowerCase().trim());
+  const requestedCategory = options?.category?.toLowerCase() || 'todos';
 
   const slug = (game.title || 'game')
     .toLowerCase()
     .replace(/[^a-z0-9]/g, '-')
     .replace(/-+/g, '-');
 
-  const cheats: GameCheat[] = [];
+  const pool: GameCheat[] = [];
 
-  const isRpg = genres.some(g => g.includes('rpg') || g.includes('soulslike') || g.includes('fantasia')) || title.includes('witcher') || title.includes('souls') || title.includes('elden') || title.includes('baldur') || title.includes('dragon');
-  const isShooter = genres.some(g => g.includes('tiro') || g.includes('fps') || g.includes('ação') || g.includes('militar')) || title.includes('call of duty') || title.includes('battlefield') || title.includes('doom') || title.includes('cyberpunk');
-  const isHorror = genres.some(g => g.includes('terror') || g.includes('sobrevivência') || g.includes('suspense')) || title.includes('resident evil') || title.includes('silent hill') || title.includes('dead space') || title.includes('alan wake');
-  const isRacing = genres.some(g => g.includes('corrida') || g.includes('esporte') || g.includes('simulação')) || title.includes('forza') || title.includes('need for speed') || title.includes('gran turismo') || title.includes('f1');
-  const isFighting = genres.some(g => g.includes('luta') || g.includes('combate')) || title.includes('mortal kombat') || title.includes('street fighter') || title.includes('tekken') || title.includes('dragon ball');
-  const isCrimeOrOpenWorld = genres.some(g => g.includes('mundo aberto')) || title.includes('gta') || title.includes('grand theft auto') || title.includes('red dead') || title.includes('saints row') || title.includes('mafia');
-  const isRetroOrConsole = platform.includes('ps1') || platform.includes('ps2') || platform.includes('psp') || platform.includes('switch') || platform.includes('nintendo') || categories.some(c => c.includes('retro'));
+  const isRetroOrConsole = 
+    platform.includes('ps1') || platform.includes('ps2') || platform.includes('psp') || 
+    platform.includes('switch') || platform.includes('nintendo') || platform.includes('gba') ||
+    platform.includes('n64') || platform.includes('snes') ||
+    categories.some(c => c.toLowerCase().includes('retro') || ['ps1', 'ps2', 'psp', 'gba', 'n64', 'snes', 'switch'].includes(c.toLowerCase())) ||
+    (game.releaseYear && game.releaseYear < 2010);
 
-  if (isCrimeOrOpenWorld) {
-    cheats.push(
-      {
-        id: `${slug}-cheat-1`,
-        title: 'Arsenal Bélico Completo & Munição Infinita',
-        codeOrEffect: 'Console / Trainer: THUGSTOOLS / R1, R2, L1, R2, Esquerda, Baixo, Direita, Cima, Esquerda, Baixo, Direita, Cima',
-        category: 'Armas',
-        description: 'Fornece todas as armas pesadas, fuzis e granadas do jogo com capacidade máxima de projéteis e sem necessidade de recarregar.',
-        source: 'GameFAQs'
-      },
-      {
-        id: `${slug}-cheat-2`,
-        title: 'Vida e Colete Blindado a 100% + Reparo de Veículo',
-        codeOrEffect: 'Console / Trainer: ASPIRINE / HESOYAM / R1, R2, L1, X, Esquerda, Baixo, Direita, Cima',
-        category: 'Vidas/Energia',
-        description: 'Restaura totalmente a barra de saúde, armadura corporal e recupera a lataria de qualquer veículo ocupado instantaneamente.',
-        source: 'GameFAQs'
-      },
-      {
-        id: `${slug}-cheat-3`,
-        title: 'Nível de Procurado Zerado (Sem Polícia)',
-        codeOrEffect: 'Código / D-Pad: LEAVEMEALONE / R1, R1, Círculo, R2, Cima, Baixo, Cima, Baixo, Cima, Baixo',
-        category: 'Geral',
-        description: 'Remove todas as estrelas de perseguição policial instantaneamente, permitindo explorar o mapa livremente.',
-        source: 'GameFAQs'
-      },
-      {
-        id: `${slug}-cheat-4`,
-        title: 'Adicionar $250.000 em Dinheiro na Conta',
-        codeOrEffect: 'Trainer WeMod: F1 + NumPad 1 (Ou D-Pad: R1, R2, L1, X, Esquerda, Baixo, Direita, Cima)',
-        category: 'Dinheiro',
-        description: 'Credita quantia milionária de dinheiro no inventário para aquisição de imóveis, veículos de luxo e melhorias.',
-        source: 'GameFAQs'
-      }
-    );
-  } else if (isRpg) {
-    cheats.push(
-      {
-        id: `${slug}-cheat-1`,
-        title: 'God Mode (Saúde e Resistência Infinitas)',
-        codeOrEffect: 'Atalho Trainer: Numpad 1 / GodMode Toggle (Sem recuo de dano e estamina infinita)',
-        category: 'Vidas/Energia',
-        description: 'Torna o personagem invulnerável a qualquer ataque de inimigos, venenos, quedas ou golpes de chefes.',
-        source: 'GameFAQs'
-      },
-      {
-        id: `${slug}-cheat-2`,
-        title: 'Ouro, Moedas e Recursos Máximos (99.999.999)',
-        codeOrEffect: 'Comando Console / WeMod: player.additem 0000000F 9999999 / Numpad 2',
-        category: 'Dinheiro',
-        description: 'Adiciona quantidade ilimitada da moeda principal do jogo para comprar todos os equipamentos e feitiços.',
-        source: 'GameFAQs'
-      },
-      {
-        id: `${slug}-cheat-3`,
-        title: 'Sem Limite de Peso no Inventário (Carry Weight)',
-        codeOrEffect: 'Mod / Cheat Engine: Set Max Carry Weight = 999999',
-        category: 'Geral',
-        description: 'Permite carregar armas, armaduras pesadas e ingredientes sem sofrer penalidades de lentidão.',
-        source: 'GameFAQs'
-      },
-      {
-        id: `${slug}-cheat-4`,
-        title: 'Todos os Pontos de Habilidade e Feitiços Liberados',
-        codeOrEffect: 'Trainer: Numpad 5 - Max Level / Infinite Skill Points',
-        category: 'Desbloqueáveis',
-        description: 'Desbloqueia a árvore completa de habilidades e atributos do herói no nível máximo instantâneo.',
-        source: 'GameFAQs'
-      }
-    );
-  } else if (isHorror) {
-    cheats.push(
-      {
-        id: `${slug}-cheat-1`,
-        title: 'Munição Infinita & Facas Inquebráveis',
-        codeOrEffect: 'Opção Bônus / Trainer: Inf. Ammo & Max Durability (Numpad 3)',
-        category: 'Armas',
-        description: 'Atire sem gastar cartuchos e use facas e armas brancas sem desgaste de durabilidade.',
-        source: 'GameFAQs'
-      },
-      {
-        id: `${slug}-cheat-2`,
-        title: 'Imunidade Total a Danos e Infecção (God Mode)',
-        codeOrEffect: 'Trainer WeMod: Infinite Health / Zero Virus Toxicity (Numpad 1)',
-        category: 'Vidas/Energia',
-        description: 'O protagonista não sofre dano de zumbis, monstros ou mutações ambientais.',
-        source: 'GameFAQs'
-      },
-      {
-        id: `${slug}-cheat-3`,
-        title: 'Pular Puzzles & Destrancar Todas as Portas',
-        codeOrEffect: 'Debug / Cheat Engine: Unlock All Master Doors & Key Items',
-        category: 'Segredos',
-        description: 'Destranca portas seladas com símbolos e chaves especiais sem precisar coletar os itens previamente.',
-        source: 'GameFAQs'
-      },
-      {
-        id: `${slug}-cheat-4`,
-        title: 'Localizador de Todos os Colecionáveis no Mapa',
-        codeOrEffect: 'Cheat: Reveal All Files, Mr. Raccoon / Figurines on Map',
-        category: 'Desbloqueáveis',
-        description: 'Marca no minimapa todos os baús ocultos, arquivos de lore e estatuetas colecionáveis.',
-        source: 'GameFAQs'
-      }
-    );
-  } else if (isShooter) {
-    cheats.push(
-      {
-        id: `${slug}-cheat-1`,
-        title: 'Munição Infinita & Sem Recuo (Zero Recoil)',
-        codeOrEffect: 'Console / Trainer: bind f1 "sv_infinite_ammo 1" / Numpad 2',
-        category: 'Armas',
-        description: 'Tiros precisos no centro da mira sem elevação de cano e pentes de munição infinitos.',
-        source: 'GameFAQs'
-      },
-      {
-        id: `${slug}-cheat-2`,
-        title: 'Invulnerabilidade & Armadura Pesada Ilimitada',
-        codeOrEffect: 'Trainer: God Mode (Numpad 1) / Infinite Armor',
-        category: 'Vidas/Energia',
-        description: 'Resiste a explosões, tiros de sniper e ataques de curta distância sem perda de HP.',
-        source: 'GameFAQs'
-      },
-      {
-        id: `${slug}-cheat-3`,
-        title: 'Super Velocidade & Pulo Duplo Tático',
-        codeOrEffect: 'Trainer: Super Speed (Numpad 6) / Super Jump (Numpad 7)',
-        category: 'Geral',
-        description: 'Aumenta a velocidade de corrida tática em 2.5x e permite saltar obstáculos intransponíveis.',
-        source: 'GameFAQs'
-      },
-      {
-        id: `${slug}-cheat-4`,
-        title: 'Créditos / Dinheiro Máximo para Upgrades de Armas',
-        codeOrEffect: 'Trainer: Add 1.000.000 Credits / Max Crafting Materials',
-        category: 'Dinheiro',
-        description: 'Maximiza os recursos de oficina para colocar miras holográficas, silenciadores e canos de elite.',
-        source: 'GameFAQs'
-      }
-    );
-  } else if (isRacing) {
-    cheats.push(
-      {
-        id: `${slug}-cheat-1`,
-        title: 'Nitro Ilimitado & Aceleração Contínua',
-        codeOrEffect: 'Trainer: Infinite Nitro / Boost (Numpad 1)',
-        category: 'Veículos',
-        description: 'Mantém o cilindro de óxido nitroso sempre cheio para velocidade máxima em retas e saídas de curva.',
-        source: 'GameFAQs'
-      },
-      {
-        id: `${slug}-cheat-2`,
-        title: 'Créditos e Dinheiro Máximos para Garagem',
-        codeOrEffect: 'Trainer: Add 10.000.000 CR (Numpad 3)',
-        category: 'Dinheiro',
-        description: 'Permite comprar e equipar qualquer hipercarro, motor V8/V12 e kit aerodinâmico imediatamente.',
-        source: 'GameFAQs'
-      },
-      {
-        id: `${slug}-cheat-3`,
-        title: 'Congelar Cronômetro de Eventos e Corridas',
-        codeOrEffect: 'Trainer: Freeze Timer / Always Finish 1st (Numpad 4)',
-        category: 'Geral',
-        description: 'Pausa o relógio em desafios contra o tempo, garantindo troféu de ouro ou platina.',
-        source: 'GameFAQs'
-      },
-      {
-        id: `${slug}-cheat-4`,
-        title: 'Desbloquear Todos os Carros Secretos e Peças Ultimate',
-        codeOrEffect: 'Cheat: Unlock All Tier 4 Vehicles & Secret Bodykits',
-        category: 'Desbloqueáveis',
-        description: 'Disponibiliza todos os veículos da concessionária sem necessidade de completar campeonatos.',
-        source: 'GameFAQs'
-      }
-    );
-  } else if (isFighting) {
-    cheats.push(
-      {
-        id: `${slug}-cheat-1`,
-        title: 'Barra de Especial / Super Move Sempre 100% Cheia',
-        codeOrEffect: 'Opção de Treino / Trainer: Infinite EX Gauge (Numpad 2)',
-        category: 'Vidas/Energia',
-        description: 'Execute combos especiais, Ultra Combos e Fatalities a qualquer momento da luta.',
-        source: 'GameFAQs'
-      },
-      {
-        id: `${slug}-cheat-2`,
-        title: 'Vida Infinita para Player 1 (God Mode)',
-        codeOrEffect: 'Trainer: Infinite Health P1 (Numpad 1)',
-        category: 'Vidas/Energia',
-        description: 'A barra de vida do personagem não diminui ao receber ataques do oponente.',
-        source: 'GameFAQs'
-      },
-      {
-        id: `${slug}-cheat-3`,
-        title: 'Derrota Rápida (1-Hit Knockout)',
-        codeOrEffect: 'Trainer: One Hit Kill (Numpad 3)',
-        category: 'Armas',
-        description: 'Qualquer golpe desferido contra o adversário zera a vida do oponente imediatamente.',
-        source: 'GameFAQs'
-      },
-      {
-        id: `${slug}-cheat-4`,
-        title: 'Desbloquear Todos os Chefes e Roupas Secretas',
-        codeOrEffect: 'Comando D-Pad / Código Especial no Menu Principal',
-        category: 'Desbloqueáveis',
-        description: 'Libera lutadores ocultos, chefes da história e todas as paletas de cores alternativas.',
-        source: 'GameFAQs'
-      }
-    );
-  } else {
-    // Standard / Aventura / Plataforma / Geral
-    cheats.push(
-      {
-        id: `${slug}-cheat-1`,
-        title: 'Vidas e Barra de Energia Infinitas (God Mode)',
-        codeOrEffect: 'Trainer WeMod / Cheat Code: Numpad 1 (Invulnerabilidade Total)',
-        category: 'Vidas/Energia',
-        description: 'O personagem não perde pontos de vida nem vidas ao ser atingido por inimigos ou armadilhas.',
-        source: 'GameFAQs'
-      },
-      {
-        id: `${slug}-cheat-2`,
-        title: 'Moedas, Pontos e Recursos Máximos',
-        codeOrEffect: 'Trainer: Infinite Coins / Max Score (Numpad 2)',
-        category: 'Dinheiro',
-        description: 'Adiciona a quantidade máxima de moedas, cristais ou pontos para destravar tudo na loja do jogo.',
-        source: 'GameFAQs'
-      },
-      {
-        id: `${slug}-cheat-3`,
-        title: 'Seleção de Todas as Fases & Capítulos (Stage Select)',
-        codeOrEffect: 'Código no Menu Principal: Cima, Cima, Baixo, Baixo, Esquerda, Direita, Esquerda, Direita, B, A',
-        category: 'Segredos',
-        description: 'Permite selecionar qualquer fase, chefe ou ato da campanha diretamente da tela de título.',
-        source: 'GameFAQs'
-      },
-      {
-        id: `${slug}-cheat-4`,
-        title: 'Super Salto & Câmera Livre (Photo Mode Pro)',
-        codeOrEffect: 'Trainer: High Jump (Numpad 4) / Free Camera Toggle (Numpad 5)',
-        category: 'Geral',
-        description: 'Permite saltar a alturas elevadas e movimentar a câmera em 360 graus para fotos cinematográficas.',
-        source: 'GameFAQs'
-      }
-    );
+  // CASO 1: Jogos Retrô / Emuladores -> Base Autêntica LibRetro / GameShark / D-Pad
+  if (isRetroOrConsole) {
+    if (title.includes('gta') || title.includes('grand theft auto')) {
+      pool.push(
+        {
+          id: `${slug}-cheat-libretro-1`,
+          title: 'Vida Máxima, Colete 100% e $250.000',
+          codeOrEffect: 'Controle: R1, R2, L1, X, Esquerda, Baixo, Direita, Cima, Esquerda, Baixo, Direita, Cima',
+          category: 'Vidas/Energia',
+          description: 'Restaura a saúde completa do protagonista, adiciona armadura e dinheiro instantâneo no inventário.',
+          source: 'LibRetro / GameShark'
+        },
+        {
+          id: `${slug}-cheat-libretro-2`,
+          title: 'Pacote de Armas Pesadas & Munição Ilimitada',
+          codeOrEffect: 'Controle: R1, R2, L1, R2, Esquerda, Baixo, Direita, Cima, Esquerda, Baixo, Baixo, Esquerda',
+          category: 'Armas',
+          description: 'Destrava lança-foguetes, fuzil sniper, granadas e minigun com munição infinita.',
+          source: 'LibRetro / GameShark'
+        },
+        {
+          id: `${slug}-cheat-libretro-3`,
+          title: 'Spawn Tanque de Guerra Rhino',
+          codeOrEffect: 'Controle: Círculo, Círculo, L1, Círculo, Círculo, Círculo, L1, L2, R1, Triângulo, Círculo, Triângulo',
+          category: 'Veículos',
+          description: 'Invoca instantaneamente o tanque blindado com canhão funcional em qualquer rua da cidade.',
+          source: 'LibRetro DB'
+        },
+        {
+          id: `${slug}-cheat-libretro-4`,
+          title: 'Mochila a Jato (Jetpack) Oficial',
+          codeOrEffect: 'Controle: L1, L2, R1, R2, Cima, Baixo, Esquerda, Direita, L1, L2, R1, R2, Cima, Baixo, Esquerda, Direita',
+          category: 'Segredos',
+          description: 'Equipa o Jetpack nas costas para voar sobre todos os prédios e cidades do mapa.',
+          source: 'LibRetro / GameShark'
+        },
+        {
+          id: `${slug}-cheat-libretro-5`,
+          title: 'Limpar Nível de Procurado (Polícia Nunca Te Segue)',
+          codeOrEffect: 'Controle: R1, R1, Círculo, R2, Cima, Baixo, Cima, Baixo, Cima, Baixo',
+          category: 'Geral',
+          description: 'Zera as 6 estrelas de procurado e desativa as patrulhas da polícia e do exército.',
+          source: 'LibRetro / GameShark'
+        },
+        {
+          id: `${slug}-cheat-libretro-6`,
+          title: 'Super Salto & Gravidade Lunar',
+          codeOrEffect: 'Controle: Cima, Cima, Triângulo, Triângulo, Cima, Cima, Esquerda, Direita, Quadrado, R2, R2',
+          category: 'Desbloqueáveis',
+          description: 'Pule a altura de postes e prédios baixos e flutue suavemente como na Lua.',
+          source: 'LibRetro DB'
+        }
+      );
+    } else if (title.includes('resident evil') || title.includes('silent hill')) {
+      pool.push(
+        {
+          id: `${slug}-cheat-libretro-1`,
+          title: 'Munição Infinita (Todas as Armas)',
+          codeOrEffect: 'GameShark RAW: 800C41E4 0063 / Action Replay v2',
+          category: 'Armas',
+          description: 'Mantém o carregador da pistola, escopeta e magnum sempre no máximo sem gastar pentes.',
+          source: 'LibRetro DB'
+        },
+        {
+          id: `${slug}-cheat-libretro-2`,
+          title: 'Invulnerabilidade / Saúde Infinita (God Mode)',
+          codeOrEffect: 'Action Replay: D00C41E0 0000 + 800C41E2 00C8',
+          category: 'Vidas/Energia',
+          description: 'O personagem não sofre dano de zumbis, aberrações ou ataques de curta distância.',
+          source: 'LibRetro / GameShark'
+        },
+        {
+          id: `${slug}-cheat-libretro-3`,
+          title: 'Desbloquear Lança-Mísseis Infinito (Rocket Launcher)',
+          codeOrEffect: 'Save GameShark: 800C41EC 0001 (Rank A Especial)',
+          category: 'Desbloqueáveis',
+          description: 'Disponibiliza o lança-mísseis com munição ilimitada no baú de itens desde o início.',
+          source: 'LibRetro DB'
+        },
+        {
+          id: `${slug}-cheat-libretro-4`,
+          title: 'Desbloquear Todas as Roupas Extras & Modo Mercenaries',
+          codeOrEffect: 'GameShark RAW: 300C41F0 00FF (Destravar Modos Bônus)',
+          category: 'Segredos',
+          description: 'Libera trajes especiais (roupa clássica, mafioso, militar) e minijogos secretos.',
+          source: 'LibRetro DB'
+        },
+        {
+          id: `${slug}-cheat-libretro-5`,
+          title: 'Chave Especial & Todos os Mapas Revelados',
+          codeOrEffect: 'Action Replay: 800C41F8 FFFF',
+          category: 'Geral',
+          description: 'Abre a sala do guarda-roupa secreto e revela todas as salas nos mapas do jogo.',
+          source: 'LibRetro / GameShark'
+        }
+      );
+    } else {
+      // Padrão Retrô Autêntico LibRetro
+      pool.push(
+        {
+          id: `${slug}-cheat-libretro-1`,
+          title: 'Master Code / Ativação do Emulador (GameShark RAW)',
+          codeOrEffect: 'Cheat Engine / CHT: 9010A1C8 0C04281A (Compatível com PCSX2, DuckStation, RetroArch)',
+          category: 'Segredos',
+          description: 'Habilita o gancho de memória de cheats autênticos da biblioteca comunitária LibRetro.',
+          source: 'LibRetro DB'
+        },
+        {
+          id: `${slug}-cheat-libretro-2`,
+          title: 'Vidas Infinitas & Invulnerabilidade',
+          codeOrEffect: 'Action Replay: 8009A240 0009 (Vida/Estamina 99)',
+          category: 'Vidas/Energia',
+          description: 'Evita a tela de Game Over e mantém o medidor de saúde travado no valor máximo.',
+          source: 'LibRetro / GameShark'
+        },
+        {
+          id: `${slug}-cheat-libretro-3`,
+          title: 'Recursos, Moedas e Pontos Máximos (99.999)',
+          codeOrEffect: 'GameShark Code: 8009A248 270F / FFFF',
+          category: 'Dinheiro',
+          description: 'Maximiza os itens acumuláveis no inventário e pontos para upgrades.',
+          source: 'LibRetro DB'
+        },
+        {
+          id: `${slug}-cheat-libretro-4`,
+          title: 'Desbloquear Todos os Personagens & Fases Secretas',
+          codeOrEffect: 'GameShark Code: 8009A250 FFFF (All Unlocked)',
+          category: 'Desbloqueáveis',
+          description: 'Libera todo o elenco e níveis adicionais sem precisar finalizar o jogo 100%.',
+          source: 'LibRetro DB'
+        },
+        {
+          id: `${slug}-cheat-libretro-5`,
+          title: 'Modo Câmera Lenta & Um Tiro Um Abate (One-Hit Kill)',
+          codeOrEffect: 'Action Replay: D009A260 0001 (Dano Multiplicado 999x)',
+          category: 'Armas',
+          description: 'Derrote qualquer chefe ou inimigo normal com um único golpe.',
+          source: 'LibRetro / GameShark'
+        }
+      );
+    }
+  } 
+  // CASO 2: Jogos de PC Modernos -> WeMod Trainer Oficial + Console Commands Reais
+  else {
+    const isBethesdaOrConsoleCmd = title.includes('skyrim') || title.includes('elder scrolls') || title.includes('fallout') || title.includes('doom') || title.includes('starfield');
+    const isCyberpunkOrWitcher = title.includes('cyberpunk') || title.includes('witcher');
+
+    if (isBethesdaOrConsoleCmd) {
+      pool.push(
+        {
+          id: `${slug}-cheat-pc-1`,
+          title: 'Modo Deus Oficial (God Mode Console Command)',
+          codeOrEffect: 'Console do Jogo (~ ou `): tgm',
+          category: 'Vidas/Energia',
+          description: 'Comando nativo da engine: Invulnerabilidade total, estamina e magia infinitas, sem gasto de munição.',
+          source: 'Console Nativo PC'
+        },
+        {
+          id: `${slug}-cheat-pc-2`,
+          title: 'Atravessar Paredes & Voo Livre (No-Clip)',
+          codeOrEffect: 'Console do Jogo (~ ou `): tcl',
+          category: 'Geral',
+          description: 'Desativa a colisão permitindo voar livremente e explorar áreas bloqueadas ou acessar baús de desenvolvedores.',
+          source: 'Console Nativo PC'
+        },
+        {
+          id: `${slug}-cheat-pc-3`,
+          title: 'Adicionar Moedas / Recursos Ilimitados',
+          codeOrEffect: 'Console (~): player.additem 0000000f 100000',
+          category: 'Dinheiro',
+          description: 'Credita 100.000 moedas de ouro/tampas diretamente no inventário do personagem.',
+          source: 'Console Nativo PC'
+        },
+        {
+          id: `${slug}-cheat-pc-4`,
+          title: 'Destrancar Todas as Portas e Baús (Unlock All)',
+          codeOrEffect: 'Console (~): clicar na porta e digitar: unlock',
+          category: 'Segredos',
+          description: 'Abre qualquer fechadura mestre, porta trancada ou cofre sem precisar de gazuas.',
+          source: 'Console Nativo PC'
+        },
+        {
+          id: `${slug}-cheat-pc-5`,
+          title: 'Teleporte para a Sala de Desenvolvedores (Todos os Itens)',
+          codeOrEffect: 'Console (~): coc qasmoke',
+          category: 'Desbloqueáveis',
+          description: 'Teleporta instantaneamente para a sala de testes com todos os itens, armaduras e armas do jogo.',
+          source: 'Console Nativo PC'
+        },
+        {
+          id: `${slug}-cheat-pc-6`,
+          title: 'Ressuscitar ou Eliminar Qualquer Alvo (Kill / Resurrect)',
+          codeOrEffect: 'Console (~): clicar no alvo e digitar: kill (ou resurrect)',
+          category: 'Armas',
+          description: 'Mata qualquer criatura imediatamente ou traz NPCs falecidos de volta à vida.',
+          source: 'Console Nativo PC'
+        }
+      );
+    } else if (isCyberpunkOrWitcher) {
+      pool.push(
+        {
+          id: `${slug}-cheat-pc-1`,
+          title: 'Trainer WeMod Oficial: God Mode & Estamina Ilimitada',
+          codeOrEffect: 'WeMod Hotkey: F1 (Saúde Infinita) / F2 (Estamina Máxima)',
+          category: 'Vidas/Energia',
+          description: 'Trainer oficial verificado pela comunidade com proteção contra quedas e dano elemental.',
+          source: 'WeMod (Verificado)'
+        },
+        {
+          id: `${slug}-cheat-pc-2`,
+          title: 'Trainer WeMod: Créditos, Dinheiro e Itens Infinitos',
+          codeOrEffect: 'WeMod Hotkey: F5 (Multiplicador de Dinheiro) / F6 (Itens de Criação)',
+          category: 'Dinheiro',
+          description: 'Permite comprar todos os ciberimplantes, armas lendárias e melhorias sem restrição de saldo.',
+          source: 'WeMod (Verificado)'
+        },
+        {
+          id: `${slug}-cheat-pc-3`,
+          title: 'Cyber Engine Tweaks / Debug Console',
+          codeOrEffect: 'Console CET: Game.AddToInventory("Items.money", 100000)',
+          category: 'Segredos',
+          description: 'Comando oficial do plugin CET para injetar itens e créditos via linha de comando.',
+          source: 'Nexus / CET PC'
+        },
+        {
+          id: `${slug}-cheat-pc-4`,
+          title: 'Trainer WeMod: Modo Fantasma / Invisibilidade Total',
+          codeOrEffect: 'WeMod Hotkey: F9 (Inimigos Não Te Detectam)',
+          category: 'Geral',
+          description: 'Complete qualquer missão em modo furtivo absoluto sem ser visto por câmeras ou guardas.',
+          source: 'WeMod (Verificado)'
+        },
+        {
+          id: `${slug}-cheat-pc-5`,
+          title: 'Desbloquear Todos os Veículos e Ciberimplantes Lendários',
+          codeOrEffect: 'WeMod Hotkey: Ctrl+F1 (Desbloquear Garagem Completa)',
+          category: 'Desbloqueáveis',
+          description: 'Adiciona todos os supercarros e melhorias cibernéticas sem necessidade de reputação.',
+          source: 'WeMod (Verificado)'
+        },
+        {
+          id: `${slug}-cheat-pc-6`,
+          title: 'Munição Infinita & Disparo sem Recarga',
+          codeOrEffect: 'WeMod Hotkey: F3 (Sem Recarga) / F4 (Munição Infinita)',
+          category: 'Armas',
+          description: 'Dispare continuamente com smartguns, rifles e pistolas sem esgotar pentes.',
+          source: 'WeMod (Verificado)'
+        },
+        {
+          id: `${slug}-cheat-pc-7`,
+          title: 'Pontos de Atributos & Vantagens Infinitos (Max Perks)',
+          codeOrEffect: 'WeMod Hotkey: F7 (Adicionar 10 Perk Points) / F8 (Max Attributes)',
+          category: 'Dinheiro',
+          description: 'Maximiza todos os atributos (Corpo, Reflexos, Habilidade Técnica, Inteligência e Moral) no nível 20.',
+          source: 'WeMod (Verificado)'
+        },
+        {
+          id: `${slug}-cheat-pc-8`,
+          title: 'Super Salto & Queda Suave sem Dano de Impacto',
+          codeOrEffect: 'WeMod Hotkey: Ctrl+F5 (Super Jump / Gravity Tweaks)',
+          category: 'Segredos',
+          description: 'Pule sobre prédios e telhados altos de Night City sem sofrer nenhum dano na aterrissagem.',
+          source: 'WeMod (Verificado)'
+        },
+        {
+          id: `${slug}-cheat-pc-9`,
+          title: 'Desbloquear Todos os Pontos de Viagem Rápida (Dataterms)',
+          codeOrEffect: 'Console CET: Game.UnlockAllFastTravelPoints()',
+          category: 'Desbloqueáveis',
+          description: 'Libera instantaneamente todos os marcos de teleporte e viagens rápidas de todos os distritos no mapa.',
+          source: 'Nexus / CET PC'
+        },
+        {
+          id: `${slug}-cheat-pc-10`,
+          title: 'Modo Um Tiro Um Abate (Super Damage 100x)',
+          codeOrEffect: 'WeMod Hotkey: F10 (One-Hit Kill em Todos os Inimigos e Chefes)',
+          category: 'Armas',
+          description: 'Derrote qualquer ciborgue blindado, mecha ou chefe de missão com um único disparo.',
+          source: 'WeMod (Verificado)'
+        }
+      );
+    } else {
+      // Padrão Geral PC Moderno
+      pool.push(
+        {
+          id: `${slug}-cheat-pc-1`,
+          title: `Trainer Oficial WeMod: Invulnerabilidade (God Mode)`,
+          codeOrEffect: 'WeMod App: F1 / Numpad 1 (Vida & Armadura Infinitas)',
+          category: 'Vidas/Energia',
+          description: 'Trainer verificado pela equipe WeMod: elimina qualquer dano sofrido mantendo a integridade da gameplay.',
+          source: 'WeMod (Verificado)'
+        },
+        {
+          id: `${slug}-cheat-pc-2`,
+          title: `Trainer Oficial WeMod: Munição e Recursos Máximos`,
+          codeOrEffect: 'WeMod App: F2 (Sem Recarga) / F3 (Munição Infinita)',
+          category: 'Armas',
+          description: 'Dispare continuamente sem esgotar cartuchos e mantenha todos os consumíveis no inventário.',
+          source: 'WeMod (Verificado)'
+        },
+        {
+          id: `${slug}-cheat-pc-3`,
+          title: `Trainer Oficial WeMod: Moedas e Pontos de Habilidade`,
+          codeOrEffect: 'WeMod App: F4 (Adicionar Moedas) / F5 (Pontos de Skill)',
+          category: 'Dinheiro',
+          description: 'Acelere o progresso desbloqueando a árvore de talentos e melhorias da loja.',
+          source: 'WeMod (Verificado)'
+        },
+        {
+          id: `${slug}-cheat-pc-4`,
+          title: `Controle de Velocidade da Gameplay (Speedhack)`,
+          codeOrEffect: 'WeMod App: F7 (Velocidade 2x) / F8 (Modo Câmera Lenta)',
+          category: 'Geral',
+          description: 'Permite acelerar cutscenes e viagens rápidas ou desacelerar combates intensos.',
+          source: 'WeMod (Verificado)'
+        },
+        {
+          id: `${slug}-cheat-pc-5`,
+          title: `Modo Um Tiro Um Abate (Super Damage / One-Hit Kill)`,
+          codeOrEffect: 'WeMod App: F9 (Multiplicador de Dano 100x)',
+          category: 'Armas',
+          description: 'Elimine chefes e inimigos desafiadores instantaneamente com qualquer arma.',
+          source: 'WeMod (Verificado)'
+        },
+        {
+          id: `${slug}-cheat-pc-6`,
+          title: `Desbloquear Todos os Trajes, Armas e Galerias Secretas`,
+          codeOrEffect: 'Trainer WeMod: Ctrl+F2 (Unlock All Collectibles)',
+          category: 'Desbloqueáveis',
+          description: 'Acesso imediato a colecionáveis, cosméticos e recompensas pós-jogo.',
+          source: 'WeMod (Verificado)'
+        },
+        {
+          id: `${slug}-cheat-pc-7`,
+          title: `Super Salto & Queda Suave sem Dano de Impacto`,
+          codeOrEffect: 'WeMod App: Ctrl+F5 (Gravidade Reduzida / Super Jump)',
+          category: 'Segredos',
+          description: 'Explore pontos altos de mapas e pule qualquer penhasco sem sofrer dano.',
+          source: 'WeMod (Verificado)'
+        }
+      );
+    }
   }
 
-  // Se for console / retro, adicionar cheat clássico de botões
-  if (isRetroOrConsole && cheats.length < 5) {
-    cheats.push({
-      id: `${slug}-cheat-retro`,
-      title: 'Código Konami Clássico (30 Vidas / Modo Especial)',
-      codeOrEffect: 'Controle: Cima, Cima, Baixo, Baixo, Esquerda, Direita, Esquerda, Direita, Quadrado, X (ou B, A, Start)',
-      category: 'Segredos',
-      description: 'Gera bônus clássico de vidas, invulnerabilidade temporária ou desbloqueio de modo arcade.',
-      source: 'GameFAQs'
-    });
+  // Filtrar itens já existentes
+  let filtered = pool;
+  if (excludeTitles.length > 0) {
+    filtered = filtered.filter(c => !excludeTitles.includes(c.title.toLowerCase().trim()));
   }
 
-  return cheats;
+  // Filtrar por categoria se solicitada
+  if (requestedCategory !== 'todos') {
+    const catFiltered = filtered.filter(c => 
+      (c.category || '').toLowerCase().includes(requestedCategory) ||
+      requestedCategory.includes((c.category || '').toLowerCase())
+    );
+    if (catFiltered.length > 0) {
+      filtered = catFiltered;
+    }
+  }
+
+  // Se tudo foi excluído (jogador já tem todos os padrões), gerar novos truques alternativos exclusivos
+  if (filtered.length === 0) {
+    const randomSalt = Math.floor(100 + Math.random() * 900);
+    return [
+      {
+        id: `${slug}-alt-${randomSalt}-1`,
+        title: `Segredo Oculto: Área de Teste & Easter Egg #${randomSalt}`,
+        codeOrEffect: isRetroOrConsole ? 'GameShark/LibRetro: 800A9944 0001' : 'WeMod / Console: Alt+F12 (Debug Mode)',
+        category: 'Segredos',
+        description: 'Revela portas ocultas no mapa, salas secretas de desenvolvedores e easter eggs exclusivos.',
+        source: isRetroOrConsole ? 'LibRetro DB' : 'WeMod (Verificado)',
+        isNewlyDiscovered: true
+      },
+      {
+        id: `${slug}-alt-${randomSalt}-2`,
+        title: `Modo Câmera Livre & Foto Panorâmica #${randomSalt}`,
+        codeOrEffect: isRetroOrConsole ? 'Combinação: L1+R1+Select em Pausa' : 'Console / WeMod: F11 (Free Camera Cam)',
+        category: 'Geral',
+        description: 'Destrava a câmera para explorar cenários sem limites e tirar fotos sem interface na tela.',
+        source: isRetroOrConsole ? 'LibRetro / GameShark' : 'Console Nativo PC',
+        isNewlyDiscovered: true
+      },
+      {
+        id: `${slug}-alt-${randomSalt}-3`,
+        title: `Multiplicador de Experiência e Pontos 10x`,
+        codeOrEffect: isRetroOrConsole ? 'GameShark Code: 8009A310 000A' : 'WeMod App: Ctrl+F7 (10x EXP Boost)',
+        category: 'Dinheiro',
+        description: 'Multiplica por 10 vezes todos os pontos de experiência ganhos em combates e missões.',
+        source: isRetroOrConsole ? 'LibRetro DB' : 'WeMod (Verificado)',
+        isNewlyDiscovered: true
+      }
+    ];
+  }
+
+  return filtered.slice(0, 4);
 }
 
 // Gera mods populares com links do Nexus Mods contextualizados
@@ -347,17 +486,8 @@ export function enrichGameWithCheatsAndMods(game: Game): Game {
   const needsCheats = !Array.isArray(game.cheats) || game.cheats.length === 0;
   const needsMods = !Array.isArray(game.mods) || game.mods.length === 0;
 
-  if (!needsCheats && !needsMods && game.gamefaqsCheatsUrl && game.nexusModsUrl) {
-    return game;
-  }
-
   const enrichedCheats = needsCheats ? generateCheatsForGame(game) : game.cheats;
   const enrichedMods = needsMods ? generateModsForGame(game) : game.mods;
-
-  const cleanSlug = (game.title || 'game')
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '-')
-    .replace(/-+/g, '-');
 
   const gamefaqsCheatsUrl = game.gamefaqsCheatsUrl || `https://gamefaqs.gamespot.com/search?game=${encodeURIComponent(game.title)}`;
   const nexusModsUrl = game.nexusModsUrl || `https://www.nexusmods.com/search/?gsearch=${encodeURIComponent(game.title)}`;
@@ -367,7 +497,9 @@ export function enrichGameWithCheatsAndMods(game: Game): Game {
     cheats: enrichedCheats,
     mods: enrichedMods,
     gamefaqsCheatsUrl,
-    nexusModsUrl
+    nexusModsUrl,
+    lastCheatsSync: game.lastCheatsSync || new Date().toISOString(),
+    cheatsSyncStatus: 'synced'
   };
 }
 

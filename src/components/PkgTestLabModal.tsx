@@ -1339,7 +1339,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                   </span>
                   <span className="text-xs text-slate-400">
                     {editingStoreGameId 
-                      ? 'Atualize capas, fotos, links e configure Cheats (GameFAQs) e Mods (Nexus Mods) para este jogo da loja' 
+                      ? 'Atualize capas, fotos, links e configure Cheats e Mods para este jogo da loja' 
                       : (editingGameId ? 'Altere capas, fotos, link de download, cheats e mods' : 'Puxe os dados ou configure do seu jeito')}
                   </span>
                 </div>

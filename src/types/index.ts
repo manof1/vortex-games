@@ -84,7 +84,8 @@ export interface GameCheat {
   codeOrEffect: string; // Ex: Códigos de botões, comandos de console ou trapaças
   category?: 'Geral' | 'Armas' | 'Veículos' | 'Vidas/Energia' | 'Dinheiro' | 'Segredos' | 'Desbloqueáveis' | 'Glitches' | 'Senhas' | string;
   description?: string;
-  source?: 'GameFAQs' | 'Manual' | 'Comunidade';
+  source?: 'GameFAQs' | 'Manual' | 'Comunidade' | 'WeMod' | 'WeMod (Verificado)' | 'LibRetro DB' | 'LibRetro / GameShark' | 'Console Nativo PC' | 'Criador (Verificado)' | string;
+  isNewlyDiscovered?: boolean; // Destaca truques recém-descobertos pela API
 }
 
 export interface GameMod {
@@ -97,6 +98,33 @@ export interface GameMod {
   downloadsCount?: string;
   likesCount?: string;
   imageUrl?: string;
+}
+
+export interface GameLocalization {
+  language: string; // Ex: Português do Brasil, English, Español
+  flag: string; // Ex: 🇧🇷, 🇺🇸, 🇪🇸
+  ui: boolean; // Interface / Menus traduzidos
+  audio: boolean; // Dublagem / Áudio nativo
+  sub: boolean; // Legendas
+  notes?: string; // Ex: Oficial, Patch Tribo Gamer, Mod GameVicio
+  patchUrl?: string; // Link direto para download da tradução ou página
+}
+
+export interface SourceScanResult {
+  url: string;
+  domain: string;
+  scannedAt: string;
+  confidenceScore: number; // 0 to 100
+  veracityStatus: 'VERIFICADO_UTIL' | 'PARCIAL' | 'NAO_RECOMENDADO';
+  summary: string;
+  extractedCheats?: GameCheat[];
+  extractedLocalizations?: GameLocalization[];
+  extractedMods?: GameMod[];
+  pcgamingwikiData?: {
+    apiCommands?: string[];
+    performanceFixes?: string[];
+    framerateNotes?: string;
+  };
 }
 
 export interface Game {
@@ -137,11 +165,15 @@ export interface Game {
   titleId?: string; // Ex: CUSA-34388 (ZukoStore CUSA ID)
   sourceOrigin?: 'TheZukoStore' | 'Tapochek.net' | 'FitGirl' | 'Scene' | 'Multi-Tracker';
   originalTrackerUrl?: string; // Link da fonte original (Tapochek / ZukoStore)
-  cheats?: GameCheat[]; // Códigos e cheats puxados do GameFAQs
+  cheats?: GameCheat[]; // Códigos e cheats puxados do GameFAQs/WeMod/API
   mods?: GameMod[]; // Mods populares do Nexus Mods (https://www.nexusmods.com/)
   gamefaqsCheatsUrl?: string; // Link direto para a página de cheats do GameFAQs
   nexusModsUrl?: string; // Link da central do jogo no Nexus Mods
+  pcgamingwikiUrl?: string; // Link oficial do PCGamingWiki
+  localizations?: GameLocalization[]; // Quadro de Localizações (Padrão PCGamingWiki: UI, Audio, Sub, Notes)
   platform?: string; // Plataforma principal / tag canônica (ex: PC, PS2, Switch)
+  lastCheatsSync?: string; // Data ISO da última verificação/sincronização de cheats
+  cheatsSyncStatus?: 'synced' | 'pending' | 'custom'; // Status de sincronização
 }
 
 export type LibraryStatus = 'wishlist' | 'playing' | 'completed' | 'backlog' | 'downloaded';

@@ -77,8 +77,8 @@ interface GameContextType {
   sundaySyncInfo: SundaySyncInfo;
   triggerSundayCheatsModsUpdate: (force?: boolean) => { updatedCount: number; message: string };
   toggleSundaySyncActive: () => void;
-  activeGameInitialTab: 'downloads' | 'specs' | 'screenshots' | 'instructions' | 'cheats' | 'mods';
-  openGameWithTab: (game: Game, tab?: 'downloads' | 'specs' | 'screenshots' | 'instructions' | 'cheats' | 'mods') => void;
+  activeGameInitialTab: 'downloads' | 'specs' | 'screenshots' | 'instructions' | 'cheats' | 'mods' | 'localizations';
+  openGameWithTab: (game: Game, tab?: 'downloads' | 'specs' | 'screenshots' | 'instructions' | 'cheats' | 'mods' | 'localizations') => void;
   // Actions
   addGame: (game: Game) => void;
   updateGame: (game: Game) => void;
@@ -449,10 +449,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isPkgLabOpen, setIsPkgLabOpen] = useState(false);
   const [isCreatorAuthOpen, setIsCreatorAuthOpen] = useState(false);
   const [isSundaySyncOpen, setIsSundaySyncOpen] = useState(false);
-  const [activeGameInitialTab, setActiveGameInitialTab] = useState<'downloads' | 'specs' | 'screenshots' | 'instructions' | 'cheats' | 'mods'>('downloads');
+  const [activeGameInitialTab, setActiveGameInitialTab] = useState<'downloads' | 'specs' | 'screenshots' | 'instructions' | 'cheats' | 'mods' | 'localizations'>('downloads');
   const [sundaySyncInfo, setSundaySyncInfo] = useState<SundaySyncInfo>(() => loadSundaySyncInfo(games));
 
-  const openGameWithTab = (game: Game, tab: 'downloads' | 'specs' | 'screenshots' | 'instructions' | 'cheats' | 'mods' = 'downloads') => {
+  const openGameWithTab = (game: Game, tab: 'downloads' | 'specs' | 'screenshots' | 'instructions' | 'cheats' | 'mods' | 'localizations' = 'downloads') => {
     setActiveGameInitialTab(tab);
     setActiveGame(game);
   };
@@ -753,10 +753,18 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Game management actions
   const addGame = (newGame: Game) => {
-    setGames(prev => [newGame, ...prev]);
+    // Garante que o jogo já nasce 100% enriquecido com cheats autênticos e mods salvos
+    const enriched = enrichGameWithCheatsAndMods(newGame);
+    const finalizedGame: Game = {
+      ...enriched,
+      lastCheatsSync: new Date().toISOString(),
+      cheatsSyncStatus: 'synced'
+    };
+
+    setGames(prev => [finalizedGame, ...prev]);
 
     // Persistir automaticamente no banco de dados Supabase (Nuvem)
-    upsertGameToSupabase(newGame).catch(err => {
+    upsertGameToSupabase(finalizedGame).catch(err => {
       console.warn('Falha ao sincronizar novo jogo com Supabase:', err);
     });
 
@@ -764,12 +772,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const notif: SiteNotification = {
       id: `notif-${Date.now()}`,
       title: 'Novo Jogo Adicionado!',
-      message: `${newGame.title} já está pronto para download via Torrent!`,
-      gameId: newGame.id,
+      message: `${finalizedGame.title} já está pronto com Cheats e Mods ativos no portal!`,
+      gameId: finalizedGame.id,
       type: 'new_game',
       timestamp: 'Agora mesmo',
       read: false,
-      coverUrl: newGame.coverUrl
+      coverUrl: finalizedGame.coverUrl
     };
     setNotifications(prev => [notif, ...prev]);
   };

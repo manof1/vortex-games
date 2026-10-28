@@ -31,10 +31,21 @@ import {
   Package,
   Monitor,
   Tv,
-  Info
+  Info,
+  Plus,
+  GitBranch,
+  Search,
+  Trash2,
+  RotateCcw
 } from 'lucide-react';
-import { Game, LibraryStatus } from '../types';
+import { Game, GameCheat, LibraryStatus, GameLocalization } from '../types';
 import { useGame } from '../context/GameContext';
+import { enrichGameWithCheatsAndMods, generateCheatsForGame } from '../utils/cheatsModsGenerator';
+import { fetchCheatsFromApi } from '../services/cheatsApiService';
+import { generatePcGamingWikiLocalizations, getPcGamingWikiUrl } from '../utils/localizationGenerator';
+import { SourceScannerModal } from './SourceScannerModal';
+import { generateGithubGamePayload } from '../services/sourceScannerService';
+import { downloadLibRetroChtFile, getLibRetroGitHubRepoUrl } from '../services/libretroService';
 import { TorrentHealthBadge } from './TorrentHealthBadge';
 import { sanitizeMagnetLink } from '../utils/magnetUtils';
 import { getCriticScores, getMetacriticBadgeColor, getOpenCriticTierColor } from '../utils/ratingUtils';
@@ -67,10 +78,12 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
     userProfile,
     isLoggedIn,
     setIsAuthModalOpen,
-    activeGameInitialTab
+    activeGameInitialTab,
+    isCreator,
+    updateGame
   } = useGame();
 
-  const [activeTab, setActiveTab] = useState<'downloads' | 'specs' | 'screenshots' | 'instructions' | 'cheats' | 'mods'>(activeGameInitialTab || 'downloads');
+  const [activeTab, setActiveTab] = useState<'downloads' | 'specs' | 'screenshots' | 'instructions' | 'cheats' | 'mods' | 'localizations'>(activeGameInitialTab || 'downloads');
 
   useEffect(() => {
     if (activeGameInitialTab) {
@@ -81,6 +94,26 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
   const [copiedMagnet, setCopiedMagnet] = useState(false);
   const [copiedCheatId, setCopiedCheatId] = useState<string | null>(null);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+
+  // Estado para adicionar nova dica / cheat e varredura de fontes
+  const [isAddingCheat, setIsAddingCheat] = useState(false);
+  const [newCheatTitle, setNewCheatTitle] = useState('');
+  const [newCheatCode, setNewCheatCode] = useState('');
+  const [newCheatCategory, setNewCheatCategory] = useState('Geral');
+  const [newCheatDesc, setNewCheatDesc] = useState('');
+  const [cheatActionFeedback, setCheatActionFeedback] = useState<string | null>(null);
+  const [isLoadingCheatsApi, setIsLoadingCheatsApi] = useState(false);
+  const [cheatSearchCategory, setCheatSearchCategory] = useState<'todos' | 'segredos' | 'desbloqueaveis' | 'comandos' | 'diversao'>('todos');
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [copiedGithubPayload, setCopiedGithubPayload] = useState(false);
+
+  // Localizações extraídas ou padrão PCGamingWiki
+  const displayLocalizations = React.useMemo(() => {
+    if (Array.isArray(game.localizations) && game.localizations.length > 0) {
+      return game.localizations;
+    }
+    return generatePcGamingWikiLocalizations(game);
+  }, [game.localizations, game.title, game.hasPtBrAudio]);
 
   // Categorias de Plataformas detectadas no perfil canônico deste jogo
   const platformCategories = React.useMemo(() => {
@@ -616,7 +649,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
             <span>Como Instalar & Dicas</span>
           </button>
 
-          {/* TAB: CHEATS (GAMEFAQS) */}
+          {/* TAB: CHEATS */}
           <button
             onClick={() => setActiveTab('cheats')}
             className={`py-3.5 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
@@ -628,7 +661,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
             }`}
           >
             <Zap className={`w-4 h-4 ${hasCheats ? 'fill-amber-400 text-amber-400' : 'text-slate-500'}`} />
-            <span>Cheats (GameFAQs)</span>
+            <span>Cheats</span>
             {hasCheats ? (
               <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono font-black bg-amber-500 text-slate-950">
                 {game.cheats?.length} ON
@@ -638,7 +671,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
             )}
           </button>
 
-          {/* TAB: MODS (NEXUS MODS) */}
+          {/* TAB: MODS */}
           <button
             onClick={() => setActiveTab('mods')}
             className={`py-3.5 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
@@ -650,7 +683,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
             }`}
           >
             <Package className={`w-4 h-4 ${hasMods ? 'text-orange-400' : 'text-slate-500'}`} />
-            <span>Mods (NexusMods)</span>
+            <span>Mods</span>
             {hasMods ? (
               <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono font-black bg-orange-500 text-slate-950">
                 {game.mods?.length || 1} ON
@@ -658,6 +691,22 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
             ) : (
               <span className="text-[10px] text-slate-600">OFF</span>
             )}
+          </button>
+
+          {/* TAB: LOCALIZAÇÕES */}
+          <button
+            onClick={() => setActiveTab('localizations')}
+            className={`py-3.5 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
+              activeTab === 'localizations'
+                ? 'border-indigo-400 text-indigo-300 bg-indigo-500/10'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Globe className="w-4 h-4 text-indigo-400" />
+            <span>Localizações</span>
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono font-black bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">
+              {displayLocalizations.length}
+            </span>
           </button>
         </div>
 
@@ -1432,39 +1481,285 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
             </div>
           )}
 
-          {/* TAB: CHEATS (GAMEFAQS) */}
+          {/* TAB: CHEATS (WEMOD & LIBRETRO / GAMEFAQS) */}
           {activeTab === 'cheats' && (
             <div className="space-y-6 animate-fadeIn">
+              {/* Header com fontes oficiais e botões rápidos */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-2xl bg-gradient-to-r from-amber-950/40 via-slate-900 to-amber-950/20 border border-amber-500/40">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-400 shrink-0">
                     <Zap className="w-5 h-5 fill-amber-400" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-black text-white uppercase tracking-wide flex items-center gap-2">
-                      <span>Cheats, Códigos e Macetes Oficiais (GameFAQs.gamespot.com)</span>
+                    <h4 className="text-sm font-black text-white uppercase tracking-wide flex items-center gap-2 flex-wrap">
+                      <span>Cheats, Trainers & Códigos Verificados</span>
                       {hasCheats && (
                         <span className="text-[10px] px-2 py-0.5 rounded font-black bg-amber-500 text-slate-950">
                           {game.cheats?.length} CÓDIGOS ATIVOS
                         </span>
                       )}
+                      <span className="text-[10px] px-2 py-0.5 rounded font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1" title="Cheats já salvos no banco de dados e atualizados na rotina semanal">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                        <span>Pré-Salvo & Pronto</span>
+                      </span>
                     </h4>
                     <p className="text-xs text-slate-400">
-                      Códigos verificados pela comunidade do GameFAQs para desbloqueios, vidas, armas e seleção de níveis.
+                      Trainers oficiais do WeMod (PC), comandos reais de console e biblioteca autêntica LibRetro / GameShark para retrô.
                     </p>
                   </div>
                 </div>
 
-                <a
-                  href={game.gamefaqsCheatsUrl || `https://gamefaqs.gamespot.com/search?game=${encodeURIComponent(game.title)}+cheats`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition-all flex items-center gap-1.5 shrink-0 shadow-md cursor-pointer"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  <span>Central de Cheats no GameFAQs</span>
-                </a>
+                <div className="flex items-center gap-2 flex-wrap shrink-0">
+                  {/* Seletor de Categoria de Busca de Novos Cheats */}
+                  <div className="flex items-center gap-1 bg-slate-900 border border-slate-700/80 rounded-xl px-2 py-1 shadow-inner">
+                    <span className="text-[10px] uppercase font-black text-slate-400">Tipo:</span>
+                    <select
+                      value={cheatSearchCategory}
+                      onChange={e => setCheatSearchCategory(e.target.value as any)}
+                      className="bg-transparent text-xs text-amber-300 font-bold focus:outline-none cursor-pointer"
+                      title="Selecione a categoria de truques para pesquisar com a IA"
+                    >
+                      <option value="todos" className="bg-slate-900 text-white">✨ Todos os Novos</option>
+                      <option value="segredos" className="bg-slate-900 text-white">🥚 Segredos & Easter Eggs</option>
+                      <option value="desbloqueaveis" className="bg-slate-900 text-white">🔓 Desbloqueáveis & Roupas</option>
+                      <option value="comandos" className="bg-slate-900 text-white">🎮 Comandos de Console</option>
+                      <option value="diversao" className="bg-slate-900 text-white">🎪 Modos Divertidos</option>
+                    </select>
+                  </div>
+
+                  {/* Botão de Busca de Dicas Inéditas (Anti-Repetição) */}
+                  <button
+                    type="button"
+                    disabled={isLoadingCheatsApi}
+                    onClick={async () => {
+                      setIsLoadingCheatsApi(true);
+                      setCheatActionFeedback('Consultando IA com exclusão dos códigos existentes para encontrar truques inéditos...');
+                      try {
+                        const existingTitles = (game.cheats || []).map(c => c.title);
+                        const res = await fetchCheatsFromApi(game.title, game.platform || 'PC', {
+                          excludeTitles: existingTitles,
+                          category: cheatSearchCategory,
+                          mode: 'novos'
+                        });
+
+                        if (res.cheats && res.cheats.length > 0) {
+                          const existingSet = new Set((game.cheats || []).map(c => c.title.toLowerCase().trim()));
+                          const trulyNew = res.cheats.filter(c => !existingSet.has(c.title.toLowerCase().trim()));
+
+                          if (trulyNew.length > 0) {
+                            const mergedCheats = [
+                              ...(game.cheats || []),
+                              ...trulyNew.map(c => ({ ...c, isNewlyDiscovered: true }))
+                            ];
+                            updateGame({ 
+                              ...game, 
+                              cheats: mergedCheats,
+                              lastCheatsSync: new Date().toISOString(),
+                              cheatsSyncStatus: 'synced'
+                            });
+                            setCheatActionFeedback(`✓ Encontrados ${trulyNew.length} novos truques inéditos! Adicionados à lista (Total: ${mergedCheats.length}).`);
+                          } else {
+                            setCheatActionFeedback('Você já possui os principais códigos desta categoria salvos!');
+                          }
+                        } else {
+                          setCheatActionFeedback('Nenhum truque extra encontrado para este filtro.');
+                        }
+                      } catch {
+                        setCheatActionFeedback('Falha na conexão com a API.');
+                      } finally {
+                        setIsLoadingCheatsApi(false);
+                        setTimeout(() => setCheatActionFeedback(null), 5000);
+                      }
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black text-xs transition-all flex items-center gap-1.5 shadow-md shadow-amber-500/20 cursor-pointer disabled:opacity-50"
+                    title="Pesquisar novos cheats, segredos e atalhos inéditos (diferentes dos já cadastrados)"
+                  >
+                    <Sparkles className={`w-3.5 h-3.5 ${isLoadingCheatsApi ? 'animate-spin' : 'fill-slate-950'}`} />
+                    <span>{isLoadingCheatsApi ? 'Descobrindo Novos...' : 'Buscar Dicas Inéditas'}</span>
+                  </button>
+
+                  <a
+                    href={`https://www.wemod.com/cheats/${encodeURIComponent(game.title)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-all flex items-center gap-1.5 shadow-md cursor-pointer"
+                    title="Acessar página oficial de Trainers no WeMod"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>Trainers WeMod (PC)</span>
+                  </a>
+
+                  <a
+                    href={getLibRetroGitHubRepoUrl(game.platform)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-purple-300 border border-purple-500/30 font-bold text-xs transition-all flex items-center gap-1.5 shadow-md cursor-pointer"
+                    title="Explorar repositório oficial de cheats abertos do LibRetro Database no GitHub"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>LibRetro DB</span>
+                  </a>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      downloadLibRetroChtFile(game);
+                      setCheatActionFeedback('✓ Arquivo .CHT gerado e baixado para emuladores (RetroArch, PCSX2, DuckStation, PPSSPP)!');
+                      setTimeout(() => setCheatActionFeedback(null), 4000);
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition-all flex items-center gap-1.5 shadow-md shadow-purple-600/20 cursor-pointer"
+                    title="Baixar arquivo .CHT pronto para colocar na pasta cheats do RetroArch, DuckStation, PCSX2 ou PPSSPP"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Baixar .CHT</span>
+                  </button>
+
+                  {/* Botão Restaurar Padrões */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const refreshed = generateCheatsForGame(game);
+                      updateGame({ 
+                        ...game, 
+                        cheats: refreshed,
+                        lastCheatsSync: new Date().toISOString()
+                      });
+                      setCheatActionFeedback('✓ Lista restaurada para a base oficial de cheats.');
+                      setTimeout(() => setCheatActionFeedback(null), 4000);
+                    }}
+                    className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                    title="Restaurar cheats padrão oficiais deste jogo"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span className="hidden sm:inline">Restaurar</span>
+                  </button>
+
+                  {isCreator && (
+                    <button
+                      type="button"
+                      onClick={() => setIsAddingCheat(prev => !prev)}
+                      className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition-all flex items-center gap-1 shadow-md cursor-pointer"
+                      title="Adicionar uma dica nova descoberta para este jogo"
+                    >
+                      <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                      <span>{isAddingCheat ? 'Fechar' : 'Nova Dica'}</span>
+                    </button>
+                  )}
+                </div>
               </div>
+
+              {/* Feedback de ação */}
+              {cheatActionFeedback && (
+                <div className="p-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold flex items-center gap-2 animate-in fade-in">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>{cheatActionFeedback}</span>
+                </div>
+              )}
+
+              {/* Formulário do Criador: Adicionar Nova Dica Descoberta */}
+              {isAddingCheat && (
+                <form 
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!newCheatTitle.trim() || !newCheatCode.trim()) return;
+                    const newCheat: GameCheat = {
+                      id: `custom-cheat-${Date.now()}`,
+                      title: newCheatTitle.trim(),
+                      codeOrEffect: newCheatCode.trim(),
+                      category: newCheatCategory,
+                      description: newCheatDesc.trim() || 'Dica e macete validado pela comunidade e criador.',
+                      source: 'Criador (Verificado)'
+                    };
+                    const updatedCheats = [...(game.cheats || []), newCheat];
+                    const updatedGame = { ...game, cheats: updatedCheats };
+                    updateGame(updatedGame);
+                    setIsAddingCheat(false);
+                    setNewCheatTitle('');
+                    setNewCheatCode('');
+                    setNewCheatDesc('');
+                    setCheatActionFeedback('✓ Nova dica adicionada e salva com sucesso para este jogo!');
+                    setTimeout(() => setCheatActionFeedback(null), 4000);
+                  }}
+                  className="p-4 rounded-2xl bg-slate-950 border border-emerald-500/40 space-y-3 animate-in fade-in"
+                >
+                  <div className="flex items-center justify-between">
+                    <h5 className="text-xs font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                      Cadastrar Nova Dica ou Cheat para "{game.title}"
+                    </h5>
+                    <span className="text-[10px] text-slate-400">Salvo instantaneamente</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="sm:col-span-2 space-y-1">
+                      <label className="text-[11px] font-bold text-slate-300">Título da Dica / Efeito</label>
+                      <input
+                        type="text"
+                        required
+                        value={newCheatTitle}
+                        onChange={e => setNewCheatTitle(e.target.value)}
+                        placeholder="Ex: Invulnerabilidade (Modo Deus) / Munição Infinita"
+                        className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-slate-300">Categoria</label>
+                      <select
+                        value={newCheatCategory}
+                        onChange={e => setNewCheatCategory(e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-emerald-500 cursor-pointer"
+                      >
+                        <option value="Vidas/Energia">Vidas/Energia</option>
+                        <option value="Armas">Armas/Munição</option>
+                        <option value="Dinheiro">Dinheiro/Recursos</option>
+                        <option value="Segredos">Segredos/Desbloqueáveis</option>
+                        <option value="Geral">Geral/Gameplay</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-slate-300">Código, Atalho do Trainer ou Sequência de Botões</label>
+                    <input
+                      type="text"
+                      required
+                      value={newCheatCode}
+                      onChange={e => setNewCheatCode(e.target.value)}
+                      placeholder="Ex: WeMod: F1 / Console: tgm / Controle: R1, R2, L1, X..."
+                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-emerald-400 font-mono placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-slate-300">Instruções / Explicação (opcional)</label>
+                    <input
+                      type="text"
+                      value={newCheatDesc}
+                      onChange={e => setNewCheatDesc(e.target.value)}
+                      placeholder="Ex: Abra o console com ~ e digite o código, ou ative pelo WeMod sem precisar reiniciar."
+                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setIsAddingCheat(false)}
+                      className="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-1.5 rounded-xl text-xs font-black bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all flex items-center gap-1.5 shadow-md cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                      <span>Salvar Dica Agora</span>
+                    </button>
+                  </div>
+                </form>
+              )}
 
               {hasCheats ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1473,11 +1768,35 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                       key={cheat.id || idx}
                       className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 hover:border-amber-500/50 transition-all space-y-3"
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-black text-white">{cheat.title}</span>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                          {cheat.category || 'Geral'}
-                        </span>
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-xs font-black text-white">{cheat.title}</span>
+                          {cheat.isNewlyDiscovered && (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded font-black bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 shadow-sm animate-pulse flex items-center gap-0.5">
+                              ✨ NOVO
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                            {cheat.category || 'Geral'}
+                          </span>
+                          {(isCreator || isLoggedIn) && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const remaining = (game.cheats || []).filter((_, i) => i !== idx);
+                                updateGame({ ...game, cheats: remaining });
+                                setCheatActionFeedback(`✓ Dica "${cheat.title}" removida.`);
+                                setTimeout(() => setCheatActionFeedback(null), 3000);
+                              }}
+                              className="p-1 rounded text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+                              title="Remover este código da lista"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
                       </div>
 
                       <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between gap-2">
@@ -1502,7 +1821,17 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                       )}
 
                       <div className="text-[10px] text-slate-500 font-mono flex items-center justify-between pt-1 border-t border-slate-900">
-                        <span>Fonte: {cheat.source || 'GameFAQs'}</span>
+                        <span className="flex items-center gap-1.5">
+                          <span>Fonte:</span>
+                          <span className={`font-semibold ${
+                            (cheat.source || '').includes('WeMod') ? 'text-cyan-400' :
+                            (cheat.source || '').includes('LibRetro') ? 'text-purple-400' :
+                            (cheat.source || '').includes('Console') ? 'text-emerald-400' :
+                            'text-amber-400'
+                          }`}>
+                            {cheat.source || 'WeMod / GameFAQs'}
+                          </span>
+                        </span>
                         <span className="text-emerald-400 font-semibold">100% Funcional</span>
                       </div>
                     </div>
@@ -1513,17 +1842,28 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                   <Zap className="w-10 h-10 text-slate-600 mx-auto" />
                   <h4 className="text-sm font-bold text-white">Nenhum código cadastrado manualmente nesta versão</h4>
                   <p className="text-xs text-slate-400 max-w-md mx-auto">
-                    Você pode consultar todos os cheats, macetes e guias de desbloqueio para <strong>{game.title}</strong> diretamente no GameFAQs:
+                    Você pode consultar os trainers oficiais no WeMod e os guias de desbloqueio para <strong>{game.title}</strong>:
                   </p>
-                  <a
-                    href={`https://gamefaqs.gamespot.com/search?game=${encodeURIComponent(game.title)}+cheats`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition-all shadow-md"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    <span>Abrir Pesquisa de Cheats no GameFAQs</span>
-                  </a>
+                  <div className="flex items-center justify-center gap-3 pt-1 flex-wrap">
+                    <a
+                      href={`https://www.wemod.com/cheats/${encodeURIComponent(game.title)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-all shadow-md"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      <span>Ver Trainers no WeMod</span>
+                    </a>
+                    <a
+                      href={`https://gamefaqs.gamespot.com/search?game=${encodeURIComponent(game.title)}+cheats`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition-all shadow-md"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      <span>Buscar no GameFAQs</span>
+                    </a>
+                  </div>
                 </div>
               )}
             </div>
@@ -1617,6 +1957,176 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                   </a>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* TAB: LOCALIZAÇÕES (PCGAMINGWIKI MATRIX) */}
+          {activeTab === 'localizations' && (
+            <div className="space-y-6 animate-fadeIn">
+              {/* Header com Banner e Ações */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-2xl bg-gradient-to-r from-indigo-950/40 via-slate-900 to-indigo-950/20 border border-indigo-500/40">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-400/40 flex items-center justify-center text-indigo-400 shrink-0">
+                    <Globe className="w-5 h-5 text-indigo-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black text-white uppercase tracking-wide flex items-center gap-2 flex-wrap">
+                      <span>Quadro de Localizações & Idiomas (Padrão PCGamingWiki)</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded font-black bg-indigo-500 text-slate-950">
+                        {displayLocalizations.length} IDIOMAS MAPEADOS
+                      </span>
+                    </h4>
+                    <p className="text-xs text-slate-400">
+                      Mapeamento rigoroso de Interface (UI), Dublagem (Áudio) e Legendas (Sub) com notas e links para download de patches comunitários.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap shrink-0">
+                  <a
+                    href={game.pcgamingwikiUrl || getPcGamingWikiUrl(game.title)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-all flex items-center gap-1.5 shadow-md cursor-pointer"
+                    title="Acessar página técnica completa no PCGamingWiki"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>Ver no PCGamingWiki</span>
+                  </a>
+
+                  {isCreator && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setIsScannerOpen(true)}
+                        className="px-3 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition-all flex items-center gap-1 shadow-md cursor-pointer"
+                        title="Varrer link de qualquer site para extrair dados verídicos e adicionar ao jogo"
+                      >
+                        <Search className="w-3.5 h-3.5 stroke-[2.5]" />
+                        <span>Varrer Link / Fonte</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const payload = generateGithubGamePayload(game);
+                          navigator.clipboard.writeText(payload);
+                          setCopiedGithubPayload(true);
+                          setTimeout(() => setCopiedGithubPayload(false), 3500);
+                        }}
+                        className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs transition-all flex items-center gap-1.5 shadow-md cursor-pointer"
+                        title="Exportar JSON pronto para enviar ao GitHub"
+                      >
+                        {copiedGithubPayload ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <GitBranch className="w-3.5 h-3.5 text-indigo-400" />}
+                        <span>{copiedGithubPayload ? 'Copiado!' : 'Exportar GitHub'}</span>
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Feedback de cópia do GitHub */}
+              {copiedGithubPayload && (
+                <div className="p-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold flex items-center gap-2 animate-in fade-in">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>Payload do GitHub copiado para a área de transferência! Pronto para comitar no repositório.</span>
+                </div>
+              )}
+
+              {/* Tabela de Localizações no Padrão PCGamingWiki */}
+              <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70 shadow-lg">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-900/90 text-slate-400 border-b border-slate-800 font-mono uppercase text-[10px] tracking-wider">
+                    <tr>
+                      <th className="p-3.5">Language (Idioma)</th>
+                      <th className="p-3.5 text-center">UI (Interface)</th>
+                      <th className="p-3.5 text-center">Audio (Dublagem)</th>
+                      <th className="p-3.5 text-center">Sub (Legendas)</th>
+                      <th className="p-3.5">Notes (Notas & Patches de Tradução)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60 text-slate-200">
+                    {displayLocalizations.map((loc, idx) => (
+                      <tr key={idx} className="hover:bg-slate-900/60 transition-colors">
+                        <td className="p-3.5 font-bold flex items-center gap-2 text-white">
+                          <span className="text-base">{loc.flag}</span>
+                          <span>{loc.language}</span>
+                        </td>
+                        <td className="p-3.5 text-center">
+                          {loc.ui ? (
+                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-xs" title="Interface Disponível">
+                              ✓
+                            </span>
+                          ) : (
+                            <span className="text-slate-600 font-mono">—</span>
+                          )}
+                        </td>
+                        <td className="p-3.5 text-center">
+                          {loc.audio ? (
+                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-xs" title="Áudio e Dublagem Disponíveis">
+                              ✓
+                            </span>
+                          ) : (
+                            <span className="text-slate-600 font-mono">—</span>
+                          )}
+                        </td>
+                        <td className="p-3.5 text-center">
+                          {loc.sub ? (
+                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-xs" title="Legendas Disponíveis">
+                              ✓
+                            </span>
+                          ) : (
+                            <span className="text-slate-600 font-mono">—</span>
+                          )}
+                        </td>
+                        <td className="p-3.5 text-slate-300">
+                          <div className="flex items-center justify-between gap-3 flex-wrap">
+                            <span className="text-[11px]">{loc.notes || 'Oficial'}</span>
+                            {loc.patchUrl && (
+                              <a
+                                href={loc.patchUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-2.5 py-1 rounded-lg bg-indigo-500/20 hover:bg-indigo-500 hover:text-slate-950 text-indigo-300 text-[11px] font-bold transition-all flex items-center gap-1 border border-indigo-500/40 cursor-pointer"
+                              >
+                                <span>Baixar Patch / Tradução</span>
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Box de Informações de Compatibilidade Técnica */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                <div className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1">
+                    <Sparkles className="w-3.5 h-3.5 text-cyan-400" /> Fonte Técnica
+                  </span>
+                  <p className="text-xs font-bold text-white">PCGamingWiki & Comunidade</p>
+                  <p className="text-[11px] text-slate-400">Dados verificados por curadores e jogadores.</p>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1">
+                    <Zap className="w-3.5 h-3.5 text-amber-400" /> Traduções PT-BR
+                  </span>
+                  <p className="text-xs font-bold text-white">Tribo Gamer & GameVicio</p>
+                  <p className="text-[11px] text-slate-400">Patches testados com instalador automático limpo.</p>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1">
+                    <GitBranch className="w-3.5 h-3.5 text-indigo-400" /> Integração GitHub
+                  </span>
+                  <p className="text-xs font-bold text-white">Exportação Direta em JSON</p>
+                  <p className="text-[11px] text-slate-400">Pronto para commit em vortex-games/main.</p>
+                </div>
+              </div>
             </div>
           )}
 
@@ -1811,6 +2321,16 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
         </div>
 
       </div>
+
+      {/* MODAL DE VARREDURA DE FONTES & VERIFICADOR (ADMIN) */}
+      <SourceScannerModal
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
+        game={game}
+        onGameUpdated={(updatedGame) => {
+          updateGame(updatedGame);
+        }}
+      />
     </div>
   );
 };

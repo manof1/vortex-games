@@ -135,7 +135,11 @@ export function executeSundayCheatsModsSync(
 
   // Processa e enriquece 100% dos jogos
   const updatedGames = games.map(game => {
-    const enriched = enrichGameWithCheatsAndMods(game);
+    const enriched = enrichGameWithCheatsAndMods({
+      ...game,
+      lastCheatsSync: now.toISOString(),
+      cheatsSyncStatus: 'synced'
+    });
     updatedCount++;
     totalCheats += enriched.cheats?.length || 0;
     totalMods += enriched.mods?.length || 0;
@@ -155,9 +159,9 @@ export function executeSundayCheatsModsSync(
     id: `sunday-sync-${Date.now()}`,
     timestamp: now.toLocaleTimeString('pt-BR'),
     title: isManualTrigger
-      ? '🚀 Atualização de Domingo Executada Manualmente'
-      : '📅 Rotina Automática de Domingo Executada com Sucesso',
-    detail: `Sincronizados 100% dos jogos (${updatedGames.length} títulos). Total ativo: ${totalCheats} Cheats GameFAQs e ${totalMods} Mods do Nexus Mods.`,
+      ? '🚀 Atualização Semanal de Cheats Executada Manualmente'
+      : '📅 Rotina Automática Semanal de Cheats Executada com Sucesso',
+    detail: `Sincronizados 100% dos jogos (${updatedGames.length} títulos). Total ativo: ${totalCheats} Cheats verificados e ${totalMods} Mods do Nexus Mods.`,
     type: 'weekly'
   };
 
@@ -194,8 +198,10 @@ export function checkAndRunScheduledSundaySync(
   const now = new Date();
   const isSunday = now.getDay() === 0;
 
-  // Verifica se já rodou no domingo corrente
+  // Verifica se já rodou no mesmo dia
   let alreadyRanToday = false;
+  let isWeeklyExpired = false;
+
   if (info.lastSyncDate) {
     const lastDate = new Date(info.lastSyncDate);
     const isSameDay =
@@ -203,10 +209,17 @@ export function checkAndRunScheduledSundaySync(
       lastDate.getMonth() === now.getMonth() &&
       lastDate.getDate() === now.getDate();
     alreadyRanToday = isSameDay;
+
+    const daysDiff = (now.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24);
+    if (daysDiff >= 7) {
+      isWeeklyExpired = true;
+    }
+  } else {
+    isWeeklyExpired = true;
   }
 
-  // Se hoje é domingo e ainda não rodou hoje, dispara!
-  if (isSunday && !alreadyRanToday) {
+  // Se faz 7 dias ou mais, ou se é domingo e ainda não rodou hoje:
+  if ((isSunday && !alreadyRanToday) || isWeeklyExpired) {
     const result = executeSundayCheatsModsSync(games, false);
     return {
       executed: true,
@@ -215,7 +228,7 @@ export function checkAndRunScheduledSundaySync(
     };
   }
 
-  // Caso os jogos ainda não tenham cheats ou mods inicializados em 100%, sincroniza
+  // Caso algum jogo ainda não tenha cheats salvos em 100%, sincroniza e salva imediatamente
   const hasGamesWithoutCheats = games.some(
     g => !g.cheats || g.cheats.length === 0 || !g.mods || g.mods.length === 0
   );

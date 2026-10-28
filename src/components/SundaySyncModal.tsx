@@ -234,22 +234,27 @@ export const SundaySyncModal: React.FC<SundaySyncModalProps> = ({ isOpen, onClos
 
           {/* O que a rotina de domingo faz */}
           <div className="p-4 rounded-2xl bg-slate-950/40 border border-slate-800/80 space-y-2.5">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              O que acontece todo Domingo?
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                Como funciona a Revisão Automática em Lote?
+              </span>
+              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                ZERO TRABALHO MANUAL
+              </span>
             </h4>
             <ul className="text-xs text-slate-400 space-y-1.5 list-disc list-inside">
               <li>
-                <strong className="text-slate-200">Cheats & Códigos:</strong> Adiciona e atualiza trapaças do GameFAQs, combinações de botões para consoles e trainers WeMod (God Mode, Munição, Ouro Máximo, Pulo Duplo).
+                <strong className="text-slate-200">Sem Refazer Jogo por Jogo:</strong> O sistema varre e revisa 100% dos títulos do catálogo em bloco, categorizando automaticamente pela plataforma do jogo.
               </li>
               <li>
-                <strong className="text-slate-200">Mods do Nexus Mods:</strong> Indexa links diretos dos mods mais baixados (Desbloqueio de 60/120 FPS, Otimização de Frametime, Texturas Ultra HD 4K e ReShade).
+                <strong className="text-slate-200">Jogos Retrô / Emulação (PS1, PS2, PSP, GBA, SNES):</strong> Aplica os códigos autênticos da biblioteca comunitária <em>LibRetro Database</em> (GameShark, Action Replay e combinações clássicas).
               </li>
               <li>
-                <strong className="text-slate-200">Traduções e Dublagens:</strong> Garante pacotes de localização PT-BR para jogos novos e clássicos.
+                <strong className="text-slate-200">Jogos de PC Windows:</strong> Integra trainers verificados do <em>WeMod</em> (God Mode, munição infinita, recursos) e comandos reais de console nativo (~ tgm, tcl, etc.).
               </li>
               <li>
-                <strong className="text-slate-200">Notificação Interna:</strong> Notifica o usuário no portal assim que a rodada de domingo termina.
+                <strong className="text-slate-200">Novas Dicas & Revisões:</strong> Quando surgir uma dica nova na internet, basta clicar no botão abaixo para revisar e sincronizar todo o acervo instantaneamente!
               </li>
             </ul>
           </div>
