@@ -1509,14 +1509,14 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 flex-wrap shrink-0">
+                <div className="flex flex-col gap-2 shrink-0 w-full md:w-60">
                   {/* Seletor de Categoria de Busca de Novos Cheats */}
-                  <div className="flex items-center gap-1 bg-slate-900 border border-slate-700/80 rounded-xl px-2 py-1 shadow-inner">
+                  <div className="flex items-center justify-between gap-2 bg-slate-900/90 border border-slate-700/80 rounded-xl px-3 py-1.5 shadow-inner w-full">
                     <span className="text-[10px] uppercase font-black text-slate-400">Tipo:</span>
                     <select
                       value={cheatSearchCategory}
                       onChange={e => setCheatSearchCategory(e.target.value as any)}
-                      className="bg-transparent text-xs text-amber-300 font-bold focus:outline-none cursor-pointer"
+                      className="bg-transparent text-xs text-amber-300 font-bold focus:outline-none cursor-pointer text-right"
                       title="Selecione a categoria de truques para pesquisar com a IA"
                     >
                       <option value="todos" className="bg-slate-900 text-white">✨ Todos os Novos</option>
@@ -1527,7 +1527,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                     </select>
                   </div>
 
-                  {/* Botão de Busca de Dicas Inéditas (Anti-Repetição) */}
+                  {/* Botão 1: Busca de Dicas Inéditas (Anti-Repetição) */}
                   <button
                     type="button"
                     disabled={isLoadingCheatsApi}
@@ -1571,35 +1571,38 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                         setTimeout(() => setCheatActionFeedback(null), 5000);
                       }
                     }}
-                    className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black text-xs transition-all flex items-center gap-1.5 shadow-md shadow-amber-500/20 cursor-pointer disabled:opacity-50"
+                    className="w-full px-3 py-2 rounded-xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black text-xs transition-all flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/20 cursor-pointer disabled:opacity-50"
                     title="Pesquisar novos cheats, segredos e atalhos inéditos (diferentes dos já cadastrados)"
                   >
                     <Sparkles className={`w-3.5 h-3.5 ${isLoadingCheatsApi ? 'animate-spin' : 'fill-slate-950'}`} />
                     <span>{isLoadingCheatsApi ? 'Descobrindo Novos...' : 'Buscar Dicas Inéditas'}</span>
                   </button>
 
+                  {/* Botão 2: Trainers WeMod (PC) */}
                   <a
                     href={`https://www.wemod.com/cheats/${encodeURIComponent(cleanGameTitle(game.title))}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-3 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-all flex items-center gap-1.5 shadow-md cursor-pointer"
+                    className="w-full px-3 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
                     title={`Acessar página oficial de Trainers para ${cleanGameTitle(game.title)} no WeMod`}
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                     <span>Trainers WeMod (PC)</span>
                   </a>
 
+                  {/* Botão 3: LibRetro DB (GitHub) */}
                   <a
                     href={getLibRetroGitHubRepoUrl(game.platform)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-purple-300 border border-purple-500/30 font-bold text-xs transition-all flex items-center gap-1.5 shadow-md cursor-pointer"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-purple-300 border border-purple-500/30 font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
                     title="Explorar repositório oficial de cheats abertos do LibRetro Database no GitHub"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                     <span>LibRetro DB</span>
                   </a>
 
+                  {/* Botão 4: Baixar .CHT */}
                   <button
                     type="button"
                     onClick={() => {
@@ -1607,14 +1610,14 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                       setCheatActionFeedback('✓ Arquivo .CHT gerado e baixado para emuladores (RetroArch, PCSX2, DuckStation, PPSSPP)!');
                       setTimeout(() => setCheatActionFeedback(null), 4000);
                     }}
-                    className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition-all flex items-center gap-1.5 shadow-md shadow-purple-600/20 cursor-pointer"
+                    className="w-full px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-md shadow-purple-600/20 cursor-pointer"
                     title="Baixar arquivo .CHT pronto para colocar na pasta cheats do RetroArch, DuckStation, PCSX2 ou PPSSPP"
                   >
                     <Download className="w-3.5 h-3.5" />
                     <span>Baixar .CHT</span>
                   </button>
 
-                  {/* Botão Restaurar Padrões */}
+                  {/* Botão 5: Restaurar Padrões */}
                   <button
                     type="button"
                     onClick={() => {
@@ -1627,22 +1630,23 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                       setCheatActionFeedback('✓ Lista restaurada para a base oficial de cheats.');
                       setTimeout(() => setCheatActionFeedback(null), 4000);
                     }}
-                    className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                    className="w-full px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                     title="Restaurar cheats padrão oficiais deste jogo"
                   >
-                    <RotateCcw className="w-3 h-3" />
-                    <span className="hidden sm:inline">Restaurar</span>
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Restaurar Base Padrão</span>
                   </button>
 
+                  {/* Botão 6: Nova Dica Manual */}
                   {isCreator && (
                     <button
                       type="button"
                       onClick={() => setIsAddingCheat(prev => !prev)}
-                      className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition-all flex items-center gap-1 shadow-md cursor-pointer"
+                      className="w-full px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
                       title="Adicionar uma dica nova descoberta para este jogo"
                     >
                       <Plus className="w-3.5 h-3.5 stroke-[3]" />
-                      <span>{isAddingCheat ? 'Fechar' : 'Nova Dica'}</span>
+                      <span>{isAddingCheat ? 'Fechar Formulário' : '+ Nova Dica'}</span>
                     </button>
                   )}
                 </div>
