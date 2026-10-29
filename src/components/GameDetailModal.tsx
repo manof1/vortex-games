@@ -36,12 +36,14 @@ import {
   GitBranch,
   Search,
   Trash2,
-  RotateCcw
+  RotateCcw,
+  Key
 } from 'lucide-react';
 import { Game, GameCheat, LibraryStatus, GameLocalization } from '../types';
 import { useGame } from '../context/GameContext';
 import { enrichGameWithCheatsAndMods, generateCheatsForGame, cleanGameTitle } from '../utils/cheatsModsGenerator';
 import { getNexusModsGameInfo } from '../utils/nexusModsService';
+import { getStoredNexusApiKey, saveNexusApiKey } from '../services/nexusApiService';
 import { fetchCheatsFromApi } from '../services/cheatsApiService';
 import { generatePcGamingWikiLocalizations, getPcGamingWikiUrl } from '../utils/localizationGenerator';
 import { SourceScannerModal } from './SourceScannerModal';
@@ -107,6 +109,9 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
   const [cheatSearchCategory, setCheatSearchCategory] = useState<'todos' | 'segredos' | 'desbloqueaveis' | 'comandos' | 'diversao'>('todos');
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [copiedGithubPayload, setCopiedGithubPayload] = useState(false);
+  const [nexusApiKey, setNexusApiKey] = useState(() => getStoredNexusApiKey());
+  const [isConfiguringNexusKey, setIsConfiguringNexusKey] = useState(false);
+  const [nexusKeyStatus, setNexusKeyStatus] = useState<string | null>(null);
 
   // Localizações extraídas ou padrão PCGamingWiki
   const displayLocalizations = React.useMemo(() => {
@@ -1968,8 +1973,82 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                       <span>Romhacking.net (Traduções)</span>
                     </a>
                   )}
+
+                  <button
+                    type="button"
+                    onClick={() => setIsConfiguringNexusKey(prev => !prev)}
+                    className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer w-full sm:w-auto"
+                    title="Configurar sua Personal API Key do Nexus Mods para sincronização direta"
+                  >
+                    <Key className={`w-3.5 h-3.5 ${nexusApiKey ? 'text-emerald-400' : 'text-orange-400'}`} />
+                    <span>{nexusApiKey ? 'API Conectada' : 'Configurar API Key'}</span>
+                  </button>
                 </div>
               </div>
+
+              {/* Painel de Configuração da Personal API Key do Nexus Mods */}
+              {isConfiguringNexusKey && (
+                <div className="p-4 rounded-2xl bg-slate-900/90 border border-orange-500/50 space-y-3 animate-fadeIn">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white flex items-center gap-2">
+                      <Key className="w-4 h-4 text-orange-400" />
+                      Qual chave escolher no Nexus Mods? (Personal API Key)
+                    </span>
+                    <button 
+                      onClick={() => setIsConfiguringNexusKey(false)} 
+                      className="text-slate-400 hover:text-white text-xs px-2 py-1 rounded bg-slate-800"
+                    >
+                      Fechar
+                    </button>
+                  </div>
+
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    No endereço <strong className="text-orange-300 font-mono">https://www.nexusmods.com/settings/api-keys</strong>, existem várias opções. A opção correta é a <strong className="text-emerald-400">Personal API Key</strong> (geralmente no final da página). Basta clicar no botão <strong className="text-white">Generate</strong> (ou <em>Generate API Key</em>), copiar o código gerado e colar abaixo:
+                  </p>
+
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <input
+                      type="password"
+                      value={nexusApiKey}
+                      onChange={e => setNexusApiKey(e.target.value)}
+                      placeholder="Cole sua Personal API Key aqui..."
+                      className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500 font-mono"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        saveNexusApiKey(nexusApiKey);
+                        setNexusKeyStatus('✓ Personal API Key salva com sucesso no navegador!');
+                        setTimeout(() => setNexusKeyStatus(null), 4000);
+                      }}
+                      className="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-400 text-slate-950 font-bold text-xs cursor-pointer shadow-md shrink-0"
+                    >
+                      Salvar Chave
+                    </button>
+                    {nexusApiKey && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNexusApiKey('');
+                          saveNexusApiKey('');
+                          setNexusKeyStatus('Chave removida. O sistema agora usa a base canônica verificada.');
+                          setTimeout(() => setNexusKeyStatus(null), 3500);
+                        }}
+                        className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-red-950 hover:text-red-300 text-slate-400 text-xs font-bold cursor-pointer border border-slate-700 shrink-0"
+                      >
+                        Limpar
+                      </button>
+                    )}
+                  </div>
+
+                  {nexusKeyStatus && (
+                    <div className="text-xs font-bold text-emerald-400 flex items-center gap-1.5 pt-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>{nexusKeyStatus}</span>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {validMods && validMods.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
