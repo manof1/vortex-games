@@ -2,13 +2,6 @@
  * Serviço de Integração com a API Oficial do Nexus Mods
  * 
  * Documentação da API Oficial: https://api.nexusmods.com/
- * 
- * IMPORTANTE sobre a API do Nexus Mods:
- * 1. O Nexus Mods possui uma API REST oficial em https://api.nexusmods.com/v1/
- * 2. Ela EXIGE obrigatoriamente autenticação via header 'apikey: <sua-chave-pessoal>'.
- * 3. O Nexus Mods não permite requisições públicas anônimas sem API key (retorna 401 Unauthorized).
- * 4. Qualquer usuário do Nexus Mods pode obter sua chave gratuita em:
- *    https://www.nexusmods.com/users/myaccount?tab=api
  */
 
 import { GameMod } from '../types';
@@ -17,9 +10,12 @@ import { getNexusModsGameInfo } from '../utils/nexusModsService';
 const NEXUS_API_BASE = 'https://api.nexusmods.com/v1';
 const STORAGE_KEY_API_KEY = 'vortex_nexusmods_api_key';
 
+// Chave oficial do criador (manof1) pré-integrada no Vortex Games
+export const DEFAULT_NEXUS_API_KEY = '/yRBULn8ic7+rpVMO63geT4EXIBi2z7aQ8rXmfx5kamz--BLoXrBunJxRmi3CX--FO0JMmR6GvUf90SPk+ALhw==';
+
 export function getStoredNexusApiKey(): string {
-  if (typeof window === 'undefined') return '';
-  return localStorage.getItem(STORAGE_KEY_API_KEY) || '';
+  if (typeof window === 'undefined') return DEFAULT_NEXUS_API_KEY;
+  return localStorage.getItem(STORAGE_KEY_API_KEY) || DEFAULT_NEXUS_API_KEY;
 }
 
 export function saveNexusApiKey(key: string): void {
@@ -48,9 +44,44 @@ export interface NexusApiModItem {
 }
 
 /**
+ * Valida a chave de API diretamente contra o Nexus Mods
+ */
+export async function validateNexusApiKey(key: string): Promise<{
+  valid: boolean;
+  name?: string;
+  userId?: number;
+  email?: string;
+  isSupporter?: boolean;
+  error?: string;
+}> {
+  try {
+    const res = await fetch(`${NEXUS_API_BASE}/users/validate.json`, {
+      headers: {
+        'apikey': key.trim(),
+        'Application-Name': 'VortexGames',
+        'Application-Version': '2.5.0'
+      }
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      return {
+        valid: true,
+        name: data.name,
+        userId: data.user_id,
+        email: data.email,
+        isSupporter: data['is_supporter?'] || data.is_supporter
+      };
+    }
+    return { valid: false, error: 'Chave recusada pela API do Nexus Mods.' };
+  } catch (err: any) {
+    return { valid: false, error: err.message || 'Erro de conexão com o Nexus Mods.' };
+  }
+}
+
+/**
  * Consulta a API oficial do Nexus Mods para trazer os mods em alta (Trending)
- * caso o usuário tenha informado sua chave pessoal, ou faz fallback seguro
- * para a base canônica do Vortex sem nunca retornar erro 404.
+ * ou faz fallback seguro para a base canônica do Vortex sem nunca retornar erro 404.
  */
 export async function fetchNexusModsForGame(
   gameTitle: string, 
@@ -70,10 +101,7 @@ export async function fetchNexusModsForGame(
       source: 'curated',
       mods: info.verifiedMods,
       gameSlug: info.slug,
-      hubUrl: info.hubUrl,
-      message: !apiKey 
-        ? 'Utilizando base verificada (Para dados em tempo real da API do Nexus, informe sua API Key gratuita).'
-        : undefined
+      hubUrl: info.hubUrl
     };
   }
 
@@ -93,7 +121,7 @@ export async function fetchNexusModsForGame(
           mods: info.verifiedMods,
           gameSlug: info.slug,
           hubUrl: info.hubUrl,
-          message: 'Chave de API do Nexus Mods inválida ou expirada. Utilizando base verificada.'
+          message: 'Chave de API do Nexus Mods expirada. Utilizando base verificada.'
         };
       }
       throw new Error(`HTTP ${res.status}`);
