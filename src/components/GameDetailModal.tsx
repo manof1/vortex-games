@@ -40,7 +40,7 @@ import {
 } from 'lucide-react';
 import { Game, GameCheat, LibraryStatus, GameLocalization } from '../types';
 import { useGame } from '../context/GameContext';
-import { enrichGameWithCheatsAndMods, generateCheatsForGame } from '../utils/cheatsModsGenerator';
+import { enrichGameWithCheatsAndMods, generateCheatsForGame, cleanGameTitle } from '../utils/cheatsModsGenerator';
 import { fetchCheatsFromApi } from '../services/cheatsApiService';
 import { generatePcGamingWikiLocalizations, getPcGamingWikiUrl } from '../utils/localizationGenerator';
 import { SourceScannerModal } from './SourceScannerModal';
@@ -1579,11 +1579,11 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                   </button>
 
                   <a
-                    href={`https://www.wemod.com/cheats/${encodeURIComponent(game.title)}`}
+                    href={`https://www.wemod.com/cheats/${encodeURIComponent(cleanGameTitle(game.title))}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="px-3 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-all flex items-center gap-1.5 shadow-md cursor-pointer"
-                    title="Acessar página oficial de Trainers no WeMod"
+                    title={`Acessar página oficial de Trainers para ${cleanGameTitle(game.title)} no WeMod`}
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                     <span>Trainers WeMod (PC)</span>
@@ -1838,30 +1838,49 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                   ))}
                 </div>
               ) : (
-                <div className="p-8 rounded-2xl bg-slate-950/50 border border-slate-800 text-center space-y-3">
-                  <Zap className="w-10 h-10 text-slate-600 mx-auto" />
-                  <h4 className="text-sm font-bold text-white">Nenhum código cadastrado manualmente nesta versão</h4>
-                  <p className="text-xs text-slate-400 max-w-md mx-auto">
-                    Você pode consultar os trainers oficiais no WeMod e os guias de desbloqueio para <strong>{game.title}</strong>:
-                  </p>
-                  <div className="flex items-center justify-center gap-3 pt-1 flex-wrap">
+                <div className="p-8 rounded-3xl bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 text-center space-y-4 shadow-xl">
+                  <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center mx-auto shadow-lg shadow-cyan-500/10">
+                    <ExternalLink className="w-7 h-7" />
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                      Jogos Modernos de PC & Trainers Oficiais
+                    </span>
+                    <h4 className="text-base font-black text-white pt-2">
+                      Este jogo moderno de PC não possui trapaças de botões nativas
+                    </h4>
+                    <p className="text-xs text-slate-400 max-w-lg mx-auto leading-relaxed">
+                      Diferente de consoles antigos, jogos modernos para PC não utilizam códigos de botões nativos. A comunidade mundial utiliza <strong>Trainers Oficiais no WeMod</strong> e correções de engine no <strong>PCGamingWiki</strong>:
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-center gap-3 pt-2 flex-wrap">
                     <a
-                      href={`https://www.wemod.com/cheats/${encodeURIComponent(game.title)}`}
+                      href={`https://www.wemod.com/cheats/${encodeURIComponent(cleanGameTitle(game.title))}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-all shadow-md"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition-all shadow-lg shadow-cyan-500/20 cursor-pointer"
                     >
                       <ExternalLink className="w-4 h-4" />
-                      <span>Ver Trainers no WeMod</span>
+                      <span>Abrir Trainers no WeMod ({cleanGameTitle(game.title)})</span>
                     </a>
                     <a
-                      href={`https://gamefaqs.gamespot.com/search?game=${encodeURIComponent(game.title)}+cheats`}
+                      href={`https://www.pcgamingwiki.com/wiki/${encodeURIComponent(cleanGameTitle(game.title).replace(/\s+/g, '_'))}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition-all shadow-md"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 font-bold text-xs transition-all shadow-md cursor-pointer"
                     >
-                      <ExternalLink className="w-4 h-4" />
-                      <span>Buscar no GameFAQs</span>
+                      <Globe className="w-4 h-4" />
+                      <span>Fixes no PCGamingWiki</span>
+                    </a>
+                    <a
+                      href={`https://www.nexusmods.com/search/?gsearch=${encodeURIComponent(cleanGameTitle(game.title))}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 font-bold text-xs transition-all shadow-md cursor-pointer"
+                    >
+                      <Package className="w-4 h-4" />
+                      <span>Mods no Nexus</span>
                     </a>
                   </div>
                 </div>

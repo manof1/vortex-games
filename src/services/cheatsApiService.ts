@@ -1,5 +1,5 @@
 import { Game, GameCheat } from '../types';
-import { generateCheatsForGame } from '../utils/cheatsModsGenerator';
+import { generateCheatsForGame, cleanGameTitle } from '../utils/cheatsModsGenerator';
 
 export interface CheatsApiOptions {
   excludeTitles?: string[];
@@ -27,7 +27,8 @@ export async function fetchCheatsFromApi(
   platform: string = 'PC',
   options: CheatsApiOptions = {}
 ): Promise<CheatsApiResponse> {
-  if (!title || !title.trim()) {
+  const cleanedTitle = cleanGameTitle(title);
+  if (!cleanedTitle || !cleanedTitle.trim()) {
     return {
       success: false,
       cheats: [],
@@ -44,7 +45,7 @@ export async function fetchCheatsFromApi(
     const timeoutId = setTimeout(() => controller.abort(), 12000);
 
     const queryParams = new URLSearchParams({
-      title: title.trim(),
+      title: cleanedTitle,
       platform: platform.trim(),
       category,
       mode
