@@ -58,6 +58,8 @@ import { Game, GameCheat, GameMod, DownloadLink } from '../types';
 import { useGame } from '../context/GameContext';
 import { getGameCover, handleImageError } from '../utils/imageUtils';
 import { upsertGameToSupabase, deleteGameFromSupabase } from '../services/supabaseClient';
+import { cleanGameTitle } from '../utils/cheatsModsGenerator';
+import { getNexusModsGameInfo } from '../utils/nexusModsService';
 
 /**
  * Remove qualquer marca/texto entre parênteses como (TheZukoStore), mantendo apenas números e MB/GB limpos.
@@ -441,7 +443,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
         setFormCheats(result.cheats || []);
         setFormGamefaqsCheatsUrl(result.gamefaqsCheatsUrl || '');
         setFormMods(result.mods || []);
-        setFormNexusModsUrl(result.nexusModsUrl || `https://www.nexusmods.com/search/?gsearch=${encodeURIComponent(result.title)}`);
+        setFormNexusModsUrl(result.nexusModsUrl || getNexusModsGameInfo(result.title).hubUrl);
 
         showNotification(`✓ Dados puxados com sucesso! Ficha, Capa da aba Boxes, 4 Screenshots da aba Images e Cheats do GameFAQs.`);
       } else {
@@ -1000,7 +1002,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
         gamefaqsBoxesUrl: formGamefaqsBoxesUrl.trim() || undefined,
         gamefaqsImagesUrl: formGamefaqsImagesUrl.trim() || undefined,
         gamefaqsCheatsUrl: formGamefaqsCheatsUrl.trim() || `https://gamefaqs.gamespot.com/${cleanPlatform}/search?game=${encodeURIComponent(formTitle)}+cheats`,
-        nexusModsUrl: formNexusModsUrl.trim() || `https://www.nexusmods.com/search/?gsearch=${encodeURIComponent(formTitle)}`,
+        nexusModsUrl: formNexusModsUrl.trim() || getNexusModsGameInfo(formTitle).hubUrl,
         tags: [formPlatform, formFormat || 'PKG', 'GameFAQs', 'VortexGames'],
         cheats: formCheats,
         mods: formMods,

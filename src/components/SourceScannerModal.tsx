@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Game, SourceScanResult } from '../types';
 import { scanSourceUrl, applyScanResultToGame, persistGameToDatabase, generateGithubGamePayload } from '../services/sourceScannerService';
+import { cleanGameTitle } from '../utils/cheatsModsGenerator';
 
 interface SourceScannerModalProps {
   isOpen: boolean;
@@ -59,12 +60,12 @@ export const SourceScannerModal: React.FC<SourceScannerModalProps> = ({
     },
     {
       label: 'WeMod Trainers',
-      url: `https://www.wemod.com/cheats/${encodeURIComponent(game.title)}`,
+      url: `https://www.wemod.com/cheats/${encodeURIComponent(cleanGameTitle(game.title))}`,
       icon: '⚡'
     },
     {
       label: 'Nexus Mods',
-      url: `https://www.nexusmods.com/search/?gsearch=${encodeURIComponent(game.title)}`,
+      url: `https://www.nexusmods.com/search/?gsearch=${encodeURIComponent(cleanGameTitle(game.title))}`,
       icon: '📦'
     },
     {

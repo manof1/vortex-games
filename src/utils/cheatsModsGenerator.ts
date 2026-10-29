@@ -1,4 +1,5 @@
 import { Game, GameCheat, GameMod } from '../types';
+import { getNexusModsGameInfo } from './nexusModsService';
 
 /**
  * Higieniza o título do jogo removendo sufixos de repacks, números de versão,
@@ -535,68 +536,33 @@ export function generateCheatsForGame(
   return filtered.length > 0 ? filtered : pool;
 }
 
-// Gera mods populares com links do Nexus Mods contextualizados
+// Gera mods populares ou buscas oficiais do Nexus Mods contextualizados
 export function generateModsForGame(game: Partial<Game>): GameMod[] {
-  const cleanTitle = cleanGameTitle(game.title || 'Game');
-  const slug = cleanTitle.toLowerCase().replace(/[^a-z0-9]/g, '');
-
-  const mods: GameMod[] = [
-    {
-      id: `${slug}-mod-fps`,
-      title: `${cleanTitle} - 60/120 FPS Unlocked & Stutter Fix Patch`,
-      description: 'Remove o limite de 30/60 quadros, corrige frame pacing e melhora o aproveitamento de CPUs modernas eliminando engasgos.',
-      nexusUrl: `https://www.nexusmods.com/${slug || 'site'}/mods/1`,
-      category: 'Fix/FPS',
-      downloadsCount: '184.2K',
-      likesCount: '14.8K',
-      author: 'PerformanceModders'
-    },
-    {
-      id: `${slug}-mod-ptbr`,
-      title: `Tradução dos Textos e Menus para Português do Brasil (PT-BR)`,
-      description: 'Patch de localização completa para legendas, interface, diálogos e itens revisado com acentuação oficial.',
-      nexusUrl: `https://www.nexusmods.com/${slug || 'site'}/mods/2`,
-      category: 'Tradução',
-      downloadsCount: '92.5K',
-      likesCount: '8.1K',
-      author: 'Comunidade Gamer BR'
-    },
-    {
-      id: `${slug}-mod-textures`,
-      title: `Pacote de Texturas Ultra 4K & Efeitos de Iluminação`,
-      description: 'Upscale por inteligência artificial das texturas de personagens, roupas e cenários para resolução nítida.',
-      nexusUrl: `https://www.nexusmods.com/${slug || 'site'}/mods/3`,
-      category: 'Gráficos/4K',
-      downloadsCount: '67.1K',
-      likesCount: '5.9K',
-      author: 'VisualRemasterTeam'
-    },
-    {
-      id: `${slug}-mod-fov`,
-      title: `Ajuste de FOV (Campo de Visão) & Remoção de Barras Pretas Ultrawide`,
-      description: 'Permite afastar a câmera para evitar enjoo de movimento (motion sickness) e destrava suporte nativo a monitores 21:9 e 32:9.',
-      nexusUrl: `https://www.nexusmods.com/${slug || 'site'}/mods/4`,
-      category: 'QoL',
-      downloadsCount: '45.3K',
-      likesCount: '4.2K',
-      author: 'UltrawideCommunity'
-    }
-  ];
-
-  return mods;
+  const info = getNexusModsGameInfo(game.title || 'Game', game.platform);
+  return info.verifiedMods;
 }
 
 // Enriquece um único jogo se não tiver cheats ou mods
 export function enrichGameWithCheatsAndMods(game: Game): Game {
   const cleanTitle = cleanGameTitle(game.title);
+  const nexusInfo = getNexusModsGameInfo(game.title, game.platform);
+
   const needsCheats = !Array.isArray(game.cheats) || game.cheats.length === 0;
-  const needsMods = !Array.isArray(game.mods) || game.mods.length === 0;
+  
+  // Detecta se o jogo tem mods antigos fake apontando para /mods/1, /mods/2, etc. e os substitui por reais
+  const hasFakeMods = Array.isArray(game.mods) && game.mods.some((m: GameMod) => 
+    m.nexusUrl?.includes('/mods/1') || 
+    m.nexusUrl?.includes('/mods/2') || 
+    m.nexusUrl?.includes('/mods/3') || 
+    m.nexusUrl?.includes('/mods/4')
+  );
+  const needsMods = !Array.isArray(game.mods) || game.mods.length === 0 || hasFakeMods;
 
   const enrichedCheats = needsCheats ? generateCheatsForGame(game) : game.cheats;
   const enrichedMods = needsMods ? generateModsForGame(game) : game.mods;
 
   const gamefaqsCheatsUrl = game.gamefaqsCheatsUrl || `https://gamefaqs.gamespot.com/search?game=${encodeURIComponent(cleanTitle)}`;
-  const nexusModsUrl = game.nexusModsUrl || `https://www.nexusmods.com/search/?gsearch=${encodeURIComponent(cleanTitle)}`;
+  const nexusModsUrl = nexusInfo.hubUrl;
 
   return {
     ...game,
@@ -613,3 +579,4 @@ export function enrichGameWithCheatsAndMods(game: Game): Game {
 export function enrichAllGames(games: Game[]): Game[] {
   return games.map(enrichGameWithCheatsAndMods);
 }
+

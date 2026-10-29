@@ -41,6 +41,7 @@ import {
 import { Game, GameCheat, LibraryStatus, GameLocalization } from '../types';
 import { useGame } from '../context/GameContext';
 import { enrichGameWithCheatsAndMods, generateCheatsForGame, cleanGameTitle } from '../utils/cheatsModsGenerator';
+import { getNexusModsGameInfo } from '../utils/nexusModsService';
 import { fetchCheatsFromApi } from '../services/cheatsApiService';
 import { generatePcGamingWikiLocalizations, getPcGamingWikiUrl } from '../utils/localizationGenerator';
 import { SourceScannerModal } from './SourceScannerModal';
@@ -146,8 +147,12 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
     return result;
   }, [game]);
 
+  const nexusInfo = getNexusModsGameInfo(game.title, game.platform);
+  const validMods = (game.mods && game.mods.length > 0 && !game.mods.some(m => m.nexusUrl?.includes('/mods/1') || m.nexusUrl?.includes('/mods/2') || m.nexusUrl?.includes('/mods/3') || m.nexusUrl?.includes('/mods/4')))
+    ? game.mods
+    : nexusInfo.verifiedMods;
   const hasCheats = Array.isArray(game.cheats) && game.cheats.length > 0;
-  const hasMods = (Array.isArray(game.mods) && game.mods.length > 0) || !!game.nexusModsUrl;
+  const hasMods = validMods.length > 0 || !nexusInfo.isConsoleOnly;
   
   const critic = getCriticScores(game);
   const metaBadge = getMetacriticBadgeColor(critic.metacritic);
@@ -381,7 +386,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                     title="Este jogo possui Mods do Nexus Mods disponíveis! Clique para ver"
                   >
                     <Package className="w-3.5 h-3.5 text-orange-400" />
-                    <span>NEXUS MODS (LIGADO)</span>
+                    <span>MODS (LIGADO) • {validMods.length}</span>
                   </button>
                 ) : (
                   <button
@@ -686,7 +691,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
             <span>Mods</span>
             {hasMods ? (
               <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono font-black bg-orange-500 text-slate-950">
-                {game.mods?.length || 1} ON
+                {validMods.length} ON
               </span>
             ) : (
               <span className="text-[10px] text-slate-600">OFF</span>
@@ -1895,55 +1900,95 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
           {/* TAB: MODS (NEXUS MODS) */}
           {activeTab === 'mods' && (
             <div className="space-y-6 animate-fadeIn">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-2xl bg-gradient-to-r from-orange-950/40 via-slate-900 to-orange-950/20 border border-orange-500/40">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 rounded-2xl bg-gradient-to-r from-orange-950/40 via-slate-900 to-orange-950/20 border border-orange-500/40">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-orange-500/20 border border-orange-400/40 flex items-center justify-center text-orange-400 shrink-0">
                     <Package className="w-5 h-5 text-orange-400" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-black text-white uppercase tracking-wide flex items-center gap-2">
-                      <span>Mods & Traduções Oficiais (NexusMods.com)</span>
-                      {hasMods && (
-                        <span className="text-[10px] px-2 py-0.5 rounded font-black bg-orange-500 text-slate-950">
-                          COMUNIDADE NEXUS ATIVA
+                    <h4 className="text-sm font-black text-white uppercase tracking-wide flex items-center gap-2 flex-wrap">
+                      <span>Mods & Correções Comunitárias (Nexus Mods)</span>
+                      {nexusInfo.isVerifiedHub ? (
+                        <span className="text-[10px] px-2 py-0.5 rounded font-black bg-emerald-500 text-slate-950 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" />
+                          <span>HUB VERIFICADO: {nexusInfo.slug}</span>
+                        </span>
+                      ) : nexusInfo.isConsoleOnly ? (
+                        <span className="text-[10px] px-2 py-0.5 rounded font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                          🎮 CONSOLE RETRÔ (ROMHACKING)
+                        </span>
+                      ) : (
+                        <span className="text-[10px] px-2 py-0.5 rounded font-bold bg-orange-500/20 text-orange-300 border border-orange-500/30">
+                          🔍 BUSCA LIMPA NEXUS MODS
                         </span>
                       )}
                     </h4>
                     <p className="text-xs text-slate-400">
-                      Patches de 60 FPS, Widescreen, Texturas 4K HD e Localizações completas para Português do Brasil.
+                      {nexusInfo.isConsoleOnly 
+                        ? 'Jogos retrô clássicos de console têm mods distribuídos via ROM Hacking / Patches .xdelta, já que o Nexus Mods é focado em PC.' 
+                        : `Links diretos e verificados para os principais mods, patches de FPS e ferramentas para ${nexusInfo.cleanTitle}.`}
                     </p>
                   </div>
                 </div>
 
-                <a
-                  href={game.nexusModsUrl || `https://www.nexusmods.com/search/?gsearch=${encodeURIComponent(game.title)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3.5 py-2 rounded-xl bg-orange-500 hover:bg-orange-400 text-slate-950 font-bold text-xs transition-all flex items-center gap-1.5 shrink-0 shadow-md cursor-pointer"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  <span>Acessar Nexus Mods Oficial</span>
-                </a>
+                <div className="flex items-center gap-2 flex-wrap shrink-0 w-full sm:w-auto">
+                  <a
+                    href={nexusInfo.hubUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3.5 py-2 rounded-xl bg-orange-500 hover:bg-orange-400 text-slate-950 font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer w-full sm:w-auto"
+                    title={`Abrir página oficial no Nexus Mods para ${nexusInfo.cleanTitle}`}
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>{nexusInfo.isVerifiedHub ? `Hub Oficial (${nexusInfo.slug})` : `Buscar no Nexus Mods`}</span>
+                  </a>
+
+                  {nexusInfo.isVerifiedHub && (
+                    <a
+                      href={nexusInfo.trendingUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-orange-300 border border-orange-500/30 font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer w-full sm:w-auto"
+                      title="Explorar os mods mais baixados de todos os tempos deste jogo no Nexus Mods"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-orange-400" />
+                      <span>Mais Populares</span>
+                    </a>
+                  )}
+
+                  {nexusInfo.isConsoleOnly && (
+                    <a
+                      href={`https://www.romhacking.net/?page=translations&title=${encodeURIComponent(nexusInfo.cleanTitle)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer w-full sm:w-auto"
+                      title="Pesquisar traduções e hacks de ROM no Romhacking.net"
+                    >
+                      <Globe className="w-3.5 h-3.5" />
+                      <span>Romhacking.net (Traduções)</span>
+                    </a>
+                  )}
+                </div>
               </div>
 
-              {game.mods && game.mods.length > 0 ? (
+              {validMods && validMods.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {game.mods.map((mod, idx) => (
+                  {validMods.map((mod, idx) => (
                     <div 
                       key={mod.id || idx}
                       className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 hover:border-orange-500/50 transition-all space-y-3 flex flex-col justify-between"
                     >
                       <div className="space-y-2">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
                           <span className="text-xs font-black text-white">{mod.title}</span>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-orange-500/20 text-orange-300 border border-orange-500/30">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-orange-500/20 text-orange-300 border border-orange-500/30 shrink-0">
                             {mod.category || 'Gameplay'}
                           </span>
                         </div>
                         <p className="text-xs text-slate-300 leading-relaxed">{mod.description}</p>
                       </div>
 
-                      <div className="pt-3 border-t border-slate-900 flex items-center justify-between">
+                      <div className="pt-3 border-t border-slate-900 flex items-center justify-between gap-2 flex-wrap">
                         <div className="text-[11px] text-slate-400">
                           {mod.author && <span>Por: <strong className="text-slate-200">{mod.author}</strong></span>}
                           {mod.downloadsCount && <span className="ml-2 font-mono text-cyan-400">• {mod.downloadsCount} downloads</span>}
@@ -1953,10 +1998,11 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                           href={mod.nexusUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-orange-500 hover:text-slate-950 text-orange-300 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                          className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-orange-500 hover:text-slate-950 text-orange-300 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shrink-0"
+                          title="Abrir página oficial deste mod no Nexus Mods"
                         >
-                          <Download className="w-3.5 h-3.5" />
-                          <span>Baixar no Nexus</span>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          <span>Abrir no Nexus</span>
                         </a>
                       </div>
                     </div>
@@ -1967,10 +2013,10 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                   <Package className="w-10 h-10 text-slate-600 mx-auto" />
                   <h4 className="text-sm font-bold text-white">Explore os Mods Criados pela Comunidade no Nexus Mods</h4>
                   <p className="text-xs text-slate-400 max-w-md mx-auto">
-                    Confira mods de melhoria gráfica, dublagens em português e correções de desempenho disponíveis para <strong>{game.title}</strong>:
+                    Confira mods de melhoria gráfica, dublagens em português e correções de desempenho disponíveis para <strong>{nexusInfo.cleanTitle}</strong>:
                   </p>
                   <a
-                    href={game.nexusModsUrl || `https://www.nexusmods.com/search/?gsearch=${encodeURIComponent(game.title)}`}
+                    href={nexusInfo.hubUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-slate-950 font-bold text-xs transition-all shadow-md"
