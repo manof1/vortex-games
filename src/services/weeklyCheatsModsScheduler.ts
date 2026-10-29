@@ -139,7 +139,7 @@ export function executeSundayCheatsModsSync(
       ...game,
       lastCheatsSync: now.toISOString(),
       cheatsSyncStatus: 'synced'
-    });
+    }, true);
     updatedCount++;
     totalCheats += enriched.cheats?.length || 0;
     totalMods += enriched.mods?.length || 0;

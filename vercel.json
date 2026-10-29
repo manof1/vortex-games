@@ -5,6 +5,10 @@
     {
       "path": "/api/cron-sync",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron-sync?action=sunday-sync",
+      "schedule": "0 0 * * 0"
     }
   ],
   "rewrites": [

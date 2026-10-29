@@ -90,8 +90,8 @@ export const INITIAL_PKG_GAMES: PkgGame[] = [
         id: 'pkg-sotn-mod-1',
         title: 'Castlevania SOTN Widescreen & Color Fix',
         description: 'Renderização 16:9 sem esticar e correção de paleta de cores 32-bit.',
-        nexusUrl: 'https://www.nexusmods.com/castlevaniasotn/mods/1',
-        category: 'Fix/FPS',
+        nexusUrl: 'https://www.romhacking.net/?page=translations&title=Castlevania',
+        category: 'Tradução/Patch',
         author: 'Aero_Modding'
       }
     ]
@@ -126,7 +126,7 @@ export const INITIAL_PKG_GAMES: PkgGame[] = [
     zukoStorePageUrl: 'https://thezukostore.com/ps1-pkg-silent-hill',
     gamefaqsPageUrl: 'https://gamefaqs.gamespot.com/ps/198641-silent-hill',
     gamefaqsCheatsUrl: 'https://gamefaqs.gamespot.com/ps/198641-silent-hill/cheats',
-    nexusModsUrl: 'https://www.nexusmods.com/silenthill',
+    nexusModsUrl: 'https://www.romhacking.net/?page=translations&title=Silent+Hill',
     tags: ['Survival Horror', 'Harry Mason', 'Team Silent', 'Tradução PT-BR'],
     cheats: [
       {
@@ -149,8 +149,8 @@ export const INITIAL_PKG_GAMES: PkgGame[] = [
         id: 'pkg-sh-mod-1',
         title: 'Silent Hill Widescreen & 60FPS Enhancement Patch',
         description: 'Remove bordas 4:3 e melhora taxa de quadros.',
-        nexusUrl: 'https://www.nexusmods.com/silenthill/mods/1',
-        category: 'Fix/FPS',
+        nexusUrl: 'https://www.romhacking.net/?page=translations&title=Silent+Hill',
+        category: 'Tradução/Patch',
         author: 'Aero_Modding'
       }
     ]

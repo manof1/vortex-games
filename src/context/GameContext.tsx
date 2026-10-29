@@ -198,7 +198,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         downloadLinks: sanitizedLinks,
         rating: realVote ? realVote : 0,
         totalVotes: realVote ? 1 : 0
-      });
+      }, true);
     });
   });
 

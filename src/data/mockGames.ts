@@ -191,7 +191,7 @@ export const INITIAL_GAMES: Game[] = [
         id: 'bb-mod-1',
         title: 'ShadPS4 60FPS & 1440p High Resolution Patch',
         description: 'Desbloqueia os 60 quadros por segundo fluidos e resolução de renderização 1440p/4K para PC via emulador.',
-        nexusUrl: 'https://www.nexusmods.com/bloodborne/mods/1',
+        nexusUrl: 'https://www.nexusmods.com/search/?gsearch=Bloodborne+shadps4+60fps',
         category: 'Fix/FPS',
         author: 'FromSoftwarePC_Group',
         downloadsCount: '142k'
@@ -200,7 +200,7 @@ export const INITIAL_GAMES: Game[] = [
         id: 'bb-mod-2',
         title: 'Tradução PT-BR Aprimorada & Fontes Nítidas',
         description: 'Restaura termos do lore oficial com legendas mais legíveis em monitores ultrawide.',
-        nexusUrl: 'https://www.nexusmods.com/bloodborne/mods/3',
+        nexusUrl: 'https://www.nexusmods.com/search/?gsearch=Bloodborne+traducao+pt-br',
         category: 'Tradução',
         author: 'VortexBrasilTeam',
         downloadsCount: '88k'

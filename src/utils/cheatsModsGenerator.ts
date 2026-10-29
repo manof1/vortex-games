@@ -542,8 +542,8 @@ export function generateModsForGame(game: Partial<Game>): GameMod[] {
   return info.verifiedMods;
 }
 
-// Enriquece um único jogo se não tiver cheats ou mods
-export function enrichGameWithCheatsAndMods(game: Game): Game {
+// Enriquece um único jogo se não tiver cheats ou mods, com opção de forçar regeneração
+export function enrichGameWithCheatsAndMods(game: Game, forceRegenerateMods = false): Game {
   const cleanTitle = cleanGameTitle(game.title);
   const nexusInfo = getNexusModsGameInfo(game.title, game.platform);
 
@@ -554,9 +554,11 @@ export function enrichGameWithCheatsAndMods(game: Game): Game {
     m.nexusUrl?.includes('/mods/1') || 
     m.nexusUrl?.includes('/mods/2') || 
     m.nexusUrl?.includes('/mods/3') || 
-    m.nexusUrl?.includes('/mods/4')
+    m.nexusUrl?.includes('/mods/4') ||
+    m.id?.includes('-mod-fps') ||
+    m.id?.includes('-mod-ptbr')
   );
-  const needsMods = !Array.isArray(game.mods) || game.mods.length === 0 || hasFakeMods;
+  const needsMods = forceRegenerateMods || !Array.isArray(game.mods) || game.mods.length === 0 || hasFakeMods;
 
   const enrichedCheats = needsCheats ? generateCheatsForGame(game) : game.cheats;
   const enrichedMods = needsMods ? generateModsForGame(game) : game.mods;
@@ -575,8 +577,22 @@ export function enrichGameWithCheatsAndMods(game: Game): Game {
   };
 }
 
+// Limpa e regenera completamente os mods para todos os jogos
+export function resetAndRegenerateModsForAllGames(games: Game[]): Game[] {
+  return games.map(g => {
+    const freshMods = generateModsForGame(g);
+    const nexusInfo = getNexusModsGameInfo(g.title, g.platform);
+    return {
+      ...g,
+      mods: freshMods,
+      nexusModsUrl: nexusInfo.hubUrl,
+      lastCheatsSync: new Date().toISOString()
+    };
+  });
+}
+
 // Enriquece todo o catálogo de jogos garantindo 100% de cobertura
 export function enrichAllGames(games: Game[]): Game[] {
-  return games.map(enrichGameWithCheatsAndMods);
+  return games.map(g => enrichGameWithCheatsAndMods(g, false));
 }
 
