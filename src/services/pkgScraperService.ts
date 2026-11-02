@@ -8,6 +8,8 @@ import {
   PlayStationMediaEntry 
 } from '../data/playstationGameMedia';
 import { ROMSPURE_DLPS_PRESETS } from '../data/romspureDlpsPresets';
+import { generateCheatsForGame } from '../utils/cheatsModsGenerator';
+import { fetchLibRetroCheats } from './libretroService';
 
 export interface ScrapedGameResult {
   title: string;
@@ -1205,19 +1207,22 @@ export const KNOWN_SCRAPED_GAMES: ScrapedGameResult[] = [
 ];
 
 /**
- * Importa cheats diretamente do GameFAQs utilizando a regra de limpeza:
- * 1. Tenta nome primário limpo (ex: "Grim Dawn: Definitive Edition")
+ * Importa cheats diretamente do GameFAQs e LibRetro utilizando a regra de limpeza:
+ * 1. Tenta nome primário limpo (ex: "Grim Dawn: Definitive Edition", "God of War II")
  * 2. Em último caso, tenta nome simplificado (ex: "Grim Dawn")
+ * 3. Para jogos de console/retrô, consulta os cheats autênticos do LibRetro (.cht e GameShark)
  */
-export async function importCheatsFromGameFaqs(gameTitleOrRaw: string): Promise<{
+export async function importCheatsFromGameFaqs(gameTitleOrRaw: string, platform?: string): Promise<{
   cheats: GameCheat[];
   gamefaqsCheatsUrl: string;
   queryUsed: string;
+  source?: string;
 }> {
-  await new Promise(r => setTimeout(r, 300));
+  await new Promise(r => setTimeout(r, 200));
   const cleanInfo = extractCleanGameTitle(gameTitleOrRaw);
+  const cleanName = cleanInfo.primaryClean || cleanInfo.simplifiedClean || gameTitleOrRaw;
 
-  // Verificar se temos cheats conhecidos na base pré-indexada
+  // 1. Verificar se temos cheats conhecidos na base pré-indexada
   const exact = KNOWN_SCRAPED_GAMES.find(g => {
     const t = g.title.toLowerCase();
     return t.includes(cleanInfo.primaryClean.toLowerCase()) || 
@@ -1229,18 +1234,39 @@ export async function importCheatsFromGameFaqs(gameTitleOrRaw: string): Promise<
     return {
       cheats: exact.cheats,
       gamefaqsCheatsUrl: exact.gamefaqsCheatsUrl || `https://gamefaqs.gamespot.com/search?game=${encodeURIComponent(cleanInfo.primaryClean)}+cheats`,
-      queryUsed: exact.title
+      queryUsed: exact.title,
+      source: 'GameFAQs'
     };
   }
 
-  // Se não estiver na base estática, NÃO inventar cheats falsos!
-  // Retorna vazio (0 cheats) com link direto para a busca oficial de cheats no GameFAQs
+  // 2. Se for console retrô ou não encontrado em KNOWN_SCRAPED_GAMES, consultar o LibRetro Database
+  try {
+    const libRetroResult = await fetchLibRetroCheats(cleanName, platform || 'PS2');
+    if (libRetroResult && libRetroResult.cheats && libRetroResult.cheats.length > 0) {
+      return {
+        cheats: libRetroResult.cheats,
+        gamefaqsCheatsUrl: `https://gamefaqs.gamespot.com/search?game=${encodeURIComponent(cleanInfo.simplifiedClean || cleanName)}+cheats`,
+        queryUsed: cleanName,
+        source: libRetroResult.source
+      };
+    }
+  } catch (err) {
+    console.warn('Erro ao consultar LibRetro cheats:', err);
+  }
+
+  // 3. Consulta ao gerador canônico
+  const canonicalCheats = generateCheatsForGame({
+    title: cleanName,
+    platform: platform || 'PS2'
+  });
+
   const gamefaqsCheatsUrl = `https://gamefaqs.gamespot.com/search?game=${encodeURIComponent(cleanInfo.simplifiedClean || cleanInfo.primaryClean)}+cheats`;
 
   return {
-    cheats: [],
+    cheats: canonicalCheats,
     gamefaqsCheatsUrl,
-    queryUsed: cleanInfo.primaryClean || cleanInfo.simplifiedClean || gameTitleOrRaw
+    queryUsed: cleanInfo.primaryClean || cleanInfo.simplifiedClean || gameTitleOrRaw,
+    source: canonicalCheats.length > 0 ? 'LibRetro / GameShark' : 'GameFAQs'
   };
 }
 
@@ -1658,7 +1684,7 @@ export async function pullGameDataFromSources(
       gamefaqsBoxesUrl: media.boxesUrl,
       gamefaqsImagesUrl: media.imagesUrl,
       tags: [consolePreset.consolePlatform, consolePreset.romFormat, consolePreset.sourceWebsite, 'GameFAQs', 'RomsPure', 'DLPSGame', cleanInfo.primaryClean],
-      cheats: [],
+      cheats: generateCheatsForGame({ title: consolePreset.title, platform: consolePreset.consolePlatform }),
       mods: []
     };
   }
@@ -1719,8 +1745,8 @@ export async function pullGameDataFromSources(
     titleId = `PS-${randomIdNumber.toString().slice(0, 5)}`;
   }
 
-  // Buscar Cheats oficiais direto do GameFAQs
-  const cheatsResult = await importCheatsFromGameFaqs(formattedTitle);
+  // Buscar Cheats oficiais direto do GameFAQs e LibRetro
+  const cheatsResult = await importCheatsFromGameFaqs(formattedTitle, detectedPlatform);
   // Buscar Mods no Nexus Mods com a regra do nome limpo
   const modsResult = await fetchNexusModsForGame(formattedTitle);
 

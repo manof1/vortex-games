@@ -246,7 +246,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
     if (!selectedIgdb?.name) return;
     setIsPublishFetchingCheats(true);
     try {
-      const res = await importCheatsFromGameFaqs(selectedIgdb.name);
+      const res = await importCheatsFromGameFaqs(selectedIgdb.name, (selectedIgdb as any).platform || 'PS2');
       if (res && res.cheats && res.cheats.length > 0) {
         setPublishCheats(res.cheats);
       }
@@ -450,19 +450,19 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
     setIsFetchingCheats(true);
     setEditNotification(null);
     try {
-      const res = await importCheatsFromGameFaqs(editingGame.title);
+      const res = await importCheatsFromGameFaqs(editingGame.title, editingGame.platform || 'PS2');
       if (res && res.cheats && res.cheats.length > 0) {
         setEditingCheats(prev => {
           const existing = new Set(prev.map(c => (c.title + c.codeOrEffect).toLowerCase()));
           const newOnes = res.cheats.filter(c => !existing.has((c.title + c.codeOrEffect).toLowerCase()));
           return [...prev, ...newOnes];
         });
-        setEditNotification(`⚡ ${res.cheats.length} cheats carregados do GameFAQs com sucesso!`);
+        setEditNotification(`⚡ ${res.cheats.length} cheats carregados (${res.source || 'LibRetro/GameFAQs'}) com sucesso!`);
       } else {
-        setEditNotification('Nenhum cheat encontrado no GameFAQs para este título.');
+        setEditNotification('Nenhum cheat encontrado para este título.');
       }
     } catch {
-      setEditNotification('Falha ao importar cheats do GameFAQs.');
+      setEditNotification('Falha ao importar cheats.');
     } finally {
       setIsFetchingCheats(false);
     }

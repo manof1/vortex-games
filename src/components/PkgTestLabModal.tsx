@@ -60,6 +60,11 @@ import { getGameCover, handleImageError } from '../utils/imageUtils';
 import { upsertGameToSupabase, deleteGameFromSupabase } from '../services/supabaseClient';
 import { cleanGameTitle } from '../utils/cheatsModsGenerator';
 import { getNexusModsGameInfo } from '../utils/nexusModsService';
+import { 
+  fetchLibRetroCheats, 
+  getLibRetroGitHubRepoUrl, 
+  downloadLibRetroChtFile 
+} from '../services/libretroService';
 
 /**
  * Remove qualquer marca/texto entre parênteses como (TheZukoStore), mantendo apenas números e MB/GB limpos.
@@ -172,6 +177,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
   const [scraperPlatform, setScraperPlatform] = useState<string>('PS2');
   const [isScraping, setIsScraping] = useState(false);
   const [isImportingCheats, setIsImportingCheats] = useState(false);
+  const [isImportingLibretro, setIsImportingLibretro] = useState(false);
   const [isSyncingMods, setIsSyncingMods] = useState(false);
   const [isFetchingBoxes, setIsFetchingBoxes] = useState(false);
   const [isFetchingImages, setIsFetchingImages] = useState(false);
@@ -688,7 +694,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
     e.target.value = '';
   };
 
-  // Importar Cheats Direto do GameFAQs (com limpeza de versões e subtítulos)
+  // Importar Cheats Direto do GameFAQs e LibRetro (com limpeza de versões e subtítulos)
   const handleImportCheatsDirectly = async () => {
     const targetTitle = formTitle || scraperInput;
     if (!targetTitle.trim()) {
@@ -697,11 +703,11 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
     }
     setIsImportingCheats(true);
     try {
-      const res = await importCheatsFromGameFaqs(targetTitle);
+      const res = await importCheatsFromGameFaqs(targetTitle, formPlatform);
       if (res && res.cheats && res.cheats.length > 0) {
         setFormCheats(res.cheats);
         setFormGamefaqsCheatsUrl(res.gamefaqsCheatsUrl);
-        showNotification(`⚡ ${res.cheats.length} Cheats e códigos completos importados direto do GameFAQs para "${res.queryUsed}"!`);
+        showNotification(`⚡ ${res.cheats.length} Cheats e códigos importados (${res.source || 'GameFAQs/LibRetro'}) para "${res.queryUsed}"!`);
       } else {
         showNotification('Nenhum cheat encontrado no GameFAQs para este título.');
       }
@@ -709,6 +715,33 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
       showNotification('Falha ao importar cheats do GameFAQs.');
     } finally {
       setIsImportingCheats(false);
+    }
+  };
+
+  // Puxar Cheats Oficiais Retrô diretamente do LibRetro Database (.cht) e GameShark
+  const handleImportLibretroCheatsDirectly = async () => {
+    const targetTitle = formTitle || scraperInput;
+    if (!targetTitle.trim()) {
+      showNotification('Digite ou informe o nome do jogo antes de puxar cheats do LibRetro.');
+      return;
+    }
+    setIsImportingLibretro(true);
+    try {
+      const res = await fetchLibRetroCheats(targetTitle, formPlatform);
+      if (res && res.cheats && res.cheats.length > 0) {
+        setFormCheats(prev => {
+          const existing = new Set(prev.map(c => (c.title + c.codeOrEffect).toLowerCase()));
+          const newCheats = res.cheats.filter(c => !existing.has((c.title + c.codeOrEffect).toLowerCase()));
+          return [...prev, ...newCheats];
+        });
+        showNotification(`🎮 ${res.cheats.length} Cheats oficiais do LibRetro Database (.cht / GameShark) carregados para "${res.queryUsed}"!`);
+      } else {
+        showNotification('Nenhum código encontrado no LibRetro Database.');
+      }
+    } catch {
+      showNotification('Falha ao conectar com o LibRetro Database.');
+    } finally {
+      setIsImportingLibretro(false);
     }
   };
 
@@ -2403,13 +2436,13 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                   )}
                 </div>
 
-                {/* 4. CAMPO DE CHEATS (GAMEFAQS) */}
+                {/* 4. CAMPO DE CHEATS (LIBRETRO & GAMEFAQS) */}
                 <div className="p-5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-4">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div className="flex items-center gap-2">
                       <Zap className="w-4 h-4 text-amber-400" />
                       <h3 className="text-sm font-black text-white uppercase tracking-wider">
-                        4. Cheats & Códigos (Puxados do GameFAQs)
+                        4. Cheats & Códigos Retrô (LibRetro Database &amp; GameFAQs)
                       </h3>
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
                         {formCheats.length} cheats cadastrados
@@ -2417,16 +2450,62 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                     </div>
 
                     <div className="flex items-center gap-2 flex-wrap">
+                      {/* Botão Oficial LibRetro / GameShark */}
+                      <button
+                        type="button"
+                        disabled={isImportingLibretro || (!formTitle.trim() && !scraperInput.trim())}
+                        onClick={handleImportLibretroCheatsDirectly}
+                        className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 disabled:opacity-50 text-slate-950 font-black text-xs transition-all cursor-pointer shadow-md flex items-center gap-1.5"
+                        title="Puxar cheats oficiais e códigos GameShark/Action Replay direto do LibRetro Database"
+                      >
+                        {isImportingLibretro ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                        <span>{isImportingLibretro ? 'Puxando do LibRetro...' : '⚡ Puxar Cheats Retrô (LibRetro / GameShark)'}</span>
+                      </button>
+
+                      {/* Botão GameFAQs */}
                       <button
                         type="button"
                         disabled={isImportingCheats || (!formTitle.trim() && !scraperInput.trim())}
                         onClick={handleImportCheatsDirectly}
                         className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 disabled:opacity-50 text-slate-950 font-black text-xs transition-all cursor-pointer shadow-md flex items-center gap-1.5"
-                        title="Buscar e importar todos os cheats, códigos, senhas e segredos disponíveis no GameFAQs"
+                        title="Buscar e importar cheats e segredos disponíveis no GameFAQs"
                       >
                         {isImportingCheats ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5 fill-current" />}
-                        <span>{isImportingCheats ? 'Buscando todos no GameFAQs...' : '⚡ Buscar TODOS os Cheats do GameFAQs'}</span>
+                        <span>{isImportingCheats ? 'Buscando GameFAQs...' : '⚡ Buscar do GameFAQs'}</span>
                       </button>
+
+                      {/* Download .CHT para emuladores */}
+                      {formCheats.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            downloadLibRetroChtFile({
+                              id: formTitleId || 'game',
+                              slug: (formTitle || 'game').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+                              title: formTitle || 'Game',
+                              platform: formPlatform,
+                              cheats: formCheats
+                            } as any);
+                            showNotification('📥 Arquivo .CHT baixado! Pronto para uso no RetroArch, DuckStation ou PCSX2.');
+                          }}
+                          className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-cyan-500/30 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+                          title="Baixar arquivo .CHT oficial pronto para o RetroArch / Emuladores"
+                        >
+                          <FileDown className="w-3.5 h-3.5" />
+                          <span>Baixar .CHT (RetroArch)</span>
+                        </button>
+                      )}
+
+                      <a
+                        href={getLibRetroGitHubRepoUrl(formPlatform)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-semibold"
+                        title="Abrir pasta de cheats desta plataforma no repositório LibRetro"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>Banco LibRetro (GitHub)</span>
+                      </a>
 
                       {formGamefaqsCheatsUrl && (
                         <a
@@ -2436,7 +2515,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
                           className="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1 font-semibold"
                         >
                           <ExternalLink className="w-3.5 h-3.5" />
-                          <span>Abrir Seção Cheats no GameFAQs</span>
+                          <span>GameFAQs Cheats</span>
                         </a>
                       )}
                     </div>
