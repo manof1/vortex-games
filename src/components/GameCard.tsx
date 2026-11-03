@@ -5,8 +5,6 @@ import {
   Bookmark, 
   Check, 
   Sparkles,
-  Zap,
-  Package,
   Trophy,
   Medal,
   ArrowRight
@@ -25,7 +23,6 @@ interface GameCardProps {
 export const GameCard: React.FC<GameCardProps> = ({ game, rank }) => {
   const { 
     setActiveGame, 
-    openGameWithTab,
     isInLibrary, 
     addToLibrary, 
     removeFromLibrary
@@ -37,8 +34,6 @@ export const GameCard: React.FC<GameCardProps> = ({ game, rank }) => {
   const openBadge = getOpenCriticTierColor(critic.opencriticTier);
   
   const libraryStatus = isInLibrary(game.id);
-  const hasGameCheats = Array.isArray(game.cheats) && game.cheats.length > 0;
-  const hasGameMods = (Array.isArray(game.mods) && game.mods.length > 0) || !!game.nexusModsUrl;
 
   const handleLibraryToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -214,37 +209,7 @@ export const GameCard: React.FC<GameCardProps> = ({ game, rank }) => {
             {game.title}
           </h3>
 
-          {/* Cheats & Mods Indicators (Ligado se disponível) */}
-          {(hasGameCheats || hasGameMods) && (
-            <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-              {hasGameCheats && (
-                <span 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openGameWithTab(game, 'cheats');
-                  }}
-                  className="inline-flex items-center gap-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 border border-amber-500/30 transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95"
-                  title={`${game.cheats?.length || 0} Cheats GameFAQs disponíveis! Clique para abrir os cheats.`}
-                >
-                  <Zap className="w-2.5 h-2.5 fill-amber-500 text-amber-500" />
-                  <span>Cheats ON ({game.cheats?.length || 0})</span>
-                </span>
-              )}
-              {hasGameMods && (
-                <span 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openGameWithTab(game, 'mods');
-                  }}
-                  className="inline-flex items-center gap-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-orange-500/15 hover:bg-orange-500/25 text-orange-700 dark:text-orange-300 border border-orange-500/30 transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95"
-                  title={`${game.mods?.length || 0} Mods recomendados do Nexus Mods! Clique para abrir os mods.`}
-                >
-                  <Package className="w-2.5 h-2.5 text-orange-500" />
-                  <span>Mods ON ({game.mods?.length || 0})</span>
-                </span>
-              )}
-            </div>
-          )}
+
 
           {/* Genre list */}
           <div className="flex flex-wrap gap-1 mt-2">
