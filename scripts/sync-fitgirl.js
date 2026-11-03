@@ -291,7 +291,12 @@ export async function syncFitGirl() {
         downloads_count: 2400,
         views_count: 5100,
         is_trending: true,
-        download_links: downloadLinks,
+        download_links: downloadLinks.filter(l => {
+          const u = (l.url || '').toLowerCase();
+          const lb = (l.label || '').toLowerCase();
+          const hn = (l.hostName || '').toLowerCase();
+          return !u.includes('riotpixels') && !lb.includes('riot pixels') && !lb.includes('riotpixels') && !hn.includes('riotpixels');
+        }),
         system_requirements: systemRequirements,
         screenshots: screenshots
       };

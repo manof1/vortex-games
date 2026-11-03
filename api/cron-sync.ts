@@ -87,7 +87,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const releaseYear = pubDate.getFullYear() || new Date().getFullYear();
       const releaseDate = pubDate.toLocaleDateString('pt-BR');
 
-      // Extrair links de mirrors diretos reais do post (evitando links para páginas do site)
+      // Extrair links de mirrors diretos reais do post (evitando links para páginas do site e riotpixels)
       const rawMirrors = [...itemXml.matchAll(/<a\s+[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)]
         .map(m => ({ url: m[1], text: m[2].replace(/<[^>]+>/g, '').trim() }))
         .filter(l => 
@@ -95,12 +95,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           !l.url.includes('wp-content') &&
           !l.url.includes('twitter') &&
           !l.url.includes('facebook') &&
-          !l.url.startsWith('#')
+          !l.url.toLowerCase().includes('riotpixels') &&
+          !l.text.toLowerCase().includes('riot pixels') &&
+          !l.text.toLowerCase().includes('riotpixels') &&
+          !l.url.startsWith('#') &&
+          !l.url.startsWith('magnet:')
         );
 
-      const directMirrorUrl = rawMirrors[0]?.url || magnetUrl;
-      const directMirrorLabel = rawMirrors[0]?.text && rawMirrors[0].text.length > 2
-        ? `Mirror Direto: ${rawMirrors[0].text.slice(0, 30)}`
+      const directMirror = rawMirrors.find(m => 
+        !m.url.toLowerCase().includes('riotpixels') && 
+        !m.text.toLowerCase().includes('riot pixels') &&
+        !m.text.toLowerCase().includes('riotpixels')
+      );
+      const directMirrorUrl = directMirror?.url;
+      const directMirrorLabel = directMirror?.text && directMirror.text.length > 2
+        ? `Mirror Direto: ${directMirror.text.slice(0, 30)}`
         : 'Mirror Direto: Servidor Rápido';
 
       const downloadLinks = [
@@ -114,7 +123,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           size: repackSize,
           seeders: 3500
         },
-        {
+        ...(directMirrorUrl ? [{
           id: `dl-fg-direct-${slug}`,
           type: 'direct',
           format: 'torrent',
@@ -124,7 +133,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           size: repackSize,
           seeders: 2500,
           hostName: 'Servidor Direto (Sem Redirecionamento)'
-        }
+        }] : [])
       ];
 
       // Extrair capturas de tela (Screenshots da RiotPixels ou imagens do post)

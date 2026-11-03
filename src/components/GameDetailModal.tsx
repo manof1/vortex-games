@@ -53,6 +53,7 @@ import { TorrentHealthBadge } from './TorrentHealthBadge';
 import { sanitizeMagnetLink } from '../utils/magnetUtils';
 import { getCriticScores, getMetacriticBadgeColor, getOpenCriticTierColor } from '../utils/ratingUtils';
 import { getGameCover, getGameBanner, handleImageError } from '../utils/imageUtils';
+import { isRiotPixelsLink } from '../utils/linkFilters';
 
 interface GameDetailModalProps {
   game: Game;
@@ -121,20 +122,25 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
     return generatePcGamingWikiLocalizations(game);
   }, [game.localizations, game.title, game.hasPtBrAudio]);
 
+  // Download links sanitizados (remove links/botões inúteis para riotpixels.com)
+  const cleanDownloadLinks = React.useMemo(() => {
+    return (game.downloadLinks || []).filter(l => !isRiotPixelsLink(l));
+  }, [game.downloadLinks]);
+
   // Categorias de Plataformas detectadas no perfil canônico deste jogo
   const platformCategories = React.useMemo(() => {
     const result: { id: 'PC' | 'PLAYSTATION' | 'NINTENDO'; label: string; count: number; icon: any; color: string }[] = [];
     
-    const pcLinks = game.downloadLinks.filter(l => 
+    const pcLinks = cleanDownloadLinks.filter(l => 
       l.platform === 'PC' || l.type === 'magnet' || l.type === 'torrent' || l.format === 'torrent'
     );
 
-    const playstationLinks = game.downloadLinks.filter(l => 
+    const playstationLinks = cleanDownloadLinks.filter(l => 
       ['PS1', 'PS2', 'PS3', 'PS4', 'PS5', 'PSP', 'PS Vita'].includes(l.platform || '') || 
       l.type === 'pkg' || l.format === 'pkg' || (l.format === 'iso' && !l.platform?.includes('Wii') && !l.platform?.includes('GameCube'))
     );
 
-    const nintendoLinks = game.downloadLinks.filter(l => 
+    const nintendoLinks = cleanDownloadLinks.filter(l => 
       ['Switch', 'Nintendo Switch', 'N64', 'GBA', 'GameCube', 'Wii'].includes(l.platform || '') || 
       l.format === 'nsp' || l.format === 'xci' || (l.format === 'rom' && (l.platform === 'GBA' || l.platform === 'N64'))
     );
@@ -150,7 +156,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
     }
 
     return result;
-  }, [game]);
+  }, [cleanDownloadLinks, game.hasPcTorrent, game.hasPkgFormat, game.categories]);
 
   const nexusInfo = getNexusModsGameInfo(game.title, game.platform);
   const validMods = (game.mods && game.mods.length > 0 && !game.mods.some(m => m.nexusUrl?.includes('/mods/1') || m.nexusUrl?.includes('/mods/2') || m.nexusUrl?.includes('/mods/3') || m.nexusUrl?.includes('/mods/4')))
@@ -780,7 +786,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                     <div className="p-2 rounded-lg bg-slate-900 border border-slate-800">
                       <span className="block text-[10px] text-slate-500">Compatibilidade de Sistema:</span>
                       <span className="font-semibold text-slate-200 text-xs">
-                        {game.downloadLinks.find(l => l.firmware)?.firmware || 'PC Windows / Emulador'}
+                        {cleanDownloadLinks.find(l => l.firmware)?.firmware || 'PC Windows / Emulador'}
                       </span>
                     </div>
                     <div className="p-2 rounded-lg bg-slate-900 border border-slate-800">
@@ -812,7 +818,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                   </div>
                 </div>
                 <span className="hidden sm:inline-block px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 font-bold text-[11px]">
-                  {game.downloadLinks.length} opções disponíveis
+                  {cleanDownloadLinks.length} opções disponíveis
                 </span>
               </div>
 
@@ -843,7 +849,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                         }`}
                       >
                         <Globe className="w-3.5 h-3.5" />
-                        <span>Todas ({game.downloadLinks.length})</span>
+                        <span>Todas ({cleanDownloadLinks.length})</span>
                       </button>
 
                       {platformCategories.map(cat => {
@@ -950,7 +956,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                     
                     {/* BUTTON 1: TORRENT PC (MAGNET) */}
                     {(selectedPlatformTab === 'ALL' || selectedPlatformTab === 'PC') && 
-                      game.downloadLinks.filter(l => l.type === 'magnet' || l.type === 'torrent' || l.format === 'torrent').map(link => (
+                      cleanDownloadLinks.filter(l => l.type === 'magnet' || l.type === 'torrent' || l.format === 'torrent').map(link => (
                       <div 
                         key={link.id}
                         style={{ width: '570.508px', maxWidth: '100%' }}
@@ -1038,7 +1044,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
 
                     {/* BUTTON 2: ARQUIVO PKG (PLAYSTATION / DLPSGAME / THEZUKOSTORE) */}
                     {(selectedPlatformTab === 'ALL' || selectedPlatformTab === 'PLAYSTATION') &&
-                      game.downloadLinks.filter(l => l.type === 'pkg' || l.format === 'pkg').map(link => (
+                      cleanDownloadLinks.filter(l => l.type === 'pkg' || l.format === 'pkg').map(link => (
                       <div 
                         key={link.id}
                         className="p-5 rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-purple-950/40 border-2 border-purple-500/50 space-y-3 flex flex-col justify-between shadow-xl"
@@ -1096,7 +1102,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
 
                     {/* BUTTON 3: CONSOLE ISO & CLEAN ROMs (ROMSPURE & PRESERVAÇÃO) */}
                     {(selectedPlatformTab === 'ALL' || selectedPlatformTab === 'PLAYSTATION' || selectedPlatformTab === 'NINTENDO') &&
-                      game.downloadLinks
+                      cleanDownloadLinks
                         .filter(l => {
                           const isIsoOrRom = l.format === 'iso' || l.format === 'rom' || l.format === 'bin/cue';
                           const isNotPkgOrTorrent = l.type !== 'pkg' && l.type !== 'magnet' && l.type !== 'torrent';
@@ -1160,7 +1166,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
 
                     {/* BUTTON 4: NINTENDO SWITCH (NSP / XCI) */}
                     {(selectedPlatformTab === 'ALL' || selectedPlatformTab === 'NINTENDO') &&
-                      game.downloadLinks
+                      cleanDownloadLinks
                         .filter(l => l.format === 'nsp' || l.format === 'xci' || l.platform === 'Switch' || l.platform === 'Nintendo Switch')
                         .map(link => (
                         <div 
@@ -1217,7 +1223,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
 
                     {/* BUTTON 5: PACOTE / PATCH DUBLAGEM & TRADUÇÃO PT-BR */}
                     {(selectedPlatformTab === 'ALL' || selectedPlatformTab === 'PC') &&
-                      game.downloadLinks.filter(l => l.type === 'pt_br_patch' || l.format === 'pt_br_patch').map(link => (
+                      cleanDownloadLinks.filter(l => l.type === 'pt_br_patch' || l.format === 'pt_br_patch').map(link => (
                       <div 
                         key={link.id}
                         className="p-5 rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950/40 border-2 border-emerald-500/50 space-y-3 flex flex-col justify-between shadow-xl md:col-span-2"
@@ -1270,7 +1276,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
 
 
               {/* Other Links & Mirrors (Servidores Alternativos com Links Diretos nos Botões) */}
-              {game.downloadLinks.filter(l => l.type === 'direct' || l.type === 'mirror').length > 0 && (
+              {cleanDownloadLinks.filter(l => l.type === 'direct' || l.type === 'mirror').length > 0 && (
                 <div className="space-y-3 pt-2">
                   <div className="flex items-center justify-between">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
@@ -1281,7 +1287,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                    {game.downloadLinks.filter(l => l.type === 'direct' || l.type === 'mirror').map((link) => (
+                    {cleanDownloadLinks.filter(l => l.type === 'direct' || l.type === 'mirror').map((link) => (
                       <div 
                         key={link.id}
                         className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center justify-between gap-3 hover:border-slate-700 transition-all"

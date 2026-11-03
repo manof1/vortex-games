@@ -3,6 +3,7 @@ import { FITGIRL_PRESET_GAMES } from '../data/fitgirlCatalog';
 import { sanitizeMagnetLink, generateValidBTIH } from '../utils/magnetUtils';
 import { getImdbRating } from '../utils/ratingUtils';
 import { getGameCover, getGameBanner } from '../utils/imageUtils';
+import { filterOutRiotPixels, isRiotPixelsLink } from '../utils/linkFilters';
 
 export interface FitGirlFeedItem {
   title: string;
@@ -157,7 +158,7 @@ export function extractFitGirlMirrorsFromHtml(content: string, cleanTitle: strin
   // Extrair FileKeeper
   const fileKeeperMatch = directBlock.match(/href="([^"]*filekeeper[^"]*)"/i);
 
-  // Outros mirrors diretos
+  // Outros mirrors diretos (excluindo riotpixels e links não-download)
   const genericMirrors = [...directBlock.matchAll(/<a\s+[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)]
     .map(m => ({ url: m[1], text: m[2].replace(/<[^>]+>/g, '').trim() }))
     .filter(l => 
@@ -165,13 +166,24 @@ export function extractFitGirlMirrorsFromHtml(content: string, cleanTitle: strin
       !l.url.includes('wp-content') &&
       !l.url.includes('twitter') &&
       !l.url.includes('facebook') &&
+      !l.url.toLowerCase().includes('riotpixels') &&
+      !l.text.toLowerCase().includes('riot pixels') &&
+      !l.text.toLowerCase().includes('riotpixels') &&
       !l.url.startsWith('#') &&
       !l.url.startsWith('magnet:')
     );
 
-  const dataNodesUrl = dataNodesMatch ? dataNodesMatch[1] : (genericMirrors[0]?.url || 'https://datanodes.to');
-  const fuckingFastUrl = fuckingFastMatch ? fuckingFastMatch[1] : (genericMirrors[1]?.url || 'https://fuckingfast.co');
-  const fileKeeperUrl = fileKeeperMatch ? fileKeeperMatch[1] : (genericMirrors[2]?.url || 'https://filekeeper.net');
+  const dataNodesUrl = (dataNodesMatch && !dataNodesMatch[1].toLowerCase().includes('riotpixels'))
+    ? dataNodesMatch[1]
+    : (genericMirrors.find(m => m.url.includes('datanodes'))?.url || 'https://datanodes.to');
+
+  const fuckingFastUrl = (fuckingFastMatch && !fuckingFastMatch[1].toLowerCase().includes('riotpixels'))
+    ? fuckingFastMatch[1]
+    : (genericMirrors.find(m => m.url.includes('fuckingfast'))?.url || 'https://fuckingfast.co');
+
+  const fileKeeperUrl = (fileKeeperMatch && !fileKeeperMatch[1].toLowerCase().includes('riotpixels'))
+    ? fileKeeperMatch[1]
+    : (genericMirrors.find(m => m.url.includes('filekeeper'))?.url || 'https://filekeeper.net');
   const torrentFileUrl = matchTorrentFile ? matchTorrentFile[1] : undefined;
 
   return {
@@ -391,7 +403,7 @@ export function parseFitGirlRssXml(xmlText: string): Game[] {
           crackStatus: 'Crackeado',
           crackGroup: 'RUNE / TENOKE / CODEX'
         },
-        downloadLinks,
+        downloadLinks: filterOutRiotPixels(downloadLinks),
         systemRequirements,
         rating: 4.8,
         imdbRating: getImdbRating({ title: cleanTitle }),

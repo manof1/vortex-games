@@ -20,6 +20,7 @@ import {
   executeSundayCheatsModsSync, 
   checkAndRunScheduledSundaySync 
 } from '../services/weeklyCheatsModsScheduler';
+import { filterOutRiotPixels, isRiotPixelsLink } from '../utils/linkFilters';
 
 interface GameContextType {
   games: Game[];
@@ -179,9 +180,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       userVotesMap = {};
     }
 
-    return baseList.map(g => {
+    const cleanedList = baseList.map(g => {
       const realVote = userVotesMap[g.id];
-      const sanitizedLinks = (g.downloadLinks || []).map(dl => {
+      const withoutRiotPixels = filterOutRiotPixels(g.downloadLinks || []);
+      const sanitizedLinks = withoutRiotPixels.map(dl => {
         if (dl.url && (dl.type === 'magnet' || dl.url.startsWith('magnet:?'))) {
           return {
             ...dl,
@@ -200,6 +202,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         totalVotes: realVote ? 1 : 0
       }, true);
     });
+
+    try {
+      localStorage.setItem('vortex_games', JSON.stringify(cleanedList));
+    } catch {
+      // ignore
+    }
+
+    return cleanedList;
   });
 
   // Comments state
@@ -305,10 +315,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
           const sanitizedRemote = remoteGames.map(g => {
             const realVote = userVotesMap[g.id];
+            const cleanLinks = filterOutRiotPixels(g.downloadLinks || []);
             if (realVote) {
-              return { ...g, rating: realVote, totalVotes: 1 };
+              return { ...g, downloadLinks: cleanLinks, rating: realVote, totalVotes: 1 };
             }
-            return { ...g, rating: 0, totalVotes: 0 };
+            return { ...g, downloadLinks: cleanLinks, rating: 0, totalVotes: 0 };
           });
 
           const remoteIds = new Set(sanitizedRemote.map(g => g.id));
@@ -757,6 +768,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const enriched = enrichGameWithCheatsAndMods(newGame);
     const finalizedGame: Game = {
       ...enriched,
+      downloadLinks: filterOutRiotPixels(enriched.downloadLinks || []),
       lastCheatsSync: new Date().toISOString(),
       cheatsSyncStatus: 'synced'
     };
@@ -783,12 +795,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateGame = (updatedGame: Game) => {
-    setGames(prev => prev.map(g => (g.id === updatedGame.id ? updatedGame : g)));
-    if (activeGame?.id === updatedGame.id) {
-      setActiveGame(updatedGame);
+    const cleaned = {
+      ...updatedGame,
+      downloadLinks: filterOutRiotPixels(updatedGame.downloadLinks || [])
+    };
+    setGames(prev => prev.map(g => (g.id === cleaned.id ? cleaned : g)));
+    if (activeGame?.id === cleaned.id) {
+      setActiveGame(cleaned);
     }
     // Persistir atualização imediatamente no banco Supabase
-    upsertGameToSupabase(updatedGame).catch(err => {
+    upsertGameToSupabase(cleaned).catch(err => {
       console.warn('Falha ao atualizar jogo no Supabase:', err);
     });
   };

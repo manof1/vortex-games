@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { Game, Comment } from '../types';
 import { getGameCover, getGameBanner } from '../utils/imageUtils';
+import { filterOutRiotPixels } from '../utils/linkFilters';
 
 // Credenciais configuradas
 export const SUPABASE_URL = 
@@ -85,7 +86,7 @@ export async function fetchGamesFromSupabase(): Promise<Game[] | null> {
         return trulyDubbedList.some(d => titleLower.includes(d));
       })(),
       hasPtBrSubs: true,
-      downloadLinks: item.download_links || item.downloadLinks || [],
+      downloadLinks: filterOutRiotPixels(item.download_links || item.downloadLinks || []),
       systemRequirements: (item.system_requirements?.minimum?.processor) ? item.system_requirements : (item.systemRequirements?.minimum?.processor) ? item.systemRequirements : {
         minimum: { 
           os: 'Windows 10 64-bit (Build 1909 ou superior)', 
@@ -165,7 +166,7 @@ export async function upsertGameToSupabase(game: Game): Promise<{ success: boole
       has_pc_torrent: game.hasPcTorrent,
       has_pt_br_audio: game.hasPtBrAudio,
       has_pt_br_subs: game.hasPtBrSubs,
-      download_links: game.downloadLinks,
+      download_links: filterOutRiotPixels(game.downloadLinks || []),
       system_requirements: game.systemRequirements,
       screenshots: game.screenshots,
       tags: game.tags,
