@@ -49,6 +49,7 @@ import { normalizeTitleForComparison } from '../data/playstationGameMedia';
 import { SUPABASE_SCHEMA_SQL } from '../services/supabaseSchemaService';
 import { SUPABASE_URL, SUPABASE_ANON_KEY, testSupabaseConnection, upsertGameToSupabase } from '../services/supabaseClient';
 import { getGameCover, handleImageError } from '../utils/imageUtils';
+import { ConsoleAutomationHubTab } from './ConsoleAutomationHubTab';
 
 interface AdminPanelModalProps {
   onClose: () => void;
@@ -71,7 +72,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
     triggerManualSync
   } = useGame();
 
-  const [activeTab, setActiveTab] = useState<'igdb' | 'fitgirl' | 'zukotapochek' | 'romspuredlps' | 'manage' | 'comments' | 'backup'>('igdb');
+  const [activeTab, setActiveTab] = useState<'igdb' | 'fitgirl' | 'zukotapochek' | 'romspuredlps' | 'autoconsole' | 'manage' | 'comments' | 'backup'>('igdb');
 
   // RomsPure & DLPSGame Tab states
   const [romspurePlatformFilter, setRomspurePlatformFilter] = useState<'ALL' | 'PS1' | 'PS2' | 'PS3' | 'PS4' | 'PSP' | 'Switch' | 'N64' | 'GBA'>('ALL');
@@ -620,6 +621,21 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
           >
             <Disc className="w-4 h-4 text-emerald-400" />
             <span>Consoles (RomsPure & DLPS)</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('autoconsole')}
+            className={`px-3.5 py-2 rounded-xl font-bold flex items-center gap-2 transition-all ${
+              activeTab === 'autoconsole'
+                ? 'bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-slate-950 shadow-md shadow-emerald-500/30'
+                : 'bg-slate-800 text-slate-300 hover:text-white'
+            }`}
+          >
+            <Zap className="w-4 h-4 text-amber-400 fill-current" />
+            <span>Automação Consoles (5 Fontes)</span>
+            <span className="px-1.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-400 text-slate-950">
+              NOVO
+            </span>
           </button>
 
           <button
@@ -2024,6 +2040,14 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
                 </pre>
               </div>
             </div>
+          )}
+
+          {/* TAB AUTOCONSOLE: CENTRAL DE AUTOMAÇÃO DE CONSOLES (5 FONTES) */}
+          {activeTab === 'autoconsole' && (
+            <ConsoleAutomationHubTab
+              onAddGame={addGame}
+              existingGames={games}
+            />
           )}
 
           {/* TAB 2: MANAGE POSTS */}

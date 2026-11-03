@@ -259,3 +259,43 @@ export function downloadLibRetroChtFile(game: Game): void {
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
+
+/**
+ * Busca URLs de Capas Oficiais (Boxarts) e Versos (Boxback) no repositório LibRetro Thumbnails
+ * https://github.com/libretro/libretro-thumbnails
+ */
+export function getLibRetroThumbnailFolder(platform: string = ''): string {
+  const p = platform.toLowerCase();
+  if (p.includes('ps1') || p.includes('playstation 1') || p === 'ps') return 'Sony - PlayStation';
+  if (p.includes('ps2') || p.includes('playstation 2')) return 'Sony - PlayStation 2';
+  if (p.includes('psp')) return 'Sony - PlayStation Portable';
+  if (p.includes('gba') || p.includes('advance')) return 'Nintendo - Game Boy Advance';
+  if (p.includes('n64') || p.includes('nintendo 64')) return 'Nintendo - Nintendo 64';
+  if (p.includes('snes') || p.includes('super nintendo')) return 'Nintendo - Super Nintendo Entertainment System';
+  if (p.includes('nes') || p.includes('famicom')) return 'Nintendo - Nintendo Entertainment System';
+  if (p.includes('genesis') || p.includes('mega drive')) return 'Sega - Mega Drive - Genesis';
+  return 'Sony - PlayStation 2';
+}
+
+export function fetchLibRetroThumbnails(gameTitle: string, platform: string = 'PS2'): {
+  boxartUrl: string;
+  boxbackUrl: string;
+  titleScreenUrl: string;
+  repoFolderUrl: string;
+} {
+  const clean = cleanGameTitle(gameTitle);
+  const folder = getLibRetroThumbnailFolder(platform);
+  // Regra de sanitização de arquivo do LibRetro Thumbnails:
+  // caracteres como & viram _, dois pontos viram _
+  const sanitizedTitle = clean.replace(/[:\/\\*?"<>|]/g, '_');
+
+  const baseRaw = `https://raw.githubusercontent.com/libretro/libretro-thumbnails/master/${encodeURIComponent(folder)}`;
+
+  return {
+    boxartUrl: `${baseRaw}/Named_Boxarts/${encodeURIComponent(sanitizedTitle)}.png`,
+    boxbackUrl: `${baseRaw}/Named_Boxback/${encodeURIComponent(sanitizedTitle)}.png`,
+    titleScreenUrl: `${baseRaw}/Named_Titles/${encodeURIComponent(sanitizedTitle)}.png`,
+    repoFolderUrl: `https://github.com/libretro/libretro-thumbnails/tree/master/${encodeURIComponent(folder)}`
+  };
+}
+

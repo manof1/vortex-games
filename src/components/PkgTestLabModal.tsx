@@ -65,6 +65,8 @@ import {
   getLibRetroGitHubRepoUrl, 
   downloadLibRetroChtFile 
 } from '../services/libretroService';
+import { findRomTranslationForGame } from '../services/romTranslationService';
+import { getConsoleModsForGame } from '../services/consoleModsService';
 
 /**
  * Remove qualquer marca/texto entre parênteses como (TheZukoStore), mantendo apenas números e MB/GB limpos.
@@ -448,10 +450,44 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
         setFormPtBrSupport(result.ptBrSupport ?? true);
         setFormCheats(result.cheats || []);
         setFormGamefaqsCheatsUrl(result.gamefaqsCheatsUrl || '');
-        setFormMods(result.mods || []);
+        // 3. Consultar Banco de Traduções Brasileiras (João13, Nemesis, Tribo Gamer)
+        const trans = findRomTranslationForGame(result.title, result.platform);
+        // 4. Consultar Patches de 60 FPS e Widescreen 16:9 de Console
+        const cmods = getConsoleModsForGame(result.title, result.platform);
+
+        const mergedMods = [...(result.mods || [])];
+        if (cmods && cmods.mods.length > 0) {
+          const existingModTitles = new Set(mergedMods.map(m => m.title.toLowerCase()));
+          cmods.mods.forEach(m => {
+            if (!existingModTitles.has(m.title.toLowerCase())) mergedMods.push(m);
+          });
+        }
+
+        setFormMods(mergedMods);
         setFormNexusModsUrl(result.nexusModsUrl || getNexusModsGameInfo(result.title).hubUrl);
 
-        showNotification(`✓ Dados puxados com sucesso! Ficha, Capa da aba Boxes, 4 Screenshots da aba Images e Cheats do GameFAQs.`);
+        if (trans) {
+          setFormPtBrSupport(true);
+          // Adiciona link PT-BR na lista de downloads se houver URL
+          if (trans.downloadUrl) {
+            setFormDownloadLinks(prev => [
+              ...prev,
+              {
+                id: `dl-trans-${Date.now()}`,
+                label: `Versão ${trans.translationType} (${trans.team})`,
+                url: trans.downloadUrl || '',
+                format: (result.format || 'ISO').toUpperCase(),
+                language: trans.translationType,
+                size: result.fileSize || '1.5 GB',
+                hostName: 'Comunidade BR de Traduções'
+              }
+            ]);
+          }
+        }
+
+        const transMsg = trans ? ` | 🇧🇷 Tradução ${trans.translationType} (${trans.team}) anexada!` : '';
+        const fpsMsg = cmods.patches.some(p => p.type === '60fps') ? ' | ⚡ Patches 60 FPS & 16:9 incluídos!' : '';
+        showNotification(`✓ Dados puxados com sucesso! Ficha, Capas, Screenshots, Cheats do LibRetro${transMsg}${fpsMsg}`);
       } else {
         showNotification('Nenhum dado encontrado para a busca. Preencha manualmente ou ajuste o termo.');
       }
