@@ -25,6 +25,7 @@ export const FilterBar: React.FC = () => {
     { id: 'Todos', label: t('filter.allGames', 'Todos os Jogos') },
     { id: 'FitGirl', label: `🌸 ${t('filter.fitgirl', 'FitGirl Repacks')}` },
     { id: 'DODI', label: `⚡ ${t('filter.dodi', 'DODI Repacks')}` },
+    { id: 'BrotherGame', label: '🎮 Brother Game (Ports & PT-BR)' },
     { id: 'Lançamentos', label: `🔥 ${t('filter.launches', 'Lançamentos')}` },
     { id: 'Mais Populares', label: `⭐ ${t('filter.popular', 'Mais Populares')}` },
     { id: 'AAA', label: `💎 ${t('filter.aaa', 'Superproduções (AAA)')}` },

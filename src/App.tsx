@@ -32,6 +32,7 @@ const MainContent: React.FC = () => {
     setIsUserMenuOpen,
     isAuthModalOpen,
     setIsAuthModalOpen,
+    authModalMode,
     isGameRequestOpen,
     setIsGameRequestOpen,
     isPkgLabOpen,
@@ -72,7 +73,8 @@ const MainContent: React.FC = () => {
         if (filters.category !== 'Todos') {
           if (filters.category === 'FitGirl' && !game.repackInfo.repacker.toLowerCase().includes('fitgirl') && !game.id.startsWith('fg-')) return false;
           if (filters.category === 'DODI' && !game.repackInfo.repacker.toLowerCase().includes('dodi') && !game.id.startsWith('dodi-')) return false;
-          if (filters.category === 'Lançamentos' && !game.categories.includes('Lançamentos') && game.releaseYear < 2024 && !game.id.startsWith('fg-') && !game.id.startsWith('dodi-')) return false;
+          if (filters.category === 'BrotherGame' && !game.repackInfo.repacker.toLowerCase().includes('brother') && !game.id.startsWith('bg-') && !game.categories.includes('BrotherGame')) return false;
+          if (filters.category === 'Lançamentos' && !game.categories.includes('Lançamentos') && game.releaseYear < 2024 && !game.id.startsWith('fg-') && !game.id.startsWith('dodi-') && !game.id.startsWith('bg-')) return false;
           if (filters.category === 'Mais Populares' && !game.isTrending && game.rating < 4.8) return false;
           if (filters.category === 'AAA' && !game.categories.includes('AAA')) return false;
           if (filters.category === 'Repacks Leves' && parseFloat(game.repackInfo.repackSize) > 20) return false;
@@ -401,7 +403,7 @@ const MainContent: React.FC = () => {
 
       {/* Member Auth Modal (Login / Register) */}
       {isAuthModalOpen && (
-        <AuthModal onClose={() => setIsAuthModalOpen(false)} />
+        <AuthModal onClose={() => setIsAuthModalOpen(false)} initialMode={authModalMode} />
       )}
 
       {/* Pedir um Jogo Modal (Comunidade) */}

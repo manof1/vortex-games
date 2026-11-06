@@ -47,6 +47,7 @@ export const UserMenuModal: React.FC<UserMenuModalProps> = ({ onClose }) => {
     isLoggedIn,
     logout,
     setIsAuthModalOpen,
+    openAuthModal,
     syncToCloud,
     getUserVote
   } = useGame();
@@ -198,6 +199,10 @@ export const UserMenuModal: React.FC<UserMenuModalProps> = ({ onClose }) => {
   };
 
   const handleQuickDownload = (game: any) => {
+    if (!isLoggedIn) {
+      openAuthModal('register', '🔒 Crie sua conta gratuita ou faça login para liberar o download direto deste jogo.');
+      return;
+    }
     incrementDownload(game.id);
     const link = game.downloadLinks.find((l: any) => l.type === 'magnet' || l.type === 'torrent') || game.downloadLinks[0];
     if (link) {

@@ -37,7 +37,8 @@ import {
   Search,
   Trash2,
   RotateCcw,
-  Key
+  Key,
+  UserPlus
 } from 'lucide-react';
 import { Game, GameCheat, LibraryStatus, GameLocalization } from '../types';
 import { useGame } from '../context/GameContext';
@@ -82,6 +83,8 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
     userProfile,
     isLoggedIn,
     setIsAuthModalOpen,
+    openAuthModal,
+    requireAuth,
     activeGameInitialTab,
     isCreator,
     updateGame
@@ -219,6 +222,10 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
   };
 
   const handleCopyMagnet = (url: string) => {
+    if (!isLoggedIn) {
+      openAuthModal('register', '🔒 Crie sua conta gratuita ou faça login para copiar links magnet e liberar downloads.');
+      return;
+    }
     const cleanUrl = url.startsWith('magnet:')
       ? sanitizeMagnetLink(url, `${game.title} [${game.repackInfo?.repacker || 'Vortex'}]`)
       : url;
@@ -228,6 +235,10 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
   };
 
   const handleDownloadClick = (url: string) => {
+    if (!isLoggedIn) {
+      openAuthModal('register', '🔒 Crie sua conta gratuita ou faça login para liberar o download e sincronizar seus jogos.');
+      return;
+    }
     incrementDownload(game.id);
     if (url.startsWith('magnet:')) {
       const cleanUrl = sanitizeMagnetLink(url, `${game.title} [${game.repackInfo?.repacker || 'Vortex'}]`);
@@ -950,6 +961,34 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                   </div>
                 )}
 
+                {/* BANNER DE VISITANTE / EXIGÊNCIA DE LOGIN */}
+                {!isLoggedIn && (
+                  <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-cyan-500/10 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fadeIn">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center shrink-0">
+                        <Lock className="w-5 h-5 text-amber-400" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                          <span>Acesso de Visitante</span>
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">Crie sua Conta Gratuita</span>
+                        </h4>
+                        <p className="text-xs text-slate-300 mt-0.5">
+                          Para liberar downloads diretos, links magnet e salvar jogos na nuvem, cadastre-se grátis em segundos.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => openAuthModal('register', '🔒 Crie sua conta gratuita ou faça login para liberar os downloads.')}
+                      className="px-4 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 transition-all shadow-md shadow-amber-500/20 shrink-0 flex items-center justify-center gap-1.5 cursor-pointer font-display"
+                    >
+                      <UserPlus className="w-4 h-4 stroke-[2.5]" />
+                      <span>Cadastre-se para Baixar</span>
+                    </button>
+                  </div>
+                )}
+
                 {/* DOWNLOAD CARDS GRID */}
                 {selectedPlatformTab !== 'EMULATORS' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1004,15 +1043,15 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                         </div>
 
                         <div className="flex items-center gap-2 pt-2">
-                          <a
-                            href={sanitizeMagnetLink(link.url, `${game.title} [${game.repackInfo?.repacker || 'Vortex'}]`)}
-                            onClick={() => incrementDownload(game.id)}
+                          <button
+                            type="button"
+                            onClick={() => handleDownloadClick(link.url)}
                             className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-xs bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-md shadow-cyan-500/30 transition-all transform hover:scale-[1.02] cursor-pointer"
                             title="Enviar link Magnet limpo direto para seu aplicativo de torrent (qBittorrent / uTorrent)"
                           >
                             <Download className="w-4 h-4 stroke-[2.5]" />
                             <span>Baixar Torrent PC (Abrir no qBittorrent / uTorrent)</span>
-                          </a>
+                          </button>
 
                           <button
                             onClick={() => handleCopyMagnet(link.url)}

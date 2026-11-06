@@ -49,6 +49,7 @@ export const GameCard: React.FC<GameCardProps> = ({ game, rank }) => {
   const getRepackerColor = (repacker: string) => {
     if (repacker.includes('FitGirl')) return 'bg-pink-500/20 text-pink-700 dark:text-pink-300 border-pink-500/30';
     if (repacker.includes('DODI')) return 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/30';
+    if (repacker.includes('Brother')) return 'bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30';
     if (repacker.includes('ElAmigos')) return 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/30';
     return 'bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 border-cyan-500/30';
   };

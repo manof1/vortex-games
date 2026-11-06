@@ -2,11 +2,13 @@ import { Game } from '../types';
 import { SUPABASE_SYNCED_GAMES } from './supabasePresets';
 import { DODI_PRESET_GAMES } from './dodiPresets';
 import { ZUKO_TAPOCHEK_PRESETS } from './zukoTapochekPresets';
+import { BROTHERGAME_PRESET_GAMES } from './brotherGameCatalog';
 
 export const INITIAL_GAMES: Game[] = [
   ...SUPABASE_SYNCED_GAMES,
   ...DODI_PRESET_GAMES,
   ...ZUKO_TAPOCHEK_PRESETS,
+  ...BROTHERGAME_PRESET_GAMES,
   {
     id: 'bloodborne-complete',
     title: 'Bloodborne: Game of the Year Edition',

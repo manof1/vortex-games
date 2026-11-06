@@ -30,7 +30,9 @@ export const UserLibraryView: React.FC<UserLibraryViewProps> = ({ onClose }) => 
     updateLibraryStatus, 
     rateGame, 
     setActiveGame,
-    incrementDownload 
+    incrementDownload,
+    isLoggedIn,
+    openAuthModal 
   } = useGame();
 
   const [activeTab, setActiveTab] = useState<'all' | LibraryStatus>('all');
@@ -59,6 +61,10 @@ export const UserLibraryView: React.FC<UserLibraryViewProps> = ({ onClose }) => 
   };
 
   const handleDownload = (game: any) => {
+    if (!isLoggedIn) {
+      openAuthModal('register', '🔒 Crie sua conta gratuita ou faça login para baixar este jogo da sua biblioteca.');
+      return;
+    }
     const magnet = game.downloadLinks.find((l: any) => l.type === 'magnet' || l.type === 'torrent');
     if (magnet) {
       incrementDownload(game.id);

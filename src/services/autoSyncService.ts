@@ -205,11 +205,14 @@ jobs:
       - name: Instalar Dependências de Sincronização
         run: npm install rss-parser @supabase/supabase-js
 
-      - name: Executar Sincronizador com Supabase
+      - name: Executar Sincronizador com Supabase (FitGirl, DODI e Brother Game)
         env:
           SUPABASE_URL: \${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: \${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: node scripts/sync-fitgirl.js
+        run: |
+          node scripts/sync-fitgirl.js
+          node scripts/sync-dodi.js
+          node scripts/sync-brothergame.js
 `;
 
 /**
@@ -218,7 +221,7 @@ jobs:
 export const VERCEL_CRON_JSON = `{
   "crons": [
     {
-      "path": "/api/cron/sync-fitgirl",
+      "path": "/api/cron-sync",
       "schedule": "0 * * * *"
     }
   ]

@@ -20,14 +20,16 @@ interface AuthModalProps {
   initialMode?: 'register' | 'login';
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialMode = 'login' }) => {
+export const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialMode }) => {
   const { 
     login, 
     register, 
-    syncToCloud 
+    syncToCloud,
+    authModalMode,
+    authModalNotice
   } = useGame();
 
-  const [mode, setMode] = useState<'register' | 'login'>(initialMode);
+  const [mode, setMode] = useState<'register' | 'login'>(initialMode || authModalMode || 'login');
   
   // Register fields
   const [name, setName] = useState('');
@@ -156,6 +158,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialMode = 'lo
               Entre com sua conta no computador ou celular para liberar downloads imediatos e manter seus favoritos sempre sincronizados.
             </p>
           </div>
+
+          {authModalNotice && (
+            <div className="p-3 rounded-2xl bg-amber-500/10 dark:bg-amber-950/40 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs flex items-center gap-2.5 animate-fadeIn">
+              <div className="p-1 rounded-lg bg-amber-500/20 text-amber-500 shrink-0">
+                <Lock className="w-4 h-4" />
+              </div>
+              <span className="font-semibold">{authModalNotice}</span>
+            </div>
+          )}
 
           {/* Value Perks Grid */}
           <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-600 dark:text-slate-300">

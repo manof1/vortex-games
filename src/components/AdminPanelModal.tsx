@@ -33,12 +33,15 @@ import {
   AlertTriangle,
   Zap,
   Package,
-  Info
+  Info,
+  Globe,
+  FileText
 } from 'lucide-react';
 import { Game, IgdbSearchResult, GameCheat, GameMod } from '../types';
 import { useGame } from '../context/GameContext';
 import { searchIgdbGames, convertIgdbResultToGame } from '../services/igdbService';
 import { getFitGirlPresetCatalog, parseFitGirlRssXml, FITGIRL_SUPABASE_SYNC_SCRIPT } from '../services/fitgirlService';
+import { getBrotherGamePresetCatalog, parseBrotherGameRssXml, fetchBrotherGameLiveFeed, BROTHERGAME_RSS_URL } from '../services/brotherGameService';
 import { GITHUB_ACTIONS_WORKFLOW_YAML, VERCEL_CRON_JSON } from '../services/autoSyncService';
 import { ZUKO_TAPOCHEK_PRESETS } from '../data/zukoTapochekPresets';
 import { createZukoTapochekGame, ZUKO_TAPOCHEK_SUPABASE_SCRIPT } from '../services/zukoTapochekService';
@@ -72,7 +75,14 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
     triggerManualSync
   } = useGame();
 
-  const [activeTab, setActiveTab] = useState<'igdb' | 'fitgirl' | 'zukotapochek' | 'romspuredlps' | 'autoconsole' | 'manage' | 'comments' | 'backup'>('igdb');
+  const [activeTab, setActiveTab] = useState<'igdb' | 'fitgirl' | 'brothergame' | 'zukotapochek' | 'romspuredlps' | 'autoconsole' | 'manage' | 'comments' | 'backup'>('igdb');
+
+  // Brother Game Tab states
+  const [brotherGameRssText, setBrotherGameRssText] = useState('');
+  const [brotherGameImportedCount, setBrotherGameImportedCount] = useState<number | null>(null);
+  const [isFetchingBrotherGameLive, setIsFetchingBrotherGameLive] = useState(false);
+  const [brotherGameLiveResult, setBrotherGameLiveResult] = useState<Game[] | null>(null);
+  const [brotherGameLiveError, setBrotherGameLiveError] = useState<string | null>(null);
 
   // RomsPure & DLPSGame Tab states
   const [romspurePlatformFilter, setRomspurePlatformFilter] = useState<'ALL' | 'PS1' | 'PS2' | 'PS3' | 'PS4' | 'PSP' | 'Switch' | 'N64' | 'GBA'>('ALL');
@@ -545,6 +555,65 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
     setEditingGame(null);
   };
 
+  // Brother Game Actions
+  const handleImportBrotherGamePresets = () => {
+    const presets = getBrotherGamePresetCatalog();
+    let count = 0;
+    presets.forEach(presetGame => {
+      if (!games.some(g => g.id === presetGame.id || g.title.toLowerCase() === presetGame.title.toLowerCase())) {
+        addGame(presetGame);
+        count++;
+      }
+    });
+    setBrotherGameImportedCount(count);
+  };
+
+  const handleFetchBrotherGameLive = async () => {
+    setIsFetchingBrotherGameLive(true);
+    setBrotherGameLiveError(null);
+    try {
+      const fetched = await fetchBrotherGameLiveFeed();
+      if (fetched && fetched.length > 0) {
+        setBrotherGameLiveResult(fetched);
+      } else {
+        setBrotherGameLiveError('Nenhum jogo retornado no feed da Brother Game.');
+      }
+    } catch (e: any) {
+      setBrotherGameLiveError(e?.message || 'Falha ao buscar feed ao vivo da Brother Game.');
+    } finally {
+      setIsFetchingBrotherGameLive(false);
+    }
+  };
+
+  const handleImportFetchedBrotherGames = () => {
+    if (!brotherGameLiveResult || brotherGameLiveResult.length === 0) return;
+    let count = 0;
+    brotherGameLiveResult.forEach(game => {
+      if (!games.some(g => g.id === game.id || g.title.toLowerCase() === game.title.toLowerCase())) {
+        addGame(game);
+        count++;
+      }
+    });
+    setBrotherGameImportedCount(count);
+  };
+
+  const handleParseManualBrotherGameRss = () => {
+    if (!brotherGameRssText.trim()) return;
+    const parsed = parseBrotherGameRssXml(brotherGameRssText);
+    if (parsed.length === 0) {
+      alert('Nenhum item válido encontrado no XML da Brother Game.');
+      return;
+    }
+    let count = 0;
+    parsed.forEach(game => {
+      if (!games.some(g => g.id === game.id || g.title.toLowerCase() === game.title.toLowerCase())) {
+        addGame(game);
+        count++;
+      }
+    });
+    setBrotherGameImportedCount(count);
+  };
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-md flex justify-center items-start p-2 sm:p-4 md:p-6 animate-fadeIn">
       <div 
@@ -597,6 +666,18 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
           >
             <Flame className="w-4 h-4" />
             <span>FitGirl Repacks Hub</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('brothergame')}
+            className={`px-3.5 py-2 rounded-xl font-bold flex items-center gap-2 transition-all ${
+              activeTab === 'brothergame'
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                : 'bg-slate-800 text-slate-300 hover:text-white'
+            }`}
+          >
+            <Gamepad2 className="w-4 h-4 text-blue-400" />
+            <span>Brother Game Hub (Ports & PT-BR)</span>
           </button>
 
           <button
@@ -1277,6 +1358,183 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
                     }}
                     disabled={!fitgirlRssText.trim()}
                     className="px-4 py-2 rounded-xl font-bold text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 disabled:opacity-50 transition-all flex items-center gap-1.5"
+                  >
+                    <Rss className="w-3.5 h-3.5" />
+                    <span>Processar XML</span>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          )}
+
+          {/* TAB: BROTHER GAME HUB (https://www.brothergame.org/) */}
+          {activeTab === 'brothergame' && (
+            <div className="space-y-6">
+              
+              {/* Header Box */}
+              <div className="p-5 rounded-2xl bg-gradient-to-r from-blue-950/70 via-slate-900 to-indigo-950/60 border-2 border-blue-500/40 space-y-3 shadow-xl">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase bg-blue-500 text-white shadow-sm">
+                        PORTAL BRASILEIRO OFICIAL
+                      </span>
+                      <span className="text-xs text-blue-300 font-mono flex items-center gap-1">
+                        <Globe className="w-3.5 h-3.5" /> brothergame.org
+                      </span>
+                    </div>
+
+                    <h3 className="text-lg font-black text-white font-display">
+                      Brother Game Hub: Ports Nativos para PC & Traduções PT-BR
+                    </h3>
+                    <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
+                      Integração oficial com a comunidade <strong>Brother Game</strong> (<a href="https://www.brothergame.org" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">brothergame.org</a>). Especializada em ports nativos de jogos clássicos e consoles para Windows (sem emuladores, 60/120 FPS), jogos 100% dublados/legendados em PT-BR e lançamentos otimizados.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <a
+                      href="https://www.brothergame.org/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-600/30 hover:bg-blue-600/50 text-blue-200 border border-blue-500/40 flex items-center gap-1.5 transition-all"
+                    >
+                      <span>Visitar Site Oficial</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action 1: 1-Click Import Preset Games */}
+              <div className="p-5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-blue-400" />
+                      Importação Rápida de Clássicos & Ports da Brother Game (1-Clique)
+                    </h4>
+                    <p className="text-xs text-slate-400">
+                      Adiciona instantaneamente ao portal os grandes sucessos da Brother Game: Star Fox PC Port, Zelda Ocarina of Time 2026, Bayonetta 3 PT-BR, God of War HD PC, Super Mario Odyssey e Gran Turismo 4.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={handleImportBrotherGamePresets}
+                    className="px-4 py-2.5 rounded-xl font-black text-xs bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-lg shadow-blue-600/30 transition-all flex items-center gap-2 shrink-0 cursor-pointer"
+                  >
+                    <Download className="w-4 h-4 stroke-[2.5]" />
+                    <span>Importar Lançamentos Brother Game</span>
+                  </button>
+                </div>
+
+                {brotherGameImportedCount !== null && (
+                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2 animate-fadeIn">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>{brotherGameImportedCount} novos jogos da Brother Game foram adicionados com sucesso ao seu catálogo!</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Action 2: Live Feed Sync (https://www.brothergame.org/blog-feed.xml) */}
+              <div className="p-5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                      <Rss className="w-4 h-4 text-amber-400" />
+                      Leitor de Feed ao Vivo do Brother Game (RSS Automático)
+                    </h4>
+                    <p className="text-xs text-slate-400">
+                      Consulta em tempo real o arquivo oficial <code className="text-cyan-400">blog-feed.xml</code> da Brother Game para capturar os lançamentos mais recentes de hoje.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={handleFetchBrotherGameLive}
+                    disabled={isFetchingBrotherGameLive}
+                    className="px-4 py-2.5 rounded-xl font-black text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all flex items-center gap-2 shrink-0 cursor-pointer disabled:opacity-50"
+                  >
+                    {isFetchingBrotherGameLive ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin text-cyan-400" />
+                        <span>Consultando Feed...</span>
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-4 h-4 text-blue-400" />
+                        <span>Buscar no Feed Oficial</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {brotherGameLiveError && (
+                  <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                    <span>{brotherGameLiveError}</span>
+                  </div>
+                )}
+
+                {brotherGameLiveResult && brotherGameLiveResult.length > 0 && (
+                  <div className="space-y-3 pt-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-white">
+                        {brotherGameLiveResult.length} Lançamentos Encontrados no Feed da Brother Game:
+                      </span>
+                      <button
+                        onClick={handleImportFetchedBrotherGames}
+                        className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                        <span>Adicionar Todos ao Catálogo ({brotherGameLiveResult.length})</span>
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-72 overflow-y-auto pr-1">
+                      {brotherGameLiveResult.map(game => (
+                        <div key={game.id} className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-3">
+                          <img
+                            src={game.coverUrl}
+                            alt={game.title}
+                            className="w-12 h-14 object-cover rounded-lg shrink-0 bg-slate-950"
+                            onError={e => handleImageError(e, game)}
+                          />
+                          <div className="overflow-hidden flex-1 min-w-0">
+                            <h5 className="text-xs font-bold text-white truncate">{game.title}</h5>
+                            <p className="text-[10px] text-slate-400 truncate">{game.shortDescription}</p>
+                            <span className="text-[9px] text-blue-400 font-semibold">{game.releaseDate} • {game.repackInfo?.repacker}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Action 3: Manual RSS Feed Parser */}
+              <div className="p-5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-4">
+                <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-cyan-400" />
+                  Importador Manual de XML do Brother Game
+                </h4>
+                <p className="text-xs text-slate-400">
+                  Se preferir, copie o código XML diretamente de <a href="https://www.brothergame.org/blog-feed.xml" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">brothergame.org/blog-feed.xml</a> e cole abaixo para importar:
+                </p>
+
+                <textarea
+                  value={brotherGameRssText}
+                  onChange={e => setBrotherGameRssText(e.target.value)}
+                  placeholder="Cole aqui o XML completo do feed (contendo as tags <rss> e <item>)..."
+                  rows={4}
+                  className="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-200 font-mono placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                />
+
+                <div className="flex justify-end">
+                  <button
+                    onClick={handleParseManualBrotherGameRss}
+                    disabled={!brotherGameRssText.trim()}
+                    className="px-4 py-2 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-50 transition-all flex items-center gap-1.5 cursor-pointer"
                   >
                     <Rss className="w-3.5 h-3.5" />
                     <span>Processar XML</span>

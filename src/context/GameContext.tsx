@@ -52,14 +52,18 @@ interface GameContextType {
   openCreatorLab: () => void;
   userProfile: UserProfile;
   updateUserProfile: (profile: Partial<UserProfile>) => void;
-  // Member authentication system
   isLoggedIn: boolean;
   isAuthModalOpen: boolean;
   setIsAuthModalOpen: (open: boolean) => void;
+  authModalMode: 'login' | 'register';
+  setAuthModalMode: (mode: 'login' | 'register') => void;
+  authModalNotice: string;
+  setAuthModalNotice: (notice: string) => void;
+  openAuthModal: (mode?: 'login' | 'register', notice?: string) => void;
   login: (usernameOrEmail: string, password?: string) => boolean;
   register: (name: string, email: string, password?: string) => boolean;
   logout: () => void;
-  requireAuth: () => boolean;
+  requireAuth: (notice?: string) => boolean;
   // Multi-Device Cloud Sync
   cloudSyncCode: string;
   syncToCloud: () => Promise<{ success: boolean; syncCode: string; message: string }>;
@@ -457,6 +461,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isSupabaseGuideOpen, setIsSupabaseGuideOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
+  const [authModalNotice, setAuthModalNotice] = useState<string>('');
   const [isPkgLabOpen, setIsPkgLabOpen] = useState(false);
   const [isCreatorAuthOpen, setIsCreatorAuthOpen] = useState(false);
   const [isSundaySyncOpen, setIsSundaySyncOpen] = useState(false);
@@ -672,9 +678,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('vortex_is_logged_in');
   };
 
-  const requireAuth = () => {
+  const openAuthModal = (mode: 'login' | 'register' = 'register', notice: string = '') => {
+    setAuthModalMode(mode);
+    setAuthModalNotice(notice);
+    setIsAuthModalOpen(true);
+  };
+
+  const requireAuth = (notice: string = 'Crie sua conta gratuita ou faça login para acessar este recurso.') => {
     if (!isLoggedIn) {
-      setIsAuthModalOpen(true);
+      openAuthModal('register', notice);
       return false;
     }
     return true;
@@ -1075,6 +1087,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoggedIn,
         isAuthModalOpen,
         setIsAuthModalOpen,
+        authModalMode,
+        setAuthModalMode,
+        authModalNotice,
+        setAuthModalNotice,
+        openAuthModal,
         login,
         register,
         logout,
