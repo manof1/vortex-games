@@ -18,6 +18,15 @@ import { Pagination } from './components/Pagination';
 import { Footer } from './components/Footer';
 import { SearchX, Sparkles, Flame, Trophy, X, Star, Medal, Users, Eye, Download, Calendar } from 'lucide-react';
 import { TOP_OPTIONS } from './components/Header';
+import { 
+  parseCurrentRoute, 
+  findGameBySlug, 
+  updateBrowserUrlForGame, 
+  updateBrowserUrlForHome, 
+  resetDefaultSeoMetadata, 
+  updateGameSeoMetadata,
+  getGamePath
+} from './services/urlRoutingService';
 
 const MainContent: React.FC = () => {
   const { 
@@ -26,6 +35,8 @@ const MainContent: React.FC = () => {
     setFilters,
     activeGame, 
     setActiveGame, 
+    openGameWithTab,
+    activeGameInitialTab,
     isLibraryOpen, 
     setIsLibraryOpen,
     isUserMenuOpen, 
@@ -46,14 +57,66 @@ const MainContent: React.FC = () => {
   } = useGame();
   const { t } = useLanguage();
 
-  // Scroll to top whenever a game is opened
+  // Scroll to top and synchronize URL whenever a game is opened
   useEffect(() => {
     if (activeGame) {
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
+
+      const expectedPath = getGamePath(activeGame, activeGameInitialTab || 'downloads');
+      if (window.location.pathname !== expectedPath) {
+        updateBrowserUrlForGame(activeGame, activeGameInitialTab || 'downloads', false);
+      }
     }
-  }, [activeGame]);
+  }, [activeGame, activeGameInitialTab]);
+
+  // Deep linking ao carregar a página (ex: /game/star-fox ou /game/god-of-war/cheats ou /library)
+  useEffect(() => {
+    const route = parseCurrentRoute();
+    if (route.type === 'game' && route.gameSlug) {
+      const found = findGameBySlug(games, route.gameSlug);
+      if (found) {
+        openGameWithTab(found, route.tab || 'downloads');
+        updateBrowserUrlForGame(found, route.tab || 'downloads', true);
+      }
+    } else if (route.type === 'library') {
+      setIsLibraryOpen(true);
+    } else if (route.type === 'category' && route.category) {
+      setFilters(prev => ({ ...prev, category: route.category! }));
+    }
+  }, [games.length]);
+
+  // Navegação natural pelo histórico do navegador (Botão Voltar / Avançar do celular e desktop)
+  useEffect(() => {
+    const handlePopState = () => {
+      const route = parseCurrentRoute();
+      if (route.type === 'game' && route.gameSlug) {
+        const found = findGameBySlug(games, route.gameSlug);
+        if (found) {
+          openGameWithTab(found, route.tab || 'downloads');
+          updateGameSeoMetadata(found, route.tab || 'downloads');
+        }
+      } else if (route.type === 'library') {
+        setActiveGame(null);
+        setIsLibraryOpen(true);
+        resetDefaultSeoMetadata();
+      } else {
+        // Voltou para a home / catálogo
+        setActiveGame(null);
+        setIsLibraryOpen(false);
+        resetDefaultSeoMetadata();
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [games, openGameWithTab, setActiveGame, setIsLibraryOpen]);
+
+  const handleCloseGameDetail = () => {
+    setActiveGame(null);
+    updateBrowserUrlForHome();
+  };
 
   // Filter & sort games
   const filteredGames = useMemo(() => {
@@ -220,7 +283,7 @@ const MainContent: React.FC = () => {
       {/* Main Content Area */}
       <main className="flex-1 w-full">
         {activeGame ? (
-          <GameDetailModal game={activeGame} onClose={() => setActiveGame(null)} />
+          <GameDetailModal game={activeGame} onClose={handleCloseGameDetail} />
         ) : isLibraryOpen ? (
           <UserLibraryView onClose={() => setIsLibraryOpen(false)} />
         ) : isUserMenuOpen ? (

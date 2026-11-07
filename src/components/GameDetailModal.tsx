@@ -55,6 +55,13 @@ import { sanitizeMagnetLink } from '../utils/magnetUtils';
 import { getCriticScores, getMetacriticBadgeColor, getOpenCriticTierColor } from '../utils/ratingUtils';
 import { getGameCover, getGameBanner, handleImageError } from '../utils/imageUtils';
 import { isRiotPixelsLink } from '../utils/linkFilters';
+import { 
+  updateBrowserUrlForGame, 
+  getGamePath, 
+  getFullShareUrl, 
+  shareGame, 
+  GameModalTab 
+} from '../services/urlRoutingService';
 
 interface GameDetailModalProps {
   game: Game;
@@ -116,6 +123,29 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
   const [nexusApiKey, setNexusApiKey] = useState(() => getStoredNexusApiKey());
   const [isConfiguringNexusKey, setIsConfiguringNexusKey] = useState(false);
   const [nexusKeyStatus, setNexusKeyStatus] = useState<string | null>(null);
+
+  // Controle de link permanente e compartilhamento direto (/game/:slug/:tab)
+  const [copiedShareLink, setCopiedShareLink] = useState(false);
+  const [shareToast, setShareToast] = useState<string | null>(null);
+
+  // Sincroniza a URL no navegador e o título/SEO sempre que o usuário alternar abas
+  useEffect(() => {
+    if (game) {
+      updateBrowserUrlForGame(game, activeTab as GameModalTab, true);
+    }
+  }, [game, activeTab]);
+
+  const handleShareClick = async () => {
+    const res = await shareGame(game, activeTab as GameModalTab);
+    if (res.success) {
+      setCopiedShareLink(true);
+      setShareToast(res.sharedNatively ? 'Link compartilhado com sucesso!' : 'Link copiado para a área de transferência!');
+      setTimeout(() => {
+        setCopiedShareLink(false);
+        setShareToast(null);
+      }, 3500);
+    }
+  };
 
   // Localizações extraídas ou padrão PCGamingWiki
   const displayLocalizations = React.useMemo(() => {
@@ -276,24 +306,68 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5 animate-fadeIn">
-      {/* Traditional Site Header & Return Bar */}
-      <div className="flex items-center justify-between pb-3 border-b border-slate-800/80">
-        <button
-          onClick={onClose}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs sm:text-sm font-bold text-slate-200 hover:text-white transition-all shadow-sm group cursor-pointer"
-        >
-          <ArrowLeft className="w-4 h-4 text-cyan-400 group-hover:-translate-x-1 transition-transform" />
-          <span>Voltar ao Catálogo de Jogos</span>
-        </button>
+      {/* Traditional Site Header & Return Bar com Botão Compartilhar e URL Direta */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onClose}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs sm:text-sm font-bold text-slate-200 hover:text-white transition-all shadow-sm group cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4 text-cyan-400 group-hover:-translate-x-1 transition-transform" />
+            <span>Voltar ao Catálogo de Jogos</span>
+          </button>
 
-        <div className="hidden sm:flex items-center gap-2 text-xs text-slate-400">
-          <button onClick={onClose} className="hover:text-cyan-400 transition-colors">Início</button>
-          <span>/</span>
-          <span>Catálogo</span>
-          <span>/</span>
-          <span className="text-cyan-400 font-semibold truncate max-w-xs">{game.title}</span>
+          {/* Badge Visual da URL Permanente /game/:slug */}
+          <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-950/80 border border-slate-800/80 text-[11px] font-mono text-slate-400">
+            <span className="text-slate-500">URL:</span>
+            <span className="text-cyan-400 font-bold">{getGamePath(game, activeTab as GameModalTab)}</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2.5">
+          {/* Botão Oficial: Compartilhar Link */}
+          <button
+            type="button"
+            onClick={handleShareClick}
+            className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 hover:text-white border border-cyan-500/40 hover:border-cyan-400 text-xs font-bold transition-all shadow-sm cursor-pointer shadow-cyan-500/10"
+            title="Copiar link direto para esta página do jogo ou abrir menu de compartilhamento"
+          >
+            {copiedShareLink ? (
+              <>
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <span className="text-emerald-400 font-black">Link Copiado!</span>
+              </>
+            ) : (
+              <>
+                <Share2 className="w-4 h-4 text-cyan-400" />
+                <span>Compartilhar Link</span>
+              </>
+            )}
+          </button>
+
+          <div className="hidden sm:flex items-center gap-2 text-xs text-slate-400">
+            <button onClick={onClose} className="hover:text-cyan-400 transition-colors">Início</button>
+            <span>/</span>
+            <span>Catálogo</span>
+            <span>/</span>
+            <span className="text-cyan-400 font-semibold truncate max-w-xs">{game.title}</span>
+          </div>
         </div>
       </div>
+
+      {/* Floating Toast Feedback for Link Copied */}
+      {shareToast && (
+        <div className="fixed top-6 right-6 z-50 p-4 rounded-2xl bg-slate-900 border border-cyan-500/50 shadow-2xl shadow-cyan-950/50 text-white text-xs font-medium flex items-center gap-3 animate-fadeIn">
+          <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 shrink-0">
+            <CheckCircle2 className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="font-bold text-white text-sm">Link Direto Pronto!</div>
+            <div className="text-slate-300 text-xs">{shareToast}</div>
+            <div className="text-[10px] text-cyan-400 font-mono mt-0.5">{getFullShareUrl(game, activeTab as GameModalTab)}</div>
+          </div>
+        </div>
+      )}
 
       <div 
         className="relative w-full rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden"
