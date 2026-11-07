@@ -1201,10 +1201,10 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                               type="button"
                               onClick={() => handleDownloadClick(link.url)}
                               className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-xs bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 shadow-md shadow-emerald-500/30 transition-all transform hover:scale-[1.02] cursor-pointer"
-                              title="Acessar página de download direto oficial com mirrors"
+                              title={`Baixar diretamente através de ${link.hostName || 'Download Direto'}`}
                             >
                               <Download className="w-4 h-4 stroke-[2.5]" />
-                              <span>Baixar Jogo Direto ({link.hostName || 'Oficial'})</span>
+                              <span>{link.hostName?.includes('Git') ? `Acessar Releases (${link.hostName})` : `Baixar via ${link.hostName || 'Download Direto'}`}</span>
                             </button>
 
                             <button

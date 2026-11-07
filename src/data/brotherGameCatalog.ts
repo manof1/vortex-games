@@ -26,11 +26,31 @@ export const BROTHERGAME_PRESET_GAMES: Game[] = [
     },
     downloadLinks: [
       {
+        id: 'dl-bg-sf-buzzheavier',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Buzzheavier (Download Rápido)',
+        url: 'https://buzzheavier.com/8c7ok0u92m09',
+        size: '1.2 GB',
+        hostName: 'Buzzheavier'
+      },
+      {
+        id: 'dl-bg-sf-github',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Repositório Oficial do Port / Releases',
+        url: 'https://github.com/zortos293/Lichii/releases',
+        size: '1.2 GB',
+        hostName: 'GitHub'
+      },
+      {
         id: 'dl-bg-sf-direct',
         type: 'direct',
         format: 'direct',
         platform: 'PC',
-        label: 'Página Oficial Brother Game (Download Direto / Mirrors)',
+        label: 'Página Oficial Brother Game (Informações & Suporte)',
         url: 'https://www.brothergame.org/post/star-fox',
         size: '1.2 GB',
         hostName: 'BrotherGame.org'
@@ -99,11 +119,61 @@ export const BROTHERGAME_PRESET_GAMES: Game[] = [
     },
     downloadLinks: [
       {
+        id: 'dl-bg-oot-gdrive',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Google Drive (Download Nuvem Oficial)',
+        url: 'https://drive.google.com/drive/folders/1YzbjA1Ctyserc-WDOElHz_-JVod_Cefm',
+        size: '2.4 GB',
+        hostName: 'Google Drive'
+      },
+      {
+        id: 'dl-bg-oot-buzzheavier',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Buzzheavier (Download Rápido)',
+        url: 'https://buzzheavier.com/ey2hrkyr0gmk',
+        size: '2.4 GB',
+        hostName: 'Buzzheavier'
+      },
+      {
+        id: 'dl-bg-oot-viking',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'VikingFile (Download Direto)',
+        url: 'https://vik1ngfile.site/f/UYZiGDKsGY#The%20Legend%20of%20Zelda%20Ocarina%20of%20Time%20[0400486024dec000][v131072].nup',
+        size: '2.4 GB',
+        hostName: 'VikingFile'
+      },
+      {
+        id: 'dl-bg-oot-fileditch',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Fileditch (Download Direto .rar / .zip)',
+        url: 'https://itsfileditchfiles.st/alpha41/a4859a57514c19b3907d/The%20Legend%20of%20Zelda%20Ocarina%20of%20TIme%20%5B04004860224DEC000%5D.nup',
+        size: '2.4 GB',
+        hostName: 'Fileditch'
+      },
+      {
+        id: 'dl-bg-oot-github',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Repositório Oficial do Port / Releases',
+        url: 'https://github.com/Frizti/Lichii/releases/tag/frizti-v2',
+        size: '2.4 GB',
+        hostName: 'GitHub'
+      },
+      {
         id: 'dl-bg-oot-direct',
         type: 'direct',
         format: 'direct',
         platform: 'PC',
-        label: 'Página Oficial Brother Game (Download Direto / Mirrors)',
+        label: 'Página Oficial Brother Game (Informações & Suporte)',
         url: 'https://www.brothergame.org/post/legend-of-zelda-ocarina-of-time-2026',
         size: '2.4 GB',
         hostName: 'BrotherGame.org'
@@ -172,11 +242,21 @@ export const BROTHERGAME_PRESET_GAMES: Game[] = [
     },
     downloadLinks: [
       {
+        id: 'dl-bg-b3-fileditch',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Fileditch (Download Direto .rar / .zip)',
+        url: 'https://itsfileditchfiles.st/alpha41/0bb4dbbddbdfedda8814/Bayonetta%203%20%28NS%29%20%28WinPort%29.rar',
+        size: '15.2 GB',
+        hostName: 'Fileditch'
+      },
+      {
         id: 'dl-bg-b3-direct',
         type: 'direct',
         format: 'direct',
         platform: 'PC',
-        label: 'Página Oficial Brother Game (Download Direto / Mirrors)',
+        label: 'Página Oficial Brother Game (Informações & Suporte)',
         url: 'https://www.brothergame.org/post/bayonetta-3-port-pc-nativo-windows-pt-br',
         size: '15.2 GB',
         hostName: 'BrotherGame.org'
@@ -244,11 +324,41 @@ export const BROTHERGAME_PRESET_GAMES: Game[] = [
     },
     downloadLinks: [
       {
+        id: 'dl-bg-gow-blaze',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'BlazeUpload (Download Rápido)',
+        url: 'https://blazeupload.com/yZHqw9zYBJLvGlL',
+        size: '8.5 GB',
+        hostName: 'BlazeUpload'
+      },
+      {
+        id: 'dl-bg-gow-fileditch',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Fileditch (Download Direto .rar / .zip)',
+        url: 'https://itsfileditchfiles.st/beta50/f5660befafdd53c50b85/Glandsfouts1br.rar',
+        size: '8.5 GB',
+        hostName: 'Fileditch'
+      },
+      {
+        id: 'dl-bg-gow-github',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Repositório Oficial do Port / Releases',
+        url: 'https://github.com/Vnnc1/gow-native-pc/releases',
+        size: '8.5 GB',
+        hostName: 'GitHub'
+      },
+      {
         id: 'dl-bg-gow-direct',
         type: 'direct',
         format: 'direct',
         platform: 'PC',
-        label: 'Página Oficial Brother Game (Download Direto / Mirrors)',
+        label: 'Página Oficial Brother Game (Informações & Suporte)',
         url: 'https://www.brothergame.org/post/god-of-war-hd-pt-br-port-pc-nativo-no-windows',
         size: '8.5 GB',
         hostName: 'BrotherGame.org'
@@ -316,11 +426,31 @@ export const BROTHERGAME_PRESET_GAMES: Game[] = [
     },
     downloadLinks: [
       {
+        id: 'dl-bg-smo-gofile',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Gofile (Alta Velocidade Sem Limites)',
+        url: 'https://gofile.io/d/kypht9Ou',
+        size: '5.8 GB',
+        hostName: 'Gofile'
+      },
+      {
+        id: 'dl-bg-smo-gitlab',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Repositório Oficial do Port / Releases',
+        url: 'https://gitlab.com/zzzarathustra-dev/power-moon-recomp/-/releases',
+        size: '5.8 GB',
+        hostName: 'GitLab'
+      },
+      {
         id: 'dl-bg-smo-direct',
         type: 'direct',
         format: 'direct',
         platform: 'PC',
-        label: 'Página Oficial Brother Game (Download Direto / Mirrors)',
+        label: 'Página Oficial Brother Game (Informações & Suporte)',
         url: 'https://www.brothergame.org/post/super-mario-odyssey-port-nativo-windows',
         size: '5.8 GB',
         hostName: 'BrotherGame.org'
@@ -388,11 +518,41 @@ export const BROTHERGAME_PRESET_GAMES: Game[] = [
     },
     downloadLinks: [
       {
+        id: 'dl-bg-gt4-fileditch',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Fileditch (Download Direto .rar / .zip)',
+        url: 'https://itsfileditchfiles.st/beta49/fada6c3ed445bd88ef11/GRAN%20TURISMO%204.rar',
+        size: '3.6 GB',
+        hostName: 'Fileditch'
+      },
+      {
+        id: 'dl-bg-gt4-buzzheavier',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Buzzheavier (Download Rápido)',
+        url: 'https://ts.buzzheavier.com/d/esner589f3rp',
+        size: '3.6 GB',
+        hostName: 'Buzzheavier'
+      },
+      {
+        id: 'dl-bg-gt4-github',
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label: 'Repositório Oficial do Port / Releases',
+        url: 'https://github.com/moesuito/gt4-staticrecomp/releases/tag/v1.2.5',
+        size: '3.6 GB',
+        hostName: 'GitHub'
+      },
+      {
         id: 'dl-bg-gt4-direct',
         type: 'direct',
         format: 'direct',
         platform: 'PC',
-        label: 'Página Oficial Brother Game (Download Direto / Mirrors)',
+        label: 'Página Oficial Brother Game (Informações & Suporte)',
         url: 'https://www.brothergame.org/post/gran-turismo-4-port-nativo-pc-windows',
         size: '3.6 GB',
         hostName: 'BrotherGame.org'

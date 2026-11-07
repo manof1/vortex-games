@@ -55,18 +55,27 @@ export function parseBrotherGameRssXml(xmlText: string): Game[] {
       const coverUrl = enclosureUrl || getGameCover({ title: cleanTitle });
       const bannerUrl = getGameBanner({ title: cleanTitle, coverUrl });
 
-      const downloadLinks: DownloadLink[] = [
-        {
-          id: `dl-bg-rss-${index}-direct`,
-          type: 'direct',
-          format: 'direct',
-          platform: 'PC',
-          label: 'Página Oficial Brother Game (Download Direto / Mirrors)',
-          url: link,
-          size: repackSize,
-          hostName: 'BrotherGame.org'
-        }
-      ];
+      // Check if this game matches any preset with rich extracted mirrors
+      const presetMatch = BROTHERGAME_PRESET_GAMES.find(p => 
+        p.title.toLowerCase().includes(cleanTitle.toLowerCase()) || 
+        cleanTitle.toLowerCase().includes(p.title.toLowerCase()) ||
+        p.slug.includes(slug)
+      );
+
+      const downloadLinks: DownloadLink[] = presetMatch?.downloadLinks?.length 
+        ? presetMatch.downloadLinks 
+        : [
+            {
+              id: `dl-bg-rss-${index}-direct`,
+              type: 'direct',
+              format: 'direct',
+              platform: 'PC',
+              label: 'Página Oficial Brother Game (Download Direto / Mirrors)',
+              url: link,
+              size: repackSize,
+              hostName: 'BrotherGame.org'
+            }
+          ];
 
       const numSize = parseFloat(repackSize.replace(/[^0-9.]/g, '')) || 5;
 

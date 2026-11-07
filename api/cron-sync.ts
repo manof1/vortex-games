@@ -448,13 +448,101 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const coverUrl = enclosureUrl || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80';
           const repackSize = isPortNativo ? '3.5 GB' : '18.0 GB';
 
+          let extractedLinks: any[] = [];
+          try {
+            const postRes = await fetch(link, {
+              headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) VortexGamesBot/1.0' }
+            });
+            if (postRes.ok) {
+              const postHtml = await postRes.text();
+              const re = /href=["'](https?:\/\/[^"']+)["']/gi;
+              let match;
+              const seenUrls = new Set();
+              let linkIdx = 0;
+              while ((match = re.exec(postHtml)) !== null) {
+                const u = match[1].trim();
+                const lower = u.toLowerCase();
+                if (
+                  lower.includes('wix') ||
+                  lower.includes('brothergame.org') ||
+                  lower.includes('discord.gg') ||
+                  lower.includes('google.com/detail') ||
+                  lower.includes('.css') ||
+                  lower.includes('.js') ||
+                  lower.includes('wikipedia.org') ||
+                  lower.includes('fandom.com') ||
+                  lower.includes('steampowered.com') ||
+                  lower.includes('nintendo.com') ||
+                  lower.includes('gran-turismo.com') ||
+                  lower.includes('google.com/search') ||
+                  lower.includes('pt.br')
+                ) continue;
+                if (seenUrls.has(u)) continue;
+                seenUrls.add(u);
+
+                let hostName = 'Download Direto';
+                let label = 'Download Direto';
+                if (lower.includes('mediafire.com')) {
+                  hostName = 'MediaFire';
+                  label = lower.includes('traducao') || lower.includes('dublagem') || lower.includes('mod')
+                    ? 'MediaFire (Tradução / Dublagem / Mods)'
+                    : 'MediaFire (Download Direto)';
+                } else if (lower.includes('drive.google.com')) {
+                  hostName = 'Google Drive';
+                  label = 'Google Drive (Download Nuvem Oficial)';
+                } else if (lower.includes('gofile.io')) {
+                  hostName = 'Gofile';
+                  label = 'Gofile (Alta Velocidade Sem Limites)';
+                } else if (lower.includes('buzzheavier.com')) {
+                  hostName = 'Buzzheavier';
+                  label = 'Buzzheavier (Download Rápido)';
+                } else if (lower.includes('fileditchfiles.st') || lower.includes('fileditch.com')) {
+                  hostName = 'Fileditch';
+                  label = 'Fileditch (Download Direto .rar / .zip)';
+                } else if (lower.includes('pixeldrain.com')) {
+                  hostName = 'PixelDrain';
+                  label = 'PixelDrain (Mirror Direto)';
+                } else if (lower.includes('vikingfile') || lower.includes('vik1ngfile')) {
+                  hostName = 'VikingFile';
+                  label = 'VikingFile (Download Rápido)';
+                } else if (lower.includes('blazeupload.com')) {
+                  hostName = 'BlazeUpload';
+                  label = 'BlazeUpload (Mirror Direto)';
+                } else if (lower.includes('github.com') || lower.includes('gitlab.com') || lower.includes('eden-emu.dev')) {
+                  hostName = 'GitHub / GitLab';
+                  label = 'Repositório Oficial do Port / Releases';
+                } else if (lower.includes('clica.so')) {
+                  hostName = 'Servidor Brother Game';
+                  label = 'Mirror Alternativo Brother Game';
+                } else {
+                  continue;
+                }
+
+                linkIdx++;
+                extractedLinks.push({
+                  id: `dl-bg-${slug}-ext-${linkIdx}`,
+                  type: 'direct',
+                  format: 'direct',
+                  platform: 'PC',
+                  label,
+                  url: u,
+                  size: repackSize,
+                  hostName
+                });
+              }
+            }
+          } catch {
+            // Se falhar a leitura do post individual, segue com o link do post
+          }
+
           const bgLinks = [
+            ...extractedLinks,
             {
               id: `dl-bg-direct-${slug}`,
               type: 'direct',
               format: 'direct',
               platform: 'PC',
-              label: 'Página Oficial Brother Game (Download Direto / Mirrors)',
+              label: 'Página Oficial Brother Game (Informações & Suporte)',
               url: link,
               size: repackSize,
               hostName: 'BrotherGame.org'

@@ -49,6 +49,111 @@ function cleanTitle(rawTitle) {
     .trim() || rawTitle.trim();
 }
 
+async function extractDownloadLinksFromPost(postUrl, defaultSize, slug) {
+  try {
+    const res = await fetch(postUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+      }
+    });
+    if (!res.ok) return [];
+    const html = await res.text();
+    
+    const re = /href=["'](https?:\/\/[^"']+)["']/gi;
+    let match;
+    const urls = [];
+    while ((match = re.exec(html)) !== null) {
+      urls.push(match[1]);
+    }
+
+    const validLinks = [];
+    const seenUrls = new Set();
+    let idx = 0;
+
+    for (const rawUrl of urls) {
+      const u = rawUrl.trim();
+      const lower = u.toLowerCase();
+
+      // Ignorar links internos ou sociais
+      if (
+        lower.includes('wix') ||
+        lower.includes('brothergame.org') ||
+        lower.includes('discord.gg') ||
+        lower.includes('google.com/detail') ||
+        lower.includes('.css') ||
+        lower.includes('.js') ||
+        lower.includes('wikipedia.org') ||
+        lower.includes('fandom.com') ||
+        lower.includes('steampowered.com') ||
+        lower.includes('nintendo.com') ||
+        lower.includes('gran-turismo.com') ||
+        lower.includes('google.com/search') ||
+        lower.includes('pt.br')
+      ) {
+        continue;
+      }
+
+      if (seenUrls.has(u)) continue;
+      seenUrls.add(u);
+
+      let hostName = 'Download Direto';
+      let label = 'Download Direto';
+
+      if (lower.includes('mediafire.com')) {
+        hostName = 'MediaFire';
+        const isModOrDub = lower.includes('traducao') || lower.includes('dublagem') || lower.includes('mod');
+        label = isModOrDub ? 'MediaFire (Tradução / Dublagem / Mods)' : 'MediaFire (Download Direto)';
+      } else if (lower.includes('drive.google.com')) {
+        hostName = 'Google Drive';
+        label = 'Google Drive (Download Nuvem Oficial)';
+      } else if (lower.includes('gofile.io')) {
+        hostName = 'Gofile';
+        label = 'Gofile (Alta Velocidade Sem Limites)';
+      } else if (lower.includes('buzzheavier.com')) {
+        hostName = 'Buzzheavier';
+        label = 'Buzzheavier (Download Rápido)';
+      } else if (lower.includes('fileditchfiles.st') || lower.includes('fileditch.com')) {
+        hostName = 'Fileditch';
+        label = 'Fileditch (Download Direto .rar / .zip)';
+      } else if (lower.includes('pixeldrain.com')) {
+        hostName = 'PixelDrain';
+        label = 'PixelDrain (Mirror Direto)';
+      } else if (lower.includes('vikingfile') || lower.includes('vik1ngfile')) {
+        hostName = 'VikingFile';
+        label = 'VikingFile (Download Rápido)';
+      } else if (lower.includes('blazeupload.com')) {
+        hostName = 'BlazeUpload';
+        label = 'BlazeUpload (Mirror Direto)';
+      } else if (lower.includes('github.com') || lower.includes('gitlab.com') || lower.includes('eden-emu.dev')) {
+        hostName = 'GitHub / GitLab';
+        label = 'Repositório Oficial do Port / Releases';
+      } else if (lower.includes('clica.so')) {
+        hostName = 'Servidor Brother Game';
+        label = 'Mirror Alternativo Brother Game';
+      } else {
+        continue;
+      }
+
+      idx++;
+      validLinks.push({
+        id: `dl-${slug}-extracted-${idx}`,
+        type: 'direct',
+        format: 'direct',
+        platform: 'PC',
+        label,
+        url: u,
+        size: defaultSize,
+        hostName
+      });
+    }
+
+    return validLinks;
+  } catch (err) {
+    console.error(`Falha ao ler links do post ${postUrl}:`, err.message);
+    return [];
+  }
+}
+
 export async function syncBrotherGame() {
   console.log('🔄 [CRON BROTHER GAME] Consultando https://www.brothergame.org/blog-feed.xml ...');
   
@@ -90,14 +195,18 @@ export async function syncBrotherGame() {
       const isPortNativo = rawTitle.toLowerCase().includes('port') || description.toLowerCase().includes('port nativo');
       const repackSize = isPortNativo ? '3.5 GB' : '15.0 GB';
 
-      // Preparar links de download
+      // Extrair os links reais de dentro do post HTML da Brother Game
+      console.log(`🔍 [SCRAPER] Lendo links reais do post: ${link} ...`);
+      const extractedLinks = await extractDownloadLinksFromPost(link, repackSize, slug);
+
       const downloadLinks = [
+        ...extractedLinks,
         {
-          id: `dl-${slug}-direct`,
+          id: `dl-${slug}-post-ref`,
           type: 'direct',
           format: 'direct',
           platform: 'PC',
-          label: 'Página Oficial Brother Game (Download Direto / Mirrors)',
+          label: 'Página Oficial Brother Game (Informações & Suporte)',
           url: link,
           size: repackSize,
           hostName: 'BrotherGame.org'
