@@ -1,6 +1,5 @@
 import { Game, DownloadLink } from '../types';
 import { BROTHERGAME_PRESET_GAMES } from '../data/brotherGameCatalog';
-import { sanitizeMagnetLink } from '../utils/magnetUtils';
 import { getImdbRating } from '../utils/ratingUtils';
 import { getGameCover, getGameBanner } from '../utils/imageUtils';
 import { filterOutRiotPixels } from '../utils/linkFilters';
@@ -56,27 +55,13 @@ export function parseBrotherGameRssXml(xmlText: string): Game[] {
       const coverUrl = enclosureUrl || getGameCover({ title: cleanTitle });
       const bannerUrl = getGameBanner({ title: cleanTitle, coverUrl });
 
-      const magnetUrl = sanitizeMagnetLink('', `${cleanTitle} [Brother Game]`);
-
       const downloadLinks: DownloadLink[] = [
-        {
-          id: `dl-bg-rss-${index}-magnet`,
-          type: 'magnet',
-          format: 'torrent',
-          platform: 'PC',
-          label: `Torrent Magnet Brother Game (Seeds Verificados)`,
-          url: magnetUrl,
-          seeders: 3200,
-          leechers: 150,
-          size: repackSize,
-          hostName: 'Brother Game Swarm'
-        },
         {
           id: `dl-bg-rss-${index}-direct`,
           type: 'direct',
           format: 'direct',
           platform: 'PC',
-          label: 'Post & Mirror Oficial Brother Game',
+          label: 'Página Oficial Brother Game (Download Direto / Mirrors)',
           url: link,
           size: repackSize,
           hostName: 'BrotherGame.org'
@@ -143,7 +128,7 @@ export function parseBrotherGameRssXml(xmlText: string): Game[] {
         createdAt: new Date().toISOString(),
         isFeatured: false,
         isTrending: true,
-        hasPcTorrent: true,
+        hasPcTorrent: false,
         hasPtBrAudio: isDublado,
         hasPtBrSubs: isDublado,
         sourceOrigin: 'Scene',

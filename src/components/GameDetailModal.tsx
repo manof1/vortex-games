@@ -1155,6 +1155,80 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                       </div>
                     ))}
 
+                    {/* BUTTON 1B: DOWNLOAD DIRETO / PORT PC NATIVO (BROTHER GAME & STANDALONE) */}
+                    {(selectedPlatformTab === 'ALL' || selectedPlatformTab === 'PC') &&
+                      cleanDownloadLinks
+                        .filter(l => (l.type === 'direct' || l.format === 'direct') && (l.platform === 'PC' || !l.platform))
+                        .map(link => (
+                        <div 
+                          key={link.id}
+                          className="p-5 rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950/40 border-2 border-emerald-500/50 space-y-3 flex flex-col justify-between shadow-xl"
+                        >
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500 text-slate-950 flex items-center gap-1">
+                                <Download className="w-3 h-3" /> PORT PC NATIVO (DOWNLOAD DIRETO)
+                              </span>
+                              <span className="text-xs text-emerald-400 font-bold flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                                <span>{link.hostName || 'BrotherGame.org'}</span>
+                              </span>
+                            </div>
+
+                            <div className="flex items-center justify-between gap-2 flex-wrap">
+                              <h5 className="text-sm font-bold text-white font-display">
+                                {link.label}
+                              </h5>
+                              {link.language && (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1">
+                                  <span>🗣️</span>
+                                  <span>{link.language}</span>
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-2 text-xs text-slate-400">
+                              <span>Tamanho: <strong className="text-white font-mono">{link.size}</strong></span>
+                              <span>•</span>
+                              <span>Formato: <strong className="text-emerald-300">Download Direto (.exe / Zip)</strong></span>
+                              <span>•</span>
+                              <span className="text-emerald-400 font-medium">Link Oficial Verificado</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 pt-2">
+                            <button
+                              type="button"
+                              onClick={() => handleDownloadClick(link.url)}
+                              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-xs bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 shadow-md shadow-emerald-500/30 transition-all transform hover:scale-[1.02] cursor-pointer"
+                              title="Acessar página de download direto oficial com mirrors"
+                            >
+                              <Download className="w-4 h-4 stroke-[2.5]" />
+                              <span>Baixar Jogo Direto ({link.hostName || 'Oficial'})</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleCopyMagnet(link.url)}
+                              className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all shrink-0 cursor-pointer flex items-center gap-1.5"
+                              title="Copiar Link de Download Direto"
+                            >
+                              {copiedMagnet ? (
+                                <>
+                                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                                  <span className="text-[11px] font-bold text-emerald-400 hidden sm:inline">Copiado!</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="w-4 h-4" />
+                                  <span className="text-[11px] font-bold hidden sm:inline">Copiar Link</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+
                     {/* BUTTON 2: ARQUIVO PKG (PLAYSTATION / DLPSGAME / THEZUKOSTORE) */}
                     {(selectedPlatformTab === 'ALL' || selectedPlatformTab === 'PLAYSTATION') &&
                       cleanDownloadLinks.filter(l => l.type === 'pkg' || l.format === 'pkg').map(link => (
@@ -1389,7 +1463,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
 
 
               {/* Other Links & Mirrors (Servidores Alternativos com Links Diretos nos Botões) */}
-              {cleanDownloadLinks.filter(l => l.type === 'direct' || l.type === 'mirror').length > 0 && (
+              {cleanDownloadLinks.filter(l => (l.type === 'direct' || l.type === 'mirror') && !((l.type === 'direct' || l.format === 'direct') && (l.platform === 'PC' || !l.platform))).length > 0 && (
                 <div className="space-y-3 pt-2">
                   <div className="flex items-center justify-between">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
@@ -1400,7 +1474,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                    {cleanDownloadLinks.filter(l => l.type === 'direct' || l.type === 'mirror').map((link) => (
+                    {cleanDownloadLinks.filter(l => (l.type === 'direct' || l.type === 'mirror') && !((l.type === 'direct' || l.format === 'direct') && (l.platform === 'PC' || !l.platform))).map((link) => (
                       <div 
                         key={link.id}
                         className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center justify-between gap-3 hover:border-slate-700 transition-all"

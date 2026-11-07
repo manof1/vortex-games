@@ -26,23 +26,11 @@ export const BROTHERGAME_PRESET_GAMES: Game[] = [
     },
     downloadLinks: [
       {
-        id: 'dl-bg-sf-magnet',
-        type: 'magnet',
-        format: 'torrent',
-        platform: 'PC',
-        label: 'Torrent Magnet Brother Game (Seeds Verificados)',
-        url: 'magnet:?xt=urn:btih:6aec98556d4c814341b2f1306aec98556d4c8143&dn=Star.Fox.Port.Nativo.PC-BrotherGame&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce',
-        seeders: 3200,
-        leechers: 140,
-        size: '1.2 GB',
-        hostName: 'Brother Game Swarm'
-      },
-      {
         id: 'dl-bg-sf-direct',
         type: 'direct',
         format: 'direct',
         platform: 'PC',
-        label: 'Mirror Direto: Post Oficial Brother Game',
+        label: 'Página Oficial Brother Game (Download Direto / Mirrors)',
         url: 'https://www.brothergame.org/post/star-fox',
         size: '1.2 GB',
         hostName: 'BrotherGame.org'
@@ -80,7 +68,7 @@ export const BROTHERGAME_PRESET_GAMES: Game[] = [
     viewsCount: 38000,
     isFeatured: true,
     isTrending: true,
-    hasPcTorrent: true,
+    hasPcTorrent: false,
     hasPtBrAudio: false,
     hasPtBrSubs: true,
     sourceOrigin: 'Scene',
@@ -111,23 +99,11 @@ export const BROTHERGAME_PRESET_GAMES: Game[] = [
     },
     downloadLinks: [
       {
-        id: 'dl-bg-oot-magnet',
-        type: 'magnet',
-        format: 'torrent',
-        platform: 'PC',
-        label: 'Torrent Magnet Brother Game (4.100 Seeds Verificados)',
-        url: 'magnet:?xt=urn:btih:70e8beec5803498fb30d81c6302c784060e8beec&dn=Zelda.Ocarina.of.Time.2026.PC-BrotherGame&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce',
-        seeders: 4100,
-        leechers: 220,
-        size: '2.4 GB',
-        hostName: 'Brother Game Swarm'
-      },
-      {
         id: 'dl-bg-oot-direct',
         type: 'direct',
         format: 'direct',
         platform: 'PC',
-        label: 'Mirror Direto: Post Oficial Brother Game',
+        label: 'Página Oficial Brother Game (Download Direto / Mirrors)',
         url: 'https://www.brothergame.org/post/legend-of-zelda-ocarina-of-time-2026',
         size: '2.4 GB',
         hostName: 'BrotherGame.org'
@@ -165,7 +141,7 @@ export const BROTHERGAME_PRESET_GAMES: Game[] = [
     viewsCount: 74000,
     isFeatured: true,
     isTrending: true,
-    hasPcTorrent: true,
+    hasPcTorrent: false,
     hasPtBrAudio: true,
     hasPtBrSubs: true,
     sourceOrigin: 'Scene',
@@ -196,23 +172,11 @@ export const BROTHERGAME_PRESET_GAMES: Game[] = [
     },
     downloadLinks: [
       {
-        id: 'dl-bg-b3-magnet',
-        type: 'magnet',
-        format: 'torrent',
-        platform: 'PC',
-        label: 'Torrent Magnet Brother Game (3.800 Seeds)',
-        url: 'magnet:?xt=urn:btih:f98ee5ef48374f81b7b06dfbaf1a26fef98ee5ef&dn=Bayonetta.3.Port.PC.PT-BR-BrotherGame&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce',
-        seeders: 3800,
-        leechers: 310,
-        size: '15.2 GB',
-        hostName: 'Brother Game Swarm'
-      },
-      {
         id: 'dl-bg-b3-direct',
         type: 'direct',
         format: 'direct',
         platform: 'PC',
-        label: 'Mirror Direto: Post Oficial Brother Game',
+        label: 'Página Oficial Brother Game (Download Direto / Mirrors)',
         url: 'https://www.brothergame.org/post/bayonetta-3-port-pc-nativo-windows-pt-br',
         size: '15.2 GB',
         hostName: 'BrotherGame.org'
@@ -249,7 +213,7 @@ export const BROTHERGAME_PRESET_GAMES: Game[] = [
     viewsCount: 47000,
     isFeatured: true,
     isTrending: true,
-    hasPcTorrent: true,
+    hasPcTorrent: false,
     hasPtBrAudio: false,
     hasPtBrSubs: true,
     sourceOrigin: 'Scene',
@@ -280,23 +244,11 @@ export const BROTHERGAME_PRESET_GAMES: Game[] = [
     },
     downloadLinks: [
       {
-        id: 'dl-bg-gow-magnet',
-        type: 'magnet',
-        format: 'torrent',
-        platform: 'PC',
-        label: 'Torrent Magnet Brother Game (5.200 Seeds)',
-        url: 'magnet:?xt=urn:btih:6a425f1e57e94f0c89c9c9616f62f1856a425f1e&dn=God.of.War.HD.PC.Native.PT-BR-BrotherGame&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce',
-        seeders: 5200,
-        leechers: 390,
-        size: '8.5 GB',
-        hostName: 'Brother Game Swarm'
-      },
-      {
         id: 'dl-bg-gow-direct',
         type: 'direct',
         format: 'direct',
         platform: 'PC',
-        label: 'Mirror Direto: Post Oficial Brother Game',
+        label: 'Página Oficial Brother Game (Download Direto / Mirrors)',
         url: 'https://www.brothergame.org/post/god-of-war-hd-pt-br-port-pc-nativo-no-windows',
         size: '8.5 GB',
         hostName: 'BrotherGame.org'
@@ -333,7 +285,7 @@ export const BROTHERGAME_PRESET_GAMES: Game[] = [
     viewsCount: 82000,
     isFeatured: true,
     isTrending: true,
-    hasPcTorrent: true,
+    hasPcTorrent: false,
     hasPtBrAudio: true,
     hasPtBrSubs: true,
     sourceOrigin: 'Scene',
@@ -364,23 +316,11 @@ export const BROTHERGAME_PRESET_GAMES: Game[] = [
     },
     downloadLinks: [
       {
-        id: 'dl-bg-smo-magnet',
-        type: 'magnet',
-        format: 'torrent',
-        platform: 'PC',
-        label: 'Torrent Magnet Brother Game (3.400 Seeds)',
-        url: 'magnet:?xt=urn:btih:c430836e0ff640a1bd9cb1503a81af5ec430836e&dn=Super.Mario.Odyssey.PC-BrotherGame&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce',
-        seeders: 3400,
-        leechers: 210,
-        size: '5.8 GB',
-        hostName: 'Brother Game Swarm'
-      },
-      {
         id: 'dl-bg-smo-direct',
         type: 'direct',
         format: 'direct',
         platform: 'PC',
-        label: 'Mirror Direto: Post Oficial Brother Game',
+        label: 'Página Oficial Brother Game (Download Direto / Mirrors)',
         url: 'https://www.brothergame.org/post/super-mario-odyssey-port-nativo-windows',
         size: '5.8 GB',
         hostName: 'BrotherGame.org'
@@ -417,7 +357,7 @@ export const BROTHERGAME_PRESET_GAMES: Game[] = [
     viewsCount: 56000,
     isFeatured: true,
     isTrending: true,
-    hasPcTorrent: true,
+    hasPcTorrent: false,
     hasPtBrAudio: false,
     hasPtBrSubs: true,
     sourceOrigin: 'Scene',
@@ -448,23 +388,11 @@ export const BROTHERGAME_PRESET_GAMES: Game[] = [
     },
     downloadLinks: [
       {
-        id: 'dl-bg-gt4-magnet',
-        type: 'magnet',
-        format: 'torrent',
-        platform: 'PC',
-        label: 'Torrent Magnet Brother Game (4.300 Seeds)',
-        url: 'magnet:?xt=urn:btih:101e4125e238474e9f546cb503beb9d3101e4125&dn=Gran.Turismo.4.PC.Native-BrotherGame&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce',
-        seeders: 4300,
-        leechers: 190,
-        size: '3.6 GB',
-        hostName: 'Brother Game Swarm'
-      },
-      {
         id: 'dl-bg-gt4-direct',
         type: 'direct',
         format: 'direct',
         platform: 'PC',
-        label: 'Mirror Direto: Post Oficial Brother Game',
+        label: 'Página Oficial Brother Game (Download Direto / Mirrors)',
         url: 'https://www.brothergame.org/post/gran-turismo-4-port-nativo-pc-windows',
         size: '3.6 GB',
         hostName: 'BrotherGame.org'
@@ -500,7 +428,7 @@ export const BROTHERGAME_PRESET_GAMES: Game[] = [
     viewsCount: 68000,
     isFeatured: true,
     isTrending: true,
-    hasPcTorrent: true,
+    hasPcTorrent: false,
     hasPtBrAudio: false,
     hasPtBrSubs: true,
     sourceOrigin: 'Scene',

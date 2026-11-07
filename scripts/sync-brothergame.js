@@ -97,22 +97,10 @@ export async function syncBrotherGame() {
           type: 'direct',
           format: 'direct',
           platform: 'PC',
-          label: 'Página Oficial Brother Game (Download & Informações)',
+          label: 'Página Oficial Brother Game (Download Direto / Mirrors)',
           url: link,
           size: repackSize,
           hostName: 'BrotherGame.org'
-        },
-        {
-          id: `dl-${slug}-magnet`,
-          type: 'magnet',
-          format: 'torrent',
-          platform: 'PC',
-          label: 'Torrent Magnet Brother Game (Seeds Verificados)',
-          url: `magnet:?xt=urn:btih:3b8369${slug.slice(0, 10)}&dn=${encodeURIComponent(normalizedTitle + ' [Brother Game]')}&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce`,
-          seeders: 3200,
-          leechers: 150,
-          size: repackSize,
-          hostName: 'Brother Game Swarm'
         }
       ];
 
@@ -161,7 +149,7 @@ export async function syncBrotherGame() {
         views_count: 28000,
         has_pt_br_audio: isDublado,
         has_pt_br_subs: isDublado,
-        has_pc_torrent: true,
+        has_pc_torrent: false,
         source_origin: 'BrotherGame'
       };
 
