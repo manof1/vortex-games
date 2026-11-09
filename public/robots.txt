@@ -1,0 +1,11 @@
+# VortexGames Robots.txt
+# https://vortex-games-seven.vercel.app
+
+User-agent: *
+Allow: /
+Allow: /game/*
+Allow: /library
+Allow: /sitemap.xml
+
+# Sitemaps
+Sitemap: https://vortex-games-seven.vercel.app/sitemap.xml
