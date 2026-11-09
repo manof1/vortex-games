@@ -193,7 +193,7 @@ export function updateBrowserUrlForGame(game: Game, tab: GameModalTab = 'downloa
 export function updateBrowserUrlForHome(replace: boolean = false): void {
   if (typeof window === 'undefined') return;
 
-  if (window.location.pathname !== '/') {
+  if (window.location.pathname !== '/' || window.location.search !== '') {
     if (replace) {
       window.history.replaceState(null, '', '/');
     } else {

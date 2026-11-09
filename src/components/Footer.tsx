@@ -1,9 +1,39 @@
 import React from 'react';
 import { Gamepad2, ShieldAlert, Heart, HardDrive, Sparkles, CheckCircle2, ShieldCheck, Cpu } from 'lucide-react';
 import { useGame } from '../context/GameContext';
+import { updateBrowserUrlForHome } from '../services/urlRoutingService';
 
 export const Footer: React.FC = () => {
-  const { setFilters } = useGame();
+  const { setFilters, setActiveGame, setIsLibraryOpen, setIsUserMenuOpen, setActiveThematicListId } = useGame();
+
+  const handleGoHome = (e?: React.MouseEvent) => {
+    if (e && (e.metaKey || e.ctrlKey || e.button === 1)) {
+      return;
+    }
+    if (e) {
+      e.preventDefault();
+    }
+    setActiveGame(null);
+    setIsLibraryOpen(false);
+    setIsUserMenuOpen(false);
+    setActiveThematicListId(null);
+    setFilters({
+      search: '',
+      genre: 'Todos',
+      category: 'Todos',
+      year: 'Todos',
+      repacker: 'Todos',
+      sizeRange: 'Todos',
+      sortBy: 'latest',
+      minRating: 0,
+      onlyPtBr: false,
+      formatFilter: 'all',
+      yearRange: 'all',
+      platform: 'all'
+    });
+    updateBrowserUrlForHome();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <footer className="w-full mt-20 border-t border-slate-200 dark:border-slate-800/80 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md text-slate-600 dark:text-slate-400 text-xs transition-colors">
@@ -13,14 +43,19 @@ export const Footer: React.FC = () => {
           
           {/* Brand Col */}
           <div className="space-y-3 md:col-span-1">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-cyan-500 flex items-center justify-center text-slate-950">
+            <a 
+              href="/"
+              onClick={handleGoHome}
+              className="flex items-center gap-2.5 group cursor-pointer inline-flex"
+              title="VORTEX GAMES - Página Inicial"
+            >
+              <div className="w-8 h-8 rounded-lg bg-cyan-500 group-hover:bg-cyan-400 flex items-center justify-center text-slate-950 transition-colors">
                 <Gamepad2 className="w-5 h-5" />
               </div>
-              <span className="text-lg font-black text-slate-900 dark:text-white font-display">
+              <span className="text-lg font-black text-slate-900 dark:text-white font-display group-hover:text-cyan-400 transition-colors">
                 VORTEX<span className="text-cyan-500">GAMES</span>
               </span>
-            </div>
+            </a>
             <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
               O portal definitivo de arquivamento e indexação torrent de jogos para PC com repacks rápidos, avaliações da comunidade e integração IGDB.
             </p>

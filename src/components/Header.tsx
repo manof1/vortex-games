@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { useLanguage } from '../context/LanguageContext';
+import { updateBrowserUrlForHome } from '../services/urlRoutingService';
 
 export const TOP_OPTIONS = [
   {
@@ -79,10 +80,53 @@ export const Header: React.FC = () => {
     isCreator,
     openCanIRunIt,
     openUtilities,
+    activeThematicListId,
+    setActiveThematicListId,
     theme, 
     toggleTheme 
   } = useGame();
   const { t } = useLanguage();
+
+  const handleGoHome = (e?: React.MouseEvent) => {
+    // Preserva atalho de nova aba (Ctrl+Clique, Cmd+Clique ou Clique com botão do meio)
+    if (e && (e.metaKey || e.ctrlKey || e.button === 1)) {
+      return;
+    }
+    if (e) {
+      e.preventDefault();
+    }
+    // Fecha quaisquer modais ou visões ativas
+    setActiveGame(null);
+    setIsLibraryOpen(false);
+    setIsUserMenuOpen(false);
+    setIsTopMenuOpen(false);
+    setIsConsolesMenuOpen(false);
+    setIsSearchFocused(false);
+    setActiveThematicListId(null);
+    setLocalSearch('');
+
+    // Restaura filtros padrões para exibir o catálogo completo
+    setFilters({
+      search: '',
+      genre: 'Todos',
+      category: 'Todos',
+      year: 'Todos',
+      repacker: 'Todos',
+      sizeRange: 'Todos',
+      sortBy: 'latest',
+      minRating: 0,
+      onlyPtBr: false,
+      formatFilter: 'all',
+      yearRange: 'all',
+      platform: 'all'
+    });
+
+    // Atualiza a URL do navegador para / (remove /game/ ou ?list=) e restaura metadados SEO
+    updateBrowserUrlForHome();
+
+    // Rola suavemente até o topo da página inicial
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const [localSearch, setLocalSearch] = useState(filters.search);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -202,14 +246,11 @@ export const Header: React.FC = () => {
           
           {/* Logo & Brand */}
           <div className="flex items-center gap-3">
-            <div 
-              onClick={() => {
-                setActiveGame(null);
-                setIsLibraryOpen(false);
-                setIsUserMenuOpen(false);
-                setFilters(prev => ({ ...prev, search: '', genre: 'Todos', category: 'Todos', yearRange: 'all' }));
-              }}
+            <a 
+              href="/"
+              onClick={handleGoHome}
               className="flex items-center gap-3 cursor-pointer group"
+              title="VORTEX GAMES - Página Inicial (Torrents • Repacks • IGDB)"
             >
               <div className="relative flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-cyan-500 via-blue-600 to-indigo-600 p-0.5 shadow-lg shadow-cyan-500/20 group-hover:shadow-cyan-500/40 transition-all duration-300">
                 <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
@@ -225,7 +266,7 @@ export const Header: React.FC = () => {
                   Torrents • Repacks • IGDB
                 </span>
               </div>
-            </div>
+            </a>
           </div>
 
           {/* Search bar with Recent Search History Dropdown */}
