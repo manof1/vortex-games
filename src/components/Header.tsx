@@ -14,7 +14,9 @@ import {
   X,
   Trophy,
   ChevronDown,
-  Calendar
+  Calendar,
+  Cpu,
+  Wrench
 } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -75,6 +77,8 @@ export const Header: React.FC = () => {
     openCreatorLab,
     openSundaySyncModal,
     isCreator,
+    openCanIRunIt,
+    openUtilities,
     theme, 
     toggleTheme 
   } = useGame();
@@ -557,6 +561,27 @@ export const Header: React.FC = () => {
             >
               <Layers className="w-3.5 h-3.5 text-cyan-500" />
               <span>{t('header.catalog', 'Catálogo')}</span>
+            </button>
+
+            {/* BOTÃO MEU PC RODA? (CAN YOU RUN IT) */}
+            <button
+              onClick={() => openCanIRunIt()}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 hover:border-cyan-500/50 transition-all cursor-pointer shadow-sm"
+              title="Testar se o seu computador roda qualquer jogo da biblioteca em 1 clique"
+            >
+              <Cpu className="w-3.5 h-3.5 text-cyan-400 stroke-[2.5]" />
+              <span className="hidden md:inline">Meu PC Roda?</span>
+              <span className="md:hidden">PC Roda?</span>
+            </button>
+
+            {/* BOTÃO UTILITÁRIOS ESSENCIAIS */}
+            <button
+              onClick={openUtilities}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 hover:border-emerald-500/50 transition-all cursor-pointer shadow-sm"
+              title="Baixar Utilitários Essenciais: Visual C++, DirectX, qBittorrent e Drivers"
+            >
+              <Wrench className="w-3.5 h-3.5 text-emerald-400 stroke-[2.5]" />
+              <span className="hidden lg:inline">Utilitários</span>
             </button>
 
             {/* SEÇÃO PEDIR UM JOGO */}

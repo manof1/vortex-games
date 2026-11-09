@@ -84,6 +84,18 @@ interface GameContextType {
   toggleSundaySyncActive: () => void;
   activeGameInitialTab: 'downloads' | 'specs' | 'screenshots' | 'instructions' | 'cheats' | 'mods' | 'localizations';
   openGameWithTab: (game: Game, tab?: 'downloads' | 'specs' | 'screenshots' | 'instructions' | 'cheats' | 'mods' | 'localizations') => void;
+  // Can You Run It (Meu PC Roda?)
+  isCanIRunItOpen: boolean;
+  setIsCanIRunItOpen: (open: boolean) => void;
+  canIRunItGame: Game | null;
+  openCanIRunIt: (game?: Game | null) => void;
+  // Gamer Utilities (Utilitários Essenciais)
+  isUtilitiesOpen: boolean;
+  setIsUtilitiesOpen: (open: boolean) => void;
+  openUtilities: () => void;
+  // Thematic Lists (Listas Temáticas)
+  activeThematicListId: string | null;
+  setActiveThematicListId: (listId: string | null) => void;
   // Actions
   addGame: (game: Game) => void;
   updateGame: (game: Game) => void;
@@ -695,6 +707,34 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Game Request Modal State
   const [isGameRequestOpen, setIsGameRequestOpen] = useState(false);
 
+  // Can You Run It (Meu PC Roda?)
+  const [isCanIRunItOpen, setIsCanIRunItOpen] = useState(false);
+  const [canIRunItGame, setCanIRunItGame] = useState<Game | null>(null);
+
+  const openCanIRunIt = (game?: Game | null) => {
+    if (game) {
+      setCanIRunItGame(game);
+    } else if (activeGame) {
+      setCanIRunItGame(activeGame);
+    } else {
+      setCanIRunItGame(null);
+    }
+    setIsCanIRunItOpen(true);
+  };
+
+  // Gamer Utilities Modal (Utilitários Essenciais)
+  const [isUtilitiesOpen, setIsUtilitiesOpen] = useState(false);
+  const openUtilities = () => setIsUtilitiesOpen(true);
+
+  // Thematic Lists State (Listas Temáticas)
+  const [activeThematicListId, setActiveThematicListId] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('list') || null;
+    }
+    return null;
+  });
+
   // Cloud Sync Code & Multi-Device Sync
   const [cloudSyncCode, setCloudSyncCode] = useState<string>(() => {
     const saved = localStorage.getItem('vortex_cloud_sync_code');
@@ -1113,6 +1153,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toggleSundaySyncActive,
         activeGameInitialTab,
         openGameWithTab,
+        isCanIRunItOpen,
+        setIsCanIRunItOpen,
+        canIRunItGame,
+        openCanIRunIt,
+        isUtilitiesOpen,
+        setIsUtilitiesOpen,
+        openUtilities,
+        activeThematicListId,
+        setActiveThematicListId,
         addGame,
         updateGame,
         deleteGame,

@@ -16,6 +16,10 @@ import { SundaySyncModal } from './components/SundaySyncModal';
 import { SidebarBanners } from './components/SidebarBanners';
 import { Pagination } from './components/Pagination';
 import { Footer } from './components/Footer';
+import { CanIRunItModal } from './components/CanIRunItModal';
+import { GamerUtilitiesModal } from './components/GamerUtilitiesModal';
+import { ThematicListsBar } from './components/ThematicListsBar';
+import { THEMATIC_LISTS, findThematicListBySlug } from './data/thematicLists';
 import { SearchX, Sparkles, Flame, Trophy, X, Star, Medal, Users, Eye, Download, Calendar } from 'lucide-react';
 import { TOP_OPTIONS } from './components/Header';
 import { 
@@ -53,7 +57,14 @@ const MainContent: React.FC = () => {
     isSundaySyncOpen,
     setIsSundaySyncOpen,
     openSundaySyncModal,
-    isCreator
+    isCreator,
+    isCanIRunItOpen,
+    setIsCanIRunItOpen,
+    canIRunItGame,
+    isUtilitiesOpen,
+    setIsUtilitiesOpen,
+    activeThematicListId,
+    setActiveThematicListId
   } = useGame();
   const { t } = useLanguage();
 
@@ -71,7 +82,7 @@ const MainContent: React.FC = () => {
     }
   }, [activeGame, activeGameInitialTab]);
 
-  // Deep linking ao carregar a página (ex: /game/star-fox ou /game/god-of-war/cheats ou /library)
+  // Deep linking ao carregar a página (ex: /game/star-fox ou /game/god-of-war/cheats ou /library ou ?list=dublados-ptbr)
   useEffect(() => {
     const route = parseCurrentRoute();
     if (route.type === 'game' && route.gameSlug) {
@@ -85,7 +96,17 @@ const MainContent: React.FC = () => {
     } else if (route.type === 'category' && route.category) {
       setFilters(prev => ({ ...prev, category: route.category! }));
     }
-  }, [games.length]);
+
+    // Suporte a coleções temáticas via URL (?list=slug)
+    const searchParams = new URLSearchParams(window.location.search);
+    const listSlug = searchParams.get('list');
+    if (listSlug) {
+      const matched = findThematicListBySlug(listSlug);
+      if (matched) {
+        setActiveThematicListId(matched.id);
+      }
+    }
+  }, [games.length, setActiveThematicListId]);
 
   // Navegação natural pelo histórico do navegador (Botão Voltar / Avançar do celular e desktop)
   useEffect(() => {
@@ -106,12 +127,21 @@ const MainContent: React.FC = () => {
         setActiveGame(null);
         setIsLibraryOpen(false);
         resetDefaultSeoMetadata();
+
+        const searchParams = new URLSearchParams(window.location.search);
+        const listSlug = searchParams.get('list');
+        if (listSlug) {
+          const matched = findThematicListBySlug(listSlug);
+          if (matched) setActiveThematicListId(matched.id);
+        } else {
+          setActiveThematicListId(null);
+        }
       }
     };
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [games, openGameWithTab, setActiveGame, setIsLibraryOpen]);
+  }, [games, openGameWithTab, setActiveGame, setIsLibraryOpen, setActiveThematicListId]);
 
   const handleCloseGameDetail = () => {
     setActiveGame(null);
@@ -122,6 +152,12 @@ const MainContent: React.FC = () => {
   const filteredGames = useMemo(() => {
     return games
       .filter(game => {
+        // Thematic Collections Filter (Listas Temáticas Compartilháveis)
+        if (activeThematicListId) {
+          const tList = THEMATIC_LISTS.find(l => l.id === activeThematicListId);
+          if (tList && !tList.filterFn(game)) return false;
+        }
+
         // Search filter
         if (filters.search) {
           const q = filters.search.toLowerCase();
@@ -134,6 +170,16 @@ const MainContent: React.FC = () => {
 
         // Category filter
         if (filters.category !== 'Todos') {
+          if (filters.category === 'PortsNativos') {
+            const t = game.title.toLowerCase();
+            const isPort = game.genres?.some(g => g.toLowerCase().includes('port')) ||
+              game.categories?.some(c => c.toLowerCase().includes('brothergame')) ||
+              game.tags?.some(tag => tag.toLowerCase().includes('port nativo')) ||
+              t.includes('port nativo') ||
+              t.includes('port pc') ||
+              game.id.startsWith('bg-');
+            if (!isPort) return false;
+          }
           if (filters.category === 'FitGirl' && !game.repackInfo.repacker.toLowerCase().includes('fitgirl') && !game.id.startsWith('fg-')) return false;
           if (filters.category === 'DODI' && !game.repackInfo.repacker.toLowerCase().includes('dodi') && !game.id.startsWith('dodi-')) return false;
           if (filters.category === 'BrotherGame' && !game.repackInfo.repacker.toLowerCase().includes('brother') && !game.id.startsWith('bg-') && !game.categories.includes('BrotherGame')) return false;
@@ -240,7 +286,7 @@ const MainContent: React.FC = () => {
             return 0;
         }
       });
-  }, [games, filters]);
+  }, [games, filters, activeThematicListId]);
 
   // Sistema de Paginação: 10 linhas de 4 jogos = 40 jogos por página
   const GAMES_PER_PAGE = 40;
@@ -298,6 +344,13 @@ const MainContent: React.FC = () => {
 
             {/* Advanced Filter Bar */}
             <FilterBar />
+
+            {/* Listas Temáticas Compartilháveis */}
+            <ThematicListsBar
+              activeListId={activeThematicListId}
+              onSelectList={setActiveThematicListId}
+              gamesCount={filteredGames.length}
+            />
 
             {/* TOP Rankings Spotlight Banner (Quando qualquer modo TOP estiver ativado) */}
             {filters.sortBy.startsWith('top_') && (() => {
@@ -495,6 +548,24 @@ const MainContent: React.FC = () => {
       <SundaySyncModal
         isOpen={isSundaySyncOpen}
         onClose={() => setIsSundaySyncOpen(false)}
+      />
+
+      {/* Modal Can You Run It (Meu PC Roda?) */}
+      <CanIRunItModal
+        isOpen={isCanIRunItOpen}
+        onClose={() => setIsCanIRunItOpen(false)}
+        games={games}
+        initialGame={canIRunItGame}
+        onSelectGame={(g) => {
+          setIsCanIRunItOpen(false);
+          openGameWithTab(g, 'downloads');
+        }}
+      />
+
+      {/* Modal de Utilitários Essenciais do Gamer */}
+      <GamerUtilitiesModal
+        isOpen={isUtilitiesOpen}
+        onClose={() => setIsUtilitiesOpen(false)}
       />
     </div>
   );

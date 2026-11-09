@@ -94,6 +94,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
     requireAuth,
     activeGameInitialTab,
     isCreator,
+    openCanIRunIt,
     updateGame
   } = useGame();
 
@@ -325,6 +326,17 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
         </div>
 
         <div className="flex items-center gap-2.5">
+          {/* Botão Oficial: Meu PC Roda? */}
+          <button
+            type="button"
+            onClick={() => openCanIRunIt(game)}
+            className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500/20 to-blue-500/20 hover:from-cyan-500/30 hover:to-blue-500/30 text-cyan-300 hover:text-white border border-cyan-500/40 hover:border-cyan-400 text-xs font-bold transition-all shadow-sm cursor-pointer"
+            title="Testar se o seu computador roda este jogo em 1 clique"
+          >
+            <Cpu className="w-4 h-4 text-cyan-400" />
+            <span className="hidden sm:inline">Meu PC Roda?</span>
+          </button>
+
           {/* Botão Oficial: Compartilhar Link */}
           <button
             type="button"
@@ -1557,6 +1569,32 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
           {/* TAB: SYSTEM SPECS */}
           {activeTab === 'specs' && (
             <div className="space-y-6">
+              {/* Meu PC Roda Callout */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-cyan-950/60 via-slate-900 to-blue-950/60 border border-cyan-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-12 h-12 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 shrink-0">
+                    <Cpu className="w-6 h-6 stroke-[2.5]" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                      <span>Análise Automática de Desempenho</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-semibold">1 Clique</span>
+                    </h4>
+                    <p className="text-xs text-slate-300 mt-0.5">
+                      Verifique se a sua placa de vídeo, processador e memória RAM rodam {game.title} com estimativa de FPS.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => openCanIRunIt(game)}
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg shadow-cyan-500/20 cursor-pointer shrink-0"
+                >
+                  <Cpu className="w-4 h-4 text-slate-950 stroke-[2.5]" />
+                  <span>Testar Meu PC Agora</span>
+                </button>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
                 {/* Minimum specs */}

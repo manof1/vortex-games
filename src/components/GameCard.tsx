@@ -115,6 +115,22 @@ export const GameCard: React.FC<GameCardProps> = ({ game, rank }) => {
             <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md border backdrop-blur-md shadow-sm ${getRepackerColor(game.repackInfo.repacker)}`}>
               {game.repackInfo.repacker.replace(' Repack', '')}
             </span>
+
+            {/* Port Nativo PC Badge */}
+            {(game.genres?.some(g => g.toLowerCase().includes('port')) ||
+              game.categories?.some(c => c.toLowerCase().includes('brothergame')) ||
+              game.tags?.some(tag => tag.toLowerCase().includes('port nativo')) ||
+              game.title.toLowerCase().includes('port nativo') ||
+              game.title.toLowerCase().includes('port pc') ||
+              game.id.startsWith('bg-')) && (
+              <span 
+                className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-cyan-400 text-slate-950 border border-cyan-300 font-extrabold flex items-center gap-0.5 shadow-sm"
+                title="Port Nativo de PC direto no Windows (Sem emulador - 60 FPS)"
+              >
+                <span>⚡</span>
+                <span>Port PC</span>
+              </span>
+            )}
           </div>
 
           {/* PT-BR Badge - Dublado ou Legendado */}

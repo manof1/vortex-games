@@ -23,6 +23,7 @@ export const FilterBar: React.FC = () => {
 
   const CATEGORIES = [
     { id: 'Todos', label: t('filter.allGames', 'Todos os Jogos') },
+    { id: 'PortsNativos', label: '🕹️ Ports PC (Sem Emulador)' },
     { id: 'FitGirl', label: `🌸 ${t('filter.fitgirl', 'FitGirl Repacks')}` },
     { id: 'DODI', label: `⚡ ${t('filter.dodi', 'DODI Repacks')}` },
     { id: 'BrotherGame', label: '🎮 Brother Game (Ports & PT-BR)' },
