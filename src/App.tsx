@@ -335,7 +335,10 @@ const MainContent: React.FC = () => {
         ) : isUserMenuOpen ? (
           <UserMenuModal onClose={() => setIsUserMenuOpen(false)} />
         ) : (
-          <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+          <div 
+            className="w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6"
+            style={{ width: '1480px', height: '6660.45px' }}
+          >
             {/* Hero Spotlight (Shown on Homepage & Lançamentos) */}
             {showHero && <HeroBanner />}
 
