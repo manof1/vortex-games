@@ -2,8 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Gamepad2, 
   Search, 
-  Sun, 
-  Moon, 
   User, 
   Layers, 
   Clock, 
@@ -81,9 +79,7 @@ export const Header: React.FC = () => {
     openCanIRunIt,
     openUtilities,
     activeThematicListId,
-    setActiveThematicListId,
-    theme, 
-    toggleTheme 
+    setActiveThematicListId
   } = useGame();
   const { t } = useLanguage();
 
@@ -673,31 +669,6 @@ export const Header: React.FC = () => {
                 <span>{t('header.signIn', 'Entrar / Cadastrar')}</span>
               </button>
             )}
-
-            {/* Alternador de Tema Evoluído (Claro & Escuro) */}
-            <button
-              onClick={toggleTheme}
-              type="button"
-              className="relative inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all duration-300 cursor-pointer shadow-sm group select-none bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-900 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-800 hover:border-amber-400 dark:hover:border-cyan-400 text-slate-800 dark:text-slate-200 active:scale-95"
-              title={theme === 'dark' ? t('header.lightMode', 'Ativar Modo Claro') : t('header.darkMode', 'Ativar Modo Escuro')}
-              aria-label={theme === 'dark' ? 'Alternar para Modo Claro' : 'Alternar para Modo Escuro'}
-            >
-              <div className="relative w-4 h-4 flex items-center justify-center">
-                {theme === 'dark' ? (
-                  <Moon className="w-4 h-4 text-cyan-400 fill-cyan-400/20 transform group-hover:-rotate-12 transition-transform duration-300" />
-                ) : (
-                  <Sun className="w-4 h-4 text-amber-500 fill-amber-500/20 transform group-hover:rotate-45 transition-transform duration-300" />
-                )}
-              </div>
-              <span className="hidden sm:inline text-[11px] font-black uppercase tracking-wider font-mono">
-                {theme === 'dark' ? 'Escuro' : 'Claro'}
-              </span>
-              <span className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                theme === 'dark' 
-                  ? 'bg-cyan-400 shadow-sm shadow-cyan-400/80 ring-2 ring-cyan-500/30' 
-                  : 'bg-amber-500 shadow-sm shadow-amber-500/80 ring-2 ring-amber-500/30'
-              }`} />
-            </button>
 
             {/* Botão de Acesso ao Laboratório do Criador (Exclusivo manof1@gmail.com / Criador) */}
             {isCreator && (
