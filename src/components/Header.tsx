@@ -241,7 +241,7 @@ export const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-white/95 dark:bg-slate-950/85 border-b border-slate-200 dark:border-slate-800/80 transition-colors shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20 gap-3 sm:gap-4">
           
           {/* Logo & Brand */}
@@ -674,13 +674,29 @@ export const Header: React.FC = () => {
               </button>
             )}
 
-            {/* Alternador de Tema (Claro & Escuro) */}
+            {/* Alternador de Tema Evoluído (Claro & Escuro) */}
             <button
               onClick={toggleTheme}
-              className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-amber-500 dark:hover:text-yellow-400 hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer"
+              type="button"
+              className="relative inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all duration-300 cursor-pointer shadow-sm group select-none bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-900 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-800 hover:border-amber-400 dark:hover:border-cyan-400 text-slate-800 dark:text-slate-200 active:scale-95"
               title={theme === 'dark' ? t('header.lightMode', 'Ativar Modo Claro') : t('header.darkMode', 'Ativar Modo Escuro')}
+              aria-label={theme === 'dark' ? 'Alternar para Modo Claro' : 'Alternar para Modo Escuro'}
             >
-              {theme === 'dark' ? <Moon className="w-4 h-4 text-indigo-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
+              <div className="relative w-4 h-4 flex items-center justify-center">
+                {theme === 'dark' ? (
+                  <Moon className="w-4 h-4 text-cyan-400 fill-cyan-400/20 transform group-hover:-rotate-12 transition-transform duration-300" />
+                ) : (
+                  <Sun className="w-4 h-4 text-amber-500 fill-amber-500/20 transform group-hover:rotate-45 transition-transform duration-300" />
+                )}
+              </div>
+              <span className="hidden sm:inline text-[11px] font-black uppercase tracking-wider font-mono">
+                {theme === 'dark' ? 'Escuro' : 'Claro'}
+              </span>
+              <span className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                theme === 'dark' 
+                  ? 'bg-cyan-400 shadow-sm shadow-cyan-400/80 ring-2 ring-cyan-500/30' 
+                  : 'bg-amber-500 shadow-sm shadow-amber-500/80 ring-2 ring-amber-500/30'
+              }`} />
             </button>
 
             {/* Botão de Acesso ao Laboratório do Criador (Exclusivo manof1@gmail.com / Criador) */}

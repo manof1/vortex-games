@@ -319,7 +319,7 @@ const MainContent: React.FC = () => {
   const showHero = !filters.search && (filters.category === 'Todos' || filters.category === 'Lançamentos');
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-100 flex flex-col selection:bg-cyan-500 selection:text-slate-950 transition-colors duration-200">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 dark:bg-[#070b14] dark:text-slate-100 flex flex-col selection:bg-cyan-500 selection:text-slate-950 transition-colors duration-300">
       {/* Header - Tradicional & Sempre Visível */}
       <Header />
 
@@ -335,10 +335,7 @@ const MainContent: React.FC = () => {
         ) : isUserMenuOpen ? (
           <UserMenuModal onClose={() => setIsUserMenuOpen(false)} />
         ) : (
-          <div 
-            className="w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6"
-            style={{ width: '1480px', height: '6660.45px' }}
-          >
+          <div className="w-full max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">
             {/* Hero Spotlight (Shown on Homepage & Lançamentos) */}
             {showHero && <HeroBanner />}
 
@@ -359,7 +356,7 @@ const MainContent: React.FC = () => {
             {filters.sortBy.startsWith('top_') && (() => {
               const activeTop = TOP_OPTIONS.find(o => o.key === filters.sortBy) || TOP_OPTIONS[0];
               return (
-                <div className="mb-6 p-4 sm:p-6 rounded-3xl bg-gradient-to-r from-amber-500/15 via-slate-900 to-yellow-500/10 border-2 border-amber-500/40 shadow-xl shadow-amber-500/10 space-y-4 animate-fadeIn">
+                <div className="mb-6 p-4 sm:p-6 rounded-3xl bg-gradient-to-r from-amber-500/15 via-white dark:via-slate-900 to-yellow-500/10 border-2 border-amber-500/40 shadow-xl shadow-amber-500/10 space-y-4 animate-fadeIn">
                   <div className="flex items-center justify-between flex-wrap gap-3">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center text-slate-950 font-black shadow-lg shadow-amber-500/30">

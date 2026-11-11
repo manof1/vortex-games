@@ -135,9 +135,18 @@ const DEFAULT_FILTERS: FilterState = {
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Theme state
+  // Theme state com suporte à preferência nativa do sistema e persistência
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    return (localStorage.getItem('vortex_theme') as 'dark' | 'light') || 'dark';
+    try {
+      const saved = localStorage.getItem('vortex_theme');
+      if (saved === 'dark' || saved === 'light') return saved;
+      if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+        return 'light';
+      }
+    } catch {
+      // fallback
+    }
+    return 'dark';
   });
 
   // Games state
@@ -802,11 +811,20 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [notifications]);
 
   useEffect(() => {
-    localStorage.setItem('vortex_theme', theme);
+    try {
+      localStorage.setItem('vortex_theme', theme);
+    } catch {
+      // ignore
+    }
+    const root = document.documentElement;
     if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
+      root.classList.add('dark');
+      root.classList.remove('light');
+      root.style.colorScheme = 'dark';
     } else {
-      document.documentElement.classList.remove('dark');
+      root.classList.remove('dark');
+      root.classList.add('light');
+      root.style.colorScheme = 'light';
     }
   }, [theme]);
 
