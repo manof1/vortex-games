@@ -1293,7 +1293,7 @@ export const PkgTestLabModal: React.FC<PkgTestLabModalProps> = ({ isOpen, onClos
       )}
 
       {/* Main Container */}
-      <div className="w-full max-w-[1480px] bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col my-4 sm:my-8 text-slate-100">
+      <div className="w-full max-w-[1550px] bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col my-4 sm:my-8 text-slate-100">
         
         {/* Lab Top Bar */}
         <div className="px-5 py-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between flex-wrap gap-3">

@@ -37,7 +37,7 @@ export const Footer: React.FC = () => {
 
   return (
     <footer className="w-full mt-20 border-t border-slate-200 dark:border-slate-800/80 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md text-slate-600 dark:text-slate-400 text-xs transition-colors">
-      <div className="w-full max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
+      <div className="w-full max-w-[1550px] mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           

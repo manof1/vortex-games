@@ -237,7 +237,7 @@ export const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-white/95 dark:bg-slate-950/85 border-b border-slate-200 dark:border-slate-800/80 transition-colors shadow-sm">
-      <div className="w-full max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-[1550px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20 gap-3 sm:gap-4">
           
           {/* Logo & Brand */}

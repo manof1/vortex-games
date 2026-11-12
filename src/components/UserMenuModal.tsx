@@ -219,7 +219,7 @@ export const UserMenuModal: React.FC<UserMenuModalProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="w-full max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5 animate-fadeIn">
+    <div className="w-full max-w-[1550px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5 animate-fadeIn">
       {/* Top Header & Breadcrumb */}
       <div className="flex items-center justify-between pb-3 border-b border-slate-800/80">
         <button

@@ -103,7 +103,7 @@ export const HeroBanner: React.FC = () => {
       <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/90 to-transparent" />
 
       {/* Hero content */}
-      <div className="relative z-10 w-full max-w-[1480px] mx-auto p-5 sm:p-8 lg:p-10 flex flex-col lg:flex-row items-center gap-6 lg:gap-8 justify-between">
+      <div className="relative z-10 w-full max-w-[1550px] mx-auto p-5 sm:p-8 lg:p-10 flex flex-col lg:flex-row items-center gap-6 lg:gap-8 justify-between">
         
         {/* Left Column: Game Info */}
         <div className="max-w-2xl space-y-3.5 sm:space-y-4">

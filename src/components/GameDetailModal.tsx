@@ -306,7 +306,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
   };
 
   return (
-    <div className="w-full max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5 animate-fadeIn">
+    <div className="w-full max-w-[1550px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5 animate-fadeIn">
       {/* Traditional Site Header & Return Bar com Botão Compartilhar e URL Direta */}
       <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
         <div className="flex items-center gap-3">
