@@ -556,3 +556,52 @@ export function getImdbRating(game?: { title?: string; id?: string; imdbRating?:
   const critic = getCriticScores(game);
   return Number((critic.metacritic / 10).toFixed(1));
 }
+
+/**
+ * Calcula a Nota dos Usuários combinada (0-100) usando User Score do Metacritic, GameFAQs e votos reais da comunidade Vortex.
+ * Quando há votos reais na comunidade Vortex, eles têm peso direto para refletir mudanças imediatamente no ranking.
+ */
+export function getCombinedUserScore(game: {
+  title?: string;
+  id?: string;
+  slug?: string;
+  criticScores?: CriticReviewData;
+  rating?: number;
+  totalVotes?: number;
+}): number {
+  const critic = getCriticScores(game);
+  const baseUser = critic.metacriticUser * 10 * 0.7 + critic.gamefaqs * 20 * 0.3;
+
+  if ((game.totalVotes || 0) > 0 && (game.rating || 0) > 0) {
+    const vortexUserScore = (game.rating || 0) * 20; // 1★=20 .. 5★=100
+    return Number((baseUser * 0.4 + vortexUserScore * 0.6).toFixed(2));
+  }
+
+  return Number(baseUser.toFixed(2));
+}
+
+/**
+ * Calcula a Nota Geral Agregada (0-100) combinando Crítica (Metacritic/OpenCritic), Usuários e votos reais da comunidade Vortex.
+ */
+export function getOverallRatingScore(game: {
+  title?: string;
+  id?: string;
+  slug?: string;
+  criticScores?: CriticReviewData;
+  rating?: number;
+  totalVotes?: number;
+}): number {
+  const critic = getCriticScores(game);
+  const baseOverall =
+    critic.metacritic * 0.35 +
+    critic.opencritic * 0.25 +
+    critic.metacriticUser * 10 * 0.25 +
+    critic.gamefaqs * 20 * 0.15;
+
+  if ((game.totalVotes || 0) > 0 && (game.rating || 0) > 0) {
+    const vortexScore = (game.rating || 0) * 20;
+    return Number((baseOverall * 0.4 + vortexScore * 0.6).toFixed(2));
+  }
+
+  return Number(baseOverall.toFixed(2));
+}

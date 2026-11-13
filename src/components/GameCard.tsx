@@ -7,12 +7,21 @@ import {
   Sparkles,
   Trophy,
   Medal,
-  ArrowRight
+  ArrowRight,
+  Eye,
+  Download,
+  Users
 } from 'lucide-react';
 import { Game } from '../types';
 import { useGame } from '../context/GameContext';
 import { useLanguage } from '../context/LanguageContext';
-import { getCriticScores, getMetacriticBadgeColor, getOpenCriticTierColor } from '../utils/ratingUtils';
+import {
+  getCriticScores,
+  getCombinedUserScore,
+  getOverallRatingScore,
+  getMetacriticBadgeColor,
+  getOpenCriticTierColor
+} from '../utils/ratingUtils';
 import { getGameCover, handleImageError } from '../utils/imageUtils';
 
 interface GameCardProps {
@@ -22,6 +31,7 @@ interface GameCardProps {
 
 export const GameCard: React.FC<GameCardProps> = ({ game, rank }) => {
   const { 
+    filters,
     setActiveGame, 
     isInLibrary, 
     addToLibrary, 
@@ -30,6 +40,8 @@ export const GameCard: React.FC<GameCardProps> = ({ game, rank }) => {
   const { t } = useLanguage();
   
   const critic = getCriticScores(game);
+  const combinedUserScore = getCombinedUserScore(game);
+  const overallScore = getOverallRatingScore(game);
   const metaBadge = getMetacriticBadgeColor(critic.metacritic);
   const openBadge = getOpenCriticTierColor(critic.opencriticTier);
   
@@ -249,6 +261,63 @@ export const GameCard: React.FC<GameCardProps> = ({ game, rank }) => {
               </span>
             )}
           </div>
+
+          {/* Live Ranking Metric Strip */}
+          {(filters.sortBy === 'top_views' || filters.sortBy === 'popular') && (
+            <div className="mt-2.5 flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-[11px] font-bold text-cyan-700 dark:text-cyan-300">
+              <span className="flex items-center gap-1.5">
+                <Eye className="w-3.5 h-3.5 text-cyan-500" />
+                <span>Acessos</span>
+              </span>
+              <span className="font-mono font-black">{(game.viewsCount || 0).toLocaleString('pt-BR')}</span>
+            </div>
+          )}
+
+          {(filters.sortBy === 'top_downloads' || filters.sortBy === 'downloads') && (
+            <div className="mt-2.5 flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
+              <span className="flex items-center gap-1.5">
+                <Download className="w-3.5 h-3.5 text-emerald-500" />
+                <span>Downloads</span>
+              </span>
+              <span className="font-mono font-black">{(game.downloadsCount || 0).toLocaleString('pt-BR')}</span>
+            </div>
+          )}
+
+          {filters.sortBy === 'top_user' && (
+            <div className="mt-2.5 flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-[11px] font-bold text-amber-700 dark:text-amber-300">
+              <span className="flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-amber-500" />
+                <span>Nota Usuários</span>
+              </span>
+              <span className="font-mono font-black">
+                {(combinedUserScore / 10).toFixed(1)}/10
+                {game.totalVotes > 0 ? ` (${game.rating.toFixed(1)}★)` : ''}
+              </span>
+            </div>
+          )}
+
+          {(filters.sortBy === 'top_rating' || filters.sortBy === 'rating') && (
+            <div className="mt-2.5 flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-[11px] font-bold text-amber-700 dark:text-amber-300">
+              <span className="flex items-center gap-1.5">
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
+                <span>Pontuação Geral</span>
+              </span>
+              <span className="font-mono font-black">
+                {(overallScore / 20).toFixed(2)}/5.0
+                {game.totalVotes > 0 ? ` (${game.totalVotes} voto${game.totalVotes > 1 ? 's' : ''})` : ''}
+              </span>
+            </div>
+          )}
+
+          {filters.sortBy === 'top_critic' && (
+            <div className="mt-2.5 flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-purple-500/10 border border-purple-500/30 text-[11px] font-bold text-purple-700 dark:text-purple-300">
+              <span className="flex items-center gap-1.5">
+                <Trophy className="w-3.5 h-3.5 text-purple-400" />
+                <span>Crítica (Meta/OC)</span>
+              </span>
+              <span className="font-mono font-black">{critic.metacritic} / {critic.opencritic}</span>
+            </div>
+          )}
         </div>
 
         {/* Card footer: Plataforma & Botão Ver Jogo */}

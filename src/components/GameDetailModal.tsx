@@ -3,6 +3,7 @@ import {
   X, 
   ArrowLeft,
   Download, 
+  Eye,
   Star, 
   HardDrive, 
   ShieldCheck, 
@@ -86,6 +87,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
     addToLibrary, 
     removeFromLibrary, 
     updateLibraryStatus,
+    incrementView,
     incrementDownload,
     userProfile,
     isLoggedIn,
@@ -97,6 +99,13 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
     openCanIRunIt,
     updateGame
   } = useGame();
+
+  // Contabiliza 1 acesso real sempre que o usuário abre este jogo
+  useEffect(() => {
+    if (game?.id) {
+      incrementView(game.id);
+    }
+  }, [game?.id]);
 
   const [activeTab, setActiveTab] = useState<'downloads' | 'specs' | 'screenshots' | 'instructions' | 'cheats' | 'mods' | 'localizations'>(activeGameInitialTab || 'downloads');
 
@@ -257,6 +266,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
       openAuthModal('register', '🔒 Crie sua conta gratuita ou faça login para copiar links magnet e liberar downloads.');
       return;
     }
+    incrementDownload(game.id);
     const cleanUrl = url.startsWith('magnet:')
       ? sanitizeMagnetLink(url, `${game.title} [${game.repackInfo?.repacker || 'Vortex'}]`)
       : url;
@@ -702,8 +712,18 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
             </button>
           </div>
 
-          {/* Quick Repack stats */}
-          <div className="flex items-center gap-4 text-xs text-slate-300 font-medium">
+          {/* Quick Repack & Live Ranking stats */}
+          <div className="flex items-center gap-4 text-xs text-slate-300 font-medium flex-wrap">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900/90 border border-slate-800">
+              <Eye className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="font-mono font-bold text-white">{(game.viewsCount || 0).toLocaleString('pt-BR')}</span>
+              <span className="text-slate-400">acessos</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900/90 border border-slate-800">
+              <Download className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="font-mono font-bold text-white">{(game.downloadsCount || 0).toLocaleString('pt-BR')}</span>
+              <span className="text-slate-400">downloads</span>
+            </div>
             <div className="flex items-center gap-1.5">
               <HardDrive className="w-4 h-4 text-cyan-400" />
               <span>Tamanho Compactado: <strong className="text-white">{game.repackInfo.repackSize}</strong></span>

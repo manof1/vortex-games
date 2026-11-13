@@ -173,11 +173,14 @@ export const Header: React.FC = () => {
     setIsLibraryOpen(false);
     setIsUserMenuOpen(false);
     setIsTopMenuOpen(false);
+    setActiveThematicListId(null);
+    setLocalSearch('');
     setFilters(prev => ({
       ...prev,
       sortBy: sortKey,
       search: '',
-      category: 'Todos'
+      category: 'Todos',
+      genre: 'Todos'
     }));
     const el = document.getElementById('catalogo-section');
     if (el) {

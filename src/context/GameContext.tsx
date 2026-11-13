@@ -9,7 +9,7 @@ import {
   DEFAULT_SYNC_CONFIG, 
   checkForNewFitGirlReleases 
 } from '../services/autoSyncService';
-import { fetchGamesFromSupabase, upsertGameToSupabase, deleteGameFromSupabase, saveCloudSyncData, getCloudSyncData } from '../services/supabaseClient';
+import { fetchGamesFromSupabase, upsertGameToSupabase, updateGameStatsInSupabase, deleteGameFromSupabase, saveCloudSyncData, getCloudSyncData } from '../services/supabaseClient';
 import { sanitizeMagnetLink } from '../utils/magnetUtils';
 import { getGameCover, getGameBanner, DEFAULT_GAME_COVER, DEFAULT_GAME_BANNER } from '../utils/imageUtils';
 import { enrichGameWithCheatsAndMods, enrichAllGames } from '../utils/cheatsModsGenerator';
@@ -111,6 +111,7 @@ interface GameContextType {
   isInLibrary: (gameId: string) => LibraryStatus | null;
   markNotificationAsRead: (id: string) => void;
   markAllNotificationsAsRead: () => void;
+  incrementView: (gameId: string) => void;
   incrementDownload: (gameId: string) => void;
   resetDatabaseToDefault: () => void;
   exportDatabaseJson: () => string;
@@ -131,6 +132,34 @@ const DEFAULT_FILTERS: FilterState = {
   yearRange: 'all',
   platform: 'all'
 };
+
+interface StoredGameStats {
+  viewsCount?: number;
+  downloadsCount?: number;
+  rating?: number;
+  totalVotes?: number;
+}
+
+const GAME_STATS_STORAGE_KEY = 'vortex_game_stats';
+
+function loadStoredGameStats(): Record<string, StoredGameStats> {
+  try {
+    const raw = localStorage.getItem(GAME_STATS_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveStoredGameStat(gameId: string, patch: StoredGameStats) {
+  try {
+    const current = loadStoredGameStats();
+    current[gameId] = { ...(current[gameId] || {}), ...patch };
+    localStorage.setItem(GAME_STATS_STORAGE_KEY, JSON.stringify(current));
+  } catch {
+    // ignore
+  }
+}
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
@@ -197,16 +226,27 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // ignore
     }
 
-    // Sanitize real votes: only keep votes that real users submitted via vortex_user_votes
+    // Sanitize real votes & merge persisted local stats
     let userVotesMap: Record<string, number> = {};
     try {
       userVotesMap = JSON.parse(localStorage.getItem('vortex_user_votes') || '{}');
     } catch {
       userVotesMap = {};
     }
+    const localStats = loadStoredGameStats();
 
-    const cleanedList = baseList.map(g => {
+    // Deduplicate by id, keeping highest views/downloads when presets collide
+    const dedupMap = new Map<string, Game>();
+    for (const g of baseList) {
+      const existing = dedupMap.get(g.id);
+      if (!existing || (g.viewsCount || 0) > (existing.viewsCount || 0)) {
+        dedupMap.set(g.id, g);
+      }
+    }
+
+    const cleanedList = Array.from(dedupMap.values()).map(g => {
       const realVote = userVotesMap[g.id];
+      const stat = localStats[g.id];
       const withoutRiotPixels = filterOutRiotPixels(g.downloadLinks || []);
       const sanitizedLinks = withoutRiotPixels.map(dl => {
         if (dl.url && (dl.type === 'magnet' || dl.url.startsWith('magnet:?'))) {
@@ -218,13 +258,22 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return dl;
       });
 
+      const resolvedViews = Math.max(g.viewsCount || 0, stat?.viewsCount || 0);
+      const resolvedDownloads = Math.max(g.downloadsCount || 0, stat?.downloadsCount || 0);
+      const resolvedVotes = stat?.totalVotes && stat.totalVotes > 0 ? stat.totalVotes : (realVote ? 1 : 0);
+      const resolvedRating = stat?.totalVotes && stat.totalVotes > 0 && typeof stat.rating === 'number'
+        ? stat.rating
+        : (realVote ? realVote : 0);
+
       return enrichGameWithCheatsAndMods({
         ...g,
         coverUrl: getGameCover(g),
         bannerUrl: getGameBanner(g),
         downloadLinks: sanitizedLinks,
-        rating: realVote ? realVote : 0,
-        totalVotes: realVote ? 1 : 0
+        viewsCount: resolvedViews,
+        downloadsCount: resolvedDownloads,
+        rating: resolvedRating,
+        totalVotes: resolvedVotes
       }, true);
     });
 
@@ -338,13 +387,39 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } catch {
             userVotesMap = {};
           }
+          const localStats = loadStoredGameStats();
+          const prevMap = new Map<string, Game>(prev.map(pg => [pg.id, pg]));
+
           const sanitizedRemote = remoteGames.map(g => {
             const realVote = userVotesMap[g.id];
+            const stat = localStats[g.id];
+            const prevGame = prevMap.get(g.id);
             const cleanLinks = filterOutRiotPixels(g.downloadLinks || []);
-            if (realVote) {
-              return { ...g, downloadLinks: cleanLinks, rating: realVote, totalVotes: 1 };
+
+            const mergedViews = Math.max(g.viewsCount || 0, prevGame?.viewsCount || 0, stat?.viewsCount || 0);
+            const mergedDownloads = Math.max(g.downloadsCount || 0, prevGame?.downloadsCount || 0, stat?.downloadsCount || 0);
+
+            let resolvedRating = 0;
+            let resolvedVotes = 0;
+            if (stat?.totalVotes && stat.totalVotes > 0 && stat.totalVotes >= (g.totalVotes || 0)) {
+              resolvedRating = stat.rating || realVote || 0;
+              resolvedVotes = stat.totalVotes;
+            } else if ((g.totalVotes || 0) > 0 && (g.rating || 0) > 0) {
+              resolvedRating = g.rating;
+              resolvedVotes = g.totalVotes;
+            } else if (realVote) {
+              resolvedRating = realVote;
+              resolvedVotes = 1;
             }
-            return { ...g, downloadLinks: cleanLinks, rating: 0, totalVotes: 0 };
+
+            return {
+              ...g,
+              downloadLinks: cleanLinks,
+              viewsCount: mergedViews,
+              downloadsCount: mergedDownloads,
+              rating: resolvedRating,
+              totalVotes: resolvedVotes
+            };
           });
 
           const remoteIds = new Set(sanitizedRemote.map(g => g.id));
@@ -890,10 +965,55 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
-  const incrementDownload = (gameId: string) => {
+  const lastViewedTimestampRef = useRef<Record<string, number>>({});
+
+  const incrementView = (gameId: string) => {
+    if (!gameId) return;
+    const now = Date.now();
+    const lastTs = lastViewedTimestampRef.current[gameId] || 0;
+    // Evita contagem dupla por StrictMode em montagens imediatas (< 1.5s)
+    if (now - lastTs < 1500) return;
+    lastViewedTimestampRef.current[gameId] = now;
+
+    let nextViewsToPersist: number | null = null;
     setGames(prev =>
-      prev.map(g => (g.id === gameId ? { ...g, downloadsCount: (g.downloadsCount || 0) + 1 } : g))
+      prev.map(g => {
+        if (g.id === gameId) {
+          const nextViews = (g.viewsCount || 0) + 1;
+          nextViewsToPersist = nextViews;
+          saveStoredGameStat(gameId, { viewsCount: nextViews });
+          const updated = { ...g, viewsCount: nextViews };
+          setActiveGame(cur => (cur?.id === gameId ? { ...cur, viewsCount: nextViews } : cur));
+          return updated;
+        }
+        return g;
+      })
     );
+
+    if (nextViewsToPersist !== null) {
+      updateGameStatsInSupabase(gameId, { views_count: nextViewsToPersist }).catch(() => {});
+    }
+  };
+
+  const incrementDownload = (gameId: string) => {
+    let nextDownloadsToPersist: number | null = null;
+    setGames(prev =>
+      prev.map(g => {
+        if (g.id === gameId) {
+          const nextDownloads = (g.downloadsCount || 0) + 1;
+          nextDownloadsToPersist = nextDownloads;
+          saveStoredGameStat(gameId, { downloadsCount: nextDownloads });
+          const updated = { ...g, downloadsCount: nextDownloads };
+          setActiveGame(cur => (cur?.id === gameId ? { ...cur, downloadsCount: nextDownloads } : cur));
+          return updated;
+        }
+        return g;
+      })
+    );
+
+    if (nextDownloadsToPersist !== null) {
+      updateGameStatsInSupabase(gameId, { downloads_count: nextDownloadsToPersist }).catch(() => {});
+    }
 
     // Registra o download no perfil do usuário
     setUserProfile(prev => {
@@ -943,6 +1063,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     currentVotesMap[gameId] = score;
     localStorage.setItem('vortex_user_votes', JSON.stringify(currentVotesMap));
 
+    let nextRatingToPersist: number | null = null;
+    let nextVotesToPersist: number | null = null;
+
     setGames(prev =>
       prev.map(g => {
         if (g.id === gameId) {
@@ -951,26 +1074,35 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           let newVotes = currentVotes;
           let newRating = currentRating;
 
-          if (previousScore) {
+          if (previousScore && currentVotes > 0) {
             // User updating their vote
             const totalSum = currentRating * currentVotes - previousScore + score;
-            newRating = Number((totalSum / (newVotes || 1)).toFixed(1));
+            newRating = Number(Math.max(1, Math.min(5, totalSum / currentVotes)).toFixed(1));
           } else {
             // First real vote
             newVotes = currentVotes + 1;
             const totalSum = currentRating * currentVotes + score;
-            newRating = Number((totalSum / newVotes).toFixed(1));
+            newRating = Number(Math.max(1, Math.min(5, totalSum / newVotes)).toFixed(1));
           }
 
+          nextRatingToPersist = newRating;
+          nextVotesToPersist = newVotes;
+          saveStoredGameStat(gameId, { rating: newRating, totalVotes: newVotes });
+
           const updated = { ...g, rating: newRating, totalVotes: newVotes };
-          if (activeGame?.id === gameId) {
-            setActiveGame(updated);
-          }
+          setActiveGame(cur => (cur?.id === gameId ? { ...cur, rating: newRating, totalVotes: newVotes } : cur));
           return updated;
         }
         return g;
       })
     );
+
+    if (nextRatingToPersist !== null && nextVotesToPersist !== null) {
+      updateGameStatsInSupabase(gameId, {
+        rating: nextRatingToPersist,
+        total_votes: nextVotesToPersist
+      }).catch(() => {});
+    }
 
     // Update reviewsCount in userProfile
     const totalVotesCount = Object.keys(currentVotesMap).length;
@@ -1194,6 +1326,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isInLibrary,
         markNotificationAsRead,
         markAllNotificationsAsRead,
+        incrementView,
         incrementDownload,
         resetDatabaseToDefault,
         exportDatabaseJson,

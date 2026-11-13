@@ -197,6 +197,34 @@ export async function upsertGameToSupabase(game: Game): Promise<{ success: boole
 }
 
 /**
+ * Atualiza contadores (views_count, downloads_count, rating, total_votes) de um jogo no Supabase
+ */
+export async function updateGameStatsInSupabase(
+  gameId: string,
+  stats: {
+    views_count?: number;
+    downloads_count?: number;
+    rating?: number;
+    total_votes?: number;
+  }
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase
+      .from('games')
+      .update(stats)
+      .eq('id', gameId);
+
+    if (error) {
+      console.warn('Erro ao atualizar métricas no Supabase:', error.message);
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Erro desconhecido' };
+  }
+}
+
+/**
  * Remove um jogo da tabela do Supabase
  */
 export async function deleteGameFromSupabase(gameId: string): Promise<{ success: boolean; error?: string }> {

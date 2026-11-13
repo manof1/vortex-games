@@ -22,6 +22,7 @@ import { ThematicListsBar } from './components/ThematicListsBar';
 import { THEMATIC_LISTS, findThematicListBySlug } from './data/thematicLists';
 import { SearchX, Sparkles, Flame, Trophy, X, Star, Medal, Users, Eye, Download, Calendar } from 'lucide-react';
 import { TOP_OPTIONS } from './components/Header';
+import { getCriticScores, getCombinedUserScore, getOverallRatingScore } from './utils/ratingUtils';
 import { 
   parseCurrentRoute, 
   findGameBySlug, 
@@ -254,30 +255,48 @@ const MainContent: React.FC = () => {
           case 'latest':
             return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
           case 'popular':
-            return b.viewsCount - a.viewsCount;
+          case 'top_views': {
+            const viewsDiff = (b.viewsCount || 0) - (a.viewsCount || 0);
+            if (viewsDiff !== 0) return viewsDiff;
+            const dlDiff = (b.downloadsCount || 0) - (a.downloadsCount || 0);
+            if (dlDiff !== 0) return dlDiff;
+            return getCriticScores(b).metacritic - getCriticScores(a).metacritic;
+          }
           case 'rating':
-          case 'top_rating':
-            if (b.totalVotes > 0 && a.totalVotes === 0) return 1;
-            if (a.totalVotes > 0 && b.totalVotes === 0) return -1;
-            if (b.rating !== a.rating) return b.rating - a.rating;
-            return (b.totalVotes || 0) - (a.totalVotes || 0);
+          case 'top_rating': {
+            const scoreDiff = getOverallRatingScore(b) - getOverallRatingScore(a);
+            if (Math.abs(scoreDiff) > 0.001) return scoreDiff;
+            const votesDiff = (b.totalVotes || 0) - (a.totalVotes || 0);
+            if (votesDiff !== 0) return votesDiff;
+            const metaDiff = getCriticScores(b).metacritic - getCriticScores(a).metacritic;
+            if (metaDiff !== 0) return metaDiff;
+            return (b.viewsCount || 0) - (a.viewsCount || 0);
+          }
           case 'top_critic': {
-            const bMeta = b.criticScores?.metacritic || b.criticScores?.opencritic || 0;
-            const aMeta = a.criticScores?.metacritic || a.criticScores?.opencritic || 0;
-            if (bMeta !== aMeta) return bMeta - aMeta;
-            return b.rating - a.rating;
+            const bCritic = getCriticScores(b);
+            const aCritic = getCriticScores(a);
+            if (bCritic.metacritic !== aCritic.metacritic) return bCritic.metacritic - aCritic.metacritic;
+            if (bCritic.opencritic !== aCritic.opencritic) return bCritic.opencritic - aCritic.opencritic;
+            if (bCritic.metacriticUser !== aCritic.metacriticUser) return bCritic.metacriticUser - aCritic.metacriticUser;
+            return (b.viewsCount || 0) - (a.viewsCount || 0);
           }
           case 'top_user': {
-            const bUser = b.criticScores?.metacriticUser ? b.criticScores.metacriticUser * 10 : (b.rating * 20);
-            const aUser = a.criticScores?.metacriticUser ? a.criticScores.metacriticUser * 10 : (a.rating * 20);
-            if (bUser !== aUser) return bUser - aUser;
-            return b.rating - a.rating;
+            const userDiff = getCombinedUserScore(b) - getCombinedUserScore(a);
+            if (Math.abs(userDiff) > 0.001) return userDiff;
+            const bCritic = getCriticScores(b);
+            const aCritic = getCriticScores(a);
+            if (bCritic.metacriticUser !== aCritic.metacriticUser) return bCritic.metacriticUser - aCritic.metacriticUser;
+            if (bCritic.gamefaqs !== aCritic.gamefaqs) return bCritic.gamefaqs - aCritic.gamefaqs;
+            return (b.totalVotes || 0) - (a.totalVotes || 0);
           }
-          case 'top_views':
-            return (b.viewsCount || 0) - (a.viewsCount || 0);
           case 'downloads':
-          case 'top_downloads':
-            return (b.downloadsCount || 0) - (a.downloadsCount || 0);
+          case 'top_downloads': {
+            const dlDiff = (b.downloadsCount || 0) - (a.downloadsCount || 0);
+            if (dlDiff !== 0) return dlDiff;
+            const viewsDiff = (b.viewsCount || 0) - (a.viewsCount || 0);
+            if (viewsDiff !== 0) return viewsDiff;
+            return getCriticScores(b).metacritic - getCriticScores(a).metacritic;
+          }
           case 'sizeAsc':
             return parseFloat(a.repackInfo.repackSize) - parseFloat(b.repackInfo.repackSize);
           case 'sizeDesc':
