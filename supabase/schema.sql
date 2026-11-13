@@ -59,8 +59,8 @@ CREATE TABLE public.games (
   trailer_youtube_id TEXT,
   
   -- Métricas da Comunidade
-  rating NUMERIC(3,1) DEFAULT 5.0,
-  total_votes INT DEFAULT 1,
+  rating NUMERIC(3,1) DEFAULT 0,
+  total_votes INT DEFAULT 0,
   downloads_count INT DEFAULT 0,
   views_count INT DEFAULT 0,
   is_featured BOOLEAN DEFAULT false,
@@ -205,9 +205,9 @@ INSERT INTO public.games (
   true,
   true,
   true,
-  5.0,
-  6120,
-  165000,
+  0,
+  0,
+  0,
   '[
     {
       "id": "dl-tlou-torrent",

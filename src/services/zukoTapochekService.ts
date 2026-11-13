@@ -123,8 +123,8 @@ export function createZukoTapochekGame(entry: ZukoTapochekEntry): Game {
         directx: 'Versão 12'
       }
     },
-    rating: 4.9,
-    totalVotes: Math.floor(Math.random() * 2000) + 500,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [defaultCover, defaultBanner],
     trailerYoutubeId: 'WxjeV4QV4eo',
     tags: [
@@ -136,8 +136,8 @@ export function createZukoTapochekGame(entry: ZukoTapochekEntry): Game {
       'PKG',
       'Torrent'
     ],
-    downloadsCount: Math.floor(Math.random() * 30000) + 12000,
-    viewsCount: Math.floor(Math.random() * 80000) + 30000,
+    downloadsCount: 0,
+    viewsCount: 0,
     createdAt: new Date().toISOString(),
     isFeatured: false,
     isTrending: true,

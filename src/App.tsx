@@ -22,7 +22,7 @@ import { ThematicListsBar } from './components/ThematicListsBar';
 import { THEMATIC_LISTS, findThematicListBySlug } from './data/thematicLists';
 import { SearchX, Sparkles, Flame, Trophy, X, Star, Medal, Users, Eye, Download, Calendar } from 'lucide-react';
 import { TOP_OPTIONS } from './components/Header';
-import { getCriticScores, getCombinedUserScore, getOverallRatingScore } from './utils/ratingUtils';
+import { getCriticScores, getOverallRatingScore } from './utils/ratingUtils';
 import { 
   parseCurrentRoute, 
   findGameBySlug, 
@@ -281,13 +281,12 @@ const MainContent: React.FC = () => {
             return (b.viewsCount || 0) - (a.viewsCount || 0);
           }
           case 'top_user': {
-            const userDiff = getCombinedUserScore(b) - getCombinedUserScore(a);
-            if (Math.abs(userDiff) > 0.001) return userDiff;
-            const bCritic = getCriticScores(b);
-            const aCritic = getCriticScores(a);
-            if (bCritic.metacriticUser !== aCritic.metacriticUser) return bCritic.metacriticUser - aCritic.metacriticUser;
-            if (bCritic.gamefaqs !== aCritic.gamefaqs) return bCritic.gamefaqs - aCritic.gamefaqs;
-            return (b.totalVotes || 0) - (a.totalVotes || 0);
+            const bHasVotes = (b.totalVotes || 0) > 0 && (b.rating || 0) > 0;
+            const aHasVotes = (a.totalVotes || 0) > 0 && (a.rating || 0) > 0;
+            if (bHasVotes !== aHasVotes) return bHasVotes ? 1 : -1;
+            if ((b.rating || 0) !== (a.rating || 0)) return (b.rating || 0) - (a.rating || 0);
+            if ((b.totalVotes || 0) !== (a.totalVotes || 0)) return (b.totalVotes || 0) - (a.totalVotes || 0);
+            return (b.viewsCount || 0) - (a.viewsCount || 0);
           }
           case 'downloads':
           case 'top_downloads': {

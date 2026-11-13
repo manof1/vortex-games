@@ -74,9 +74,9 @@ export const BROTHERGAME_PRESET_GAMES: Game[] = [
         directx: 'Versão 12'
       }
     },
-    rating: 4.9,
+    rating: 0,
     imdbRating: 8.9,
-    totalVotes: 320,
+    totalVotes: 0,
     screenshots: [
       'https://static.wixstatic.com/media/3b8369_259721a8a1c141e09d1a8bf0c8fd6a1d~mv2.png/v1/fit/w_896,h_1000,al_c,q_80/file.png',
       'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80',
@@ -84,8 +84,8 @@ export const BROTHERGAME_PRESET_GAMES: Game[] = [
     ],
     trailerYoutubeId: '7Q3Zf3n3zE4',
     tags: ['Brother Game', 'Port Nativo PC', 'Star Fox', 'Sem Emulador'],
-    downloadsCount: 14200,
-    viewsCount: 38000,
+    downloadsCount: 0,
+    viewsCount: 0,
     isFeatured: true,
     isTrending: true,
     hasPcTorrent: false,
@@ -197,9 +197,9 @@ export const BROTHERGAME_PRESET_GAMES: Game[] = [
         directx: 'Versão 12'
       }
     },
-    rating: 5.0,
+    rating: 0,
     imdbRating: 9.8,
-    totalVotes: 680,
+    totalVotes: 0,
     screenshots: [
       'https://static.wixstatic.com/media/3b8369_60e8beec5803498fb30d81c6302c7840~mv2.png/v1/fit/w_896,h_1000,al_c,q_80/file.png',
       'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80',
@@ -207,8 +207,8 @@ export const BROTHERGAME_PRESET_GAMES: Game[] = [
     ],
     trailerYoutubeId: 'Xb20FiS7cNg',
     tags: ['Brother Game', 'Zelda', 'PC Nativo', 'Tradução PT-BR'],
-    downloadsCount: 29500,
-    viewsCount: 74000,
+    downloadsCount: 0,
+    viewsCount: 0,
     isFeatured: true,
     isTrending: true,
     hasPcTorrent: false,
@@ -280,17 +280,17 @@ export const BROTHERGAME_PRESET_GAMES: Game[] = [
         directx: 'Versão 12'
       }
     },
-    rating: 4.8,
+    rating: 0,
     imdbRating: 8.7,
-    totalVotes: 440,
+    totalVotes: 0,
     screenshots: [
       'https://static.wixstatic.com/media/3b8369_f98ee5ef48374f81b7b06dfbaf1a26fe~mv2.png/v1/fit/w_896,h_1000,al_c,q_80/file.png',
       'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80'
     ],
     trailerYoutubeId: '7Q3Zf3n3zE4',
     tags: ['Brother Game', 'Bayonetta', 'PT-BR', 'Port PC'],
-    downloadsCount: 18400,
-    viewsCount: 47000,
+    downloadsCount: 0,
+    viewsCount: 0,
     isFeatured: true,
     isTrending: true,
     hasPcTorrent: false,
@@ -382,17 +382,17 @@ export const BROTHERGAME_PRESET_GAMES: Game[] = [
         directx: 'Versão 12'
       }
     },
-    rating: 4.9,
+    rating: 0,
     imdbRating: 9.4,
-    totalVotes: 810,
+    totalVotes: 0,
     screenshots: [
       'https://static.wixstatic.com/media/3b8369_6a425f1e57e94f0c89c9c9616f62f185~mv2.png/v1/fit/w_1000,h_1000,al_c,q_80/file.png',
       'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80'
     ],
     trailerYoutubeId: 'EE-4GvjKcfs',
     tags: ['Brother Game', 'God of War', 'Kratos', 'PC Port', 'Dublado PT-BR'],
-    downloadsCount: 31200,
-    viewsCount: 82000,
+    downloadsCount: 0,
+    viewsCount: 0,
     isFeatured: true,
     isTrending: true,
     hasPcTorrent: false,
@@ -474,17 +474,17 @@ export const BROTHERGAME_PRESET_GAMES: Game[] = [
         directx: 'Versão 12'
       }
     },
-    rating: 4.9,
+    rating: 0,
     imdbRating: 9.6,
-    totalVotes: 520,
+    totalVotes: 0,
     screenshots: [
       'https://static.wixstatic.com/media/3b8369_c430836e0ff640a1bd9cb1503a81af5e~mv2.jpg/v1/fit/w_316,h_495,al_c,q_80/file.png',
       'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80'
     ],
     trailerYoutubeId: 'wGQHQc_3ycE',
     tags: ['Brother Game', 'Mario', 'PC Windows', 'Nintendo Port'],
-    downloadsCount: 22100,
-    viewsCount: 56000,
+    downloadsCount: 0,
+    viewsCount: 0,
     isFeatured: true,
     isTrending: true,
     hasPcTorrent: false,
@@ -576,16 +576,16 @@ export const BROTHERGAME_PRESET_GAMES: Game[] = [
         directx: 'Versão 12'
       }
     },
-    rating: 5.0,
+    rating: 0,
     imdbRating: 9.7,
-    totalVotes: 730,
+    totalVotes: 0,
     screenshots: [
       'https://static.wixstatic.com/media/3b8369_101e4125e238474e9f546cb503beb9d3~mv2.png/v1/fit/w_1000,h_1000,al_c,q_80/file.png'
     ],
     trailerYoutubeId: 'wGQHQc_3ycE',
     tags: ['Brother Game', 'Gran Turismo 4', 'Simulação', 'PC Port'],
-    downloadsCount: 26800,
-    viewsCount: 68000,
+    downloadsCount: 0,
+    viewsCount: 0,
     isFeatured: true,
     isTrending: true,
     hasPcTorrent: false,

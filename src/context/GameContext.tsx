@@ -180,6 +180,18 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Games state
   const [games, setGames] = useState<Game[]>(() => {
+    let needsStatsReset = false;
+    try {
+      if (localStorage.getItem('vortex_stats_reset_v1') !== '1') {
+        needsStatsReset = true;
+        localStorage.removeItem(GAME_STATS_STORAGE_KEY);
+        localStorage.removeItem('vortex_user_votes');
+        localStorage.setItem('vortex_stats_reset_v1', '1');
+      }
+    } catch {
+      // ignore
+    }
+
     let baseList = INITIAL_GAMES;
     const initialMap = new Map<string, Game>(INITIAL_GAMES.map(g => [g.id, g]));
     const saved = localStorage.getItem('vortex_games');
@@ -192,10 +204,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // to fix any old cached SVG/gameover/imageban covers on Vercel/GitHub
           const sanitizedSaved = parsed.map((pg: Game) => {
             const preset = initialMap.get(pg.id);
+            const resetPatch = needsStatsReset
+              ? { viewsCount: 0, downloadsCount: 0, rating: 0, totalVotes: 0 }
+              : {};
             if (preset) {
               return {
                 ...preset,
                 ...pg,
+                ...resetPatch,
                 // Preserve user-chosen coverUrl if present; otherwise fallback to preset cover
                 coverUrl: pg.coverUrl || preset.coverUrl,
                 bannerUrl: pg.bannerUrl || preset.bannerUrl
@@ -204,11 +220,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (pg.coverUrl?.includes('1091500') && !pg.title?.toLowerCase().includes('cyberpunk')) {
               return {
                 ...pg,
+                ...resetPatch,
                 coverUrl: DEFAULT_GAME_COVER,
                 bannerUrl: DEFAULT_GAME_BANNER
               };
             }
-            return pg;
+            return { ...pg, ...resetPatch };
           });
 
           const savedIds = new Set(sanitizedSaved.map((g: Game) => g.id));

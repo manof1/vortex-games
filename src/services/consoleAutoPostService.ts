@@ -216,8 +216,8 @@ export async function processSingleConsoleGame(
     releaseDate: scrapedRes?.releaseDate || 'Console Release',
     developer: scrapedRes?.developer || 'Estúdio Original',
     publisher: scrapedRes?.publisher || 'Distribuidora Oficial',
-    rating: scrapedRes?.gamefaqsRating || 4.9,
-    totalVotes: 420,
+    rating: 0,
+    totalVotes: 0,
     repackInfo: {
       repacker: hasTranslation && translationRes ? `Vortex Console Lab (${translationRes.team})` : 'Vortex Console Lab',
       version: `${finalPlatform} HD Patch + 60 FPS`,
@@ -233,8 +233,8 @@ export async function processSingleConsoleGame(
       recommended: { os: `${finalPlatform} ou Emulador`, processor: 'Quad Core 3.5 GHz', memory: '8 GB RAM', graphics: 'Vulkan / DirectX 12', storage: fileSize, directx: '12' }
     },
     tags: [finalPlatform, format, 'LibRetro', 'GameFAQs', cleanTitle, hasTranslation ? 'Tradução PT-BR' : 'Console Clássico'],
-    downloadsCount: Math.floor(12000 + Math.random() * 30000),
-    viewsCount: Math.floor(35000 + Math.random() * 60000),
+    downloadsCount: 0,
+    viewsCount: 0,
     createdAt: new Date().toISOString(),
     hasPtBrAudio: isDublado,
     hasPtBrSubs: isLegendado,

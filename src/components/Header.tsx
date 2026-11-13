@@ -37,7 +37,7 @@ export const TOP_OPTIONS = [
     key: 'top_user' as const,
     label: 'Melhores Notas dos Usuários',
     icon: '👥',
-    description: 'User Score do Metacritic e notas GameFAQs'
+    description: 'Melhores notas avaliadas pelos usuários do portal'
   },
   {
     key: 'top_views' as const,

@@ -125,7 +125,8 @@ export async function syncConsoles() {
         genres: item.genres,
         categories: [item.platform, 'Preservação de Consoles', 'Retro', item.format, 'PT-BR'],
         release_year: item.platform === 'PS1' ? 1999 : 2005,
-        rating: 4.9,
+        rating: 0,
+        total_votes: 0,
         repack_info: {
           repacker: `Vortex Console Lab (${item.translation.split(' por ')[1] || 'Comunidade BR'})`,
           version: `${item.platform} HD Remaster + 60 FPS`,
@@ -154,8 +155,8 @@ export async function syncConsoles() {
         has_pkg_format: item.format === 'PKG',
         has_pc_torrent: false,
         title_id: item.titleId,
-        views_count: 28000,
-        downloads_count: 14500,
+        views_count: 0,
+        downloads_count: 0,
         tags: [item.platform, item.format, 'LibRetro', 'GameShark', 'Tradução PT-BR']
       };
 

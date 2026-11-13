@@ -75,9 +75,9 @@ const FITGIRL_DYNAMIC_FEED_POOL: Array<Omit<Game, 'id' | 'createdAt'>> = [
         directx: 'Versão 12'
       }
     },
-    rating: 4.8,
+    rating: 0,
     imdbRating: 8.6,
-    totalVotes: 890,
+    totalVotes: 0,
     screenshots: [
       'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80',
@@ -86,8 +86,8 @@ const FITGIRL_DYNAMIC_FEED_POOL: Array<Omit<Game, 'id' | 'createdAt'>> = [
     ],
     trailerYoutubeId: '7Q3Zf3n3zE4',
     tags: ['Terror', 'Unreal Engine 5', 'FitGirl Repack', 'Legendas PT-BR'],
-    downloadsCount: 38200,
-    viewsCount: 120000,
+    downloadsCount: 0,
+    viewsCount: 0,
     isFeatured: true,
     isTrending: true,
     languages: ['Português (Brasil)', 'Inglês', 'Japonês']
@@ -142,9 +142,9 @@ const FITGIRL_DYNAMIC_FEED_POOL: Array<Omit<Game, 'id' | 'createdAt'>> = [
         directx: 'Versão 12'
       }
     },
-    rating: 4.6,
+    rating: 0,
     imdbRating: 8.7,
-    totalVotes: 640,
+    totalVotes: 0,
     screenshots: [
       'https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80',
@@ -153,8 +153,8 @@ const FITGIRL_DYNAMIC_FEED_POOL: Array<Omit<Game, 'id' | 'createdAt'>> = [
     ],
     trailerYoutubeId: '1w_eTf1mF_Y',
     tags: ['Capcom', 'RE Engine', 'Peões', 'Dragões', 'Legendas PT-BR'],
-    downloadsCount: 29400,
-    viewsCount: 95000,
+    downloadsCount: 0,
+    viewsCount: 0,
     languages: ['Português (Brasil)', 'Inglês', 'Japonês']
   }
 ];

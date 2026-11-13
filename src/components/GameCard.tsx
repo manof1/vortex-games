@@ -17,7 +17,6 @@ import { useGame } from '../context/GameContext';
 import { useLanguage } from '../context/LanguageContext';
 import {
   getCriticScores,
-  getCombinedUserScore,
   getOverallRatingScore,
   getMetacriticBadgeColor,
   getOpenCriticTierColor
@@ -40,7 +39,6 @@ export const GameCard: React.FC<GameCardProps> = ({ game, rank }) => {
   const { t } = useLanguage();
   
   const critic = getCriticScores(game);
-  const combinedUserScore = getCombinedUserScore(game);
   const overallScore = getOverallRatingScore(game);
   const metaBadge = getMetacriticBadgeColor(critic.metacritic);
   const openBadge = getOpenCriticTierColor(critic.opencriticTier);
@@ -287,11 +285,12 @@ export const GameCard: React.FC<GameCardProps> = ({ game, rank }) => {
             <div className="mt-2.5 flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-[11px] font-bold text-amber-700 dark:text-amber-300">
               <span className="flex items-center gap-1.5">
                 <Users className="w-3.5 h-3.5 text-amber-500" />
-                <span>Nota Usuários</span>
+                <span>Avaliação Usuários</span>
               </span>
               <span className="font-mono font-black">
-                {(combinedUserScore / 10).toFixed(1)}/10
-                {game.totalVotes > 0 ? ` (${game.rating.toFixed(1)}★)` : ''}
+                {game.totalVotes > 0
+                  ? `${game.rating.toFixed(1)}/5.0 (${game.totalVotes} voto${game.totalVotes > 1 ? 's' : ''})`
+                  : '0.0/5.0 (0 votos)'}
               </span>
             </div>
           )}

@@ -399,8 +399,8 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
         releaseDate: scraped.releaseDate || (scraped.releaseYear ? `01/01/${scraped.releaseYear}` : '01/01/2005'),
         developer: scraped.developer || 'Estúdio Oficial',
         publisher: scraped.publisher || 'Distribuidora Oficial',
-        rating: 4.8,
-        totalVotes: 6400,
+        rating: 0,
+        totalVotes: 0,
         repackInfo: {
           repacker: `${sourceWeb} Preservation Archive`,
           version: `v1.0 (${scraped.region || 'NTSC-U'})`,
@@ -430,8 +430,8 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
           recommended: { os: `${scraped.platform} ou Emulador`, processor: 'Quad Core 3.5GHz', memory: '8 GB RAM', graphics: 'DirectX 12', storage: '8 GB', directx: '12' }
         },
         tags: [scraped.platform, scraped.format || 'ISO', sourceWeb, 'Console', 'VortexGames'],
-        downloadsCount: 15400,
-        viewsCount: 42000,
+        downloadsCount: 0,
+        viewsCount: 0,
         createdAt: new Date().toISOString(),
         hasPtBrSubs: true,
         hasPkgFormat: scraped.format === 'PKG',

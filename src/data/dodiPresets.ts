@@ -101,8 +101,8 @@ export const DODI_PRESET_GAMES: Game[] = [
       "Sci-Fi",
       "Legendas PT-BR"
     ],
-    "downloadsCount": 68000,
-    "viewsCount": 185000,
+    "downloadsCount": 0,
+    "viewsCount": 0,
     "createdAt": "2024-03-10T12:00:00Z",
     "isFeatured": true,
     "isTrending": true,
@@ -210,8 +210,8 @@ export const DODI_PRESET_GAMES: Game[] = [
       "Carros",
       "Corrida"
     ],
-    "downloadsCount": 142000,
-    "viewsCount": 380000,
+    "downloadsCount": 0,
+    "viewsCount": 0,
     "createdAt": "2024-05-16T12:00:00Z",
     "isFeatured": true,
     "isTrending": true,

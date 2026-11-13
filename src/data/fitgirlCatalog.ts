@@ -107,8 +107,8 @@ export const FITGIRL_PRESET_GAMES: Game[] = [
         directx: 'Versão 12'
       }
     },
-    rating: 5.0,
-    totalVotes: 4890,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80',
@@ -117,8 +117,8 @@ export const FITGIRL_PRESET_GAMES: Game[] = [
     ],
     trailerYoutubeId: 'G203e1HhixY',
     tags: ['Bloodborne', 'FromSoftware', 'PC Port', '60 FPS', 'The Old Hunters', 'MULTI14'],
-    downloadsCount: 172053,
-    viewsCount: 420000,
+    downloadsCount: 0,
+    viewsCount: 0,
     createdAt: '2026-10-17T19:27:00Z',
     isFeatured: true,
     isTrending: true,
@@ -221,16 +221,16 @@ export const FITGIRL_PRESET_GAMES: Game[] = [
         directx: 'Versão 12'
       }
     },
-    rating: 4.9,
-    totalVotes: 2450,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80'
     ],
     trailerYoutubeId: 'mrT93jcv9jQ',
     tags: ['Homem Aranha', 'Dublado PT-BR', 'PlayStation PC', 'Ray Tracing'],
-    downloadsCount: 71200,
-    viewsCount: 230000,
+    downloadsCount: 0,
+    viewsCount: 0,
     createdAt: '2023-09-01T10:00:00Z',
     isFeatured: false,
     isTrending: true,
@@ -333,16 +333,16 @@ export const FITGIRL_PRESET_GAMES: Game[] = [
         directx: 'Versão 12'
       }
     },
-    rating: 5.0,
-    totalVotes: 2900,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       'https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80'
     ],
     trailerYoutubeId: 'b_fL8qZ91kY',
     tags: ['Samurai', 'Dublado PT-BR', 'Ilha Iki', 'Kurosawa Mode', 'PlayStation PC'],
-    downloadsCount: 84000,
-    viewsCount: 295000,
+    downloadsCount: 0,
+    viewsCount: 0,
     createdAt: '2024-05-18T12:00:00Z',
     isFeatured: true,
     isTrending: true,
@@ -445,16 +445,16 @@ export const FITGIRL_PRESET_GAMES: Game[] = [
         directx: 'Versão 12'
       }
     },
-    rating: 4.8,
-    totalVotes: 3100,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80'
     ],
     trailerYoutubeId: '1O6Qstncpnc',
     tags: ['Bruxos', 'Castelo de Hogwarts', 'Dublado PT-BR', 'Vassouras', 'Deluxe Edition'],
-    downloadsCount: 98000,
-    viewsCount: 340000,
+    downloadsCount: 0,
+    viewsCount: 0,
     createdAt: '2023-03-01T14:00:00Z',
     isFeatured: false,
     isTrending: true,
@@ -557,15 +557,15 @@ export const FITGIRL_PRESET_GAMES: Game[] = [
         directx: 'Versão 11'
       }
     },
-    rating: 4.9,
-    totalVotes: 3800,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1200&q=80'
     ],
     trailerYoutubeId: 'rXMX4YSTWF8',
     tags: ['GOTY', 'FromSoftware', 'Lobo de Um Braço Só', 'Legendas PT-BR'],
-    downloadsCount: 112000,
-    viewsCount: 390000,
+    downloadsCount: 0,
+    viewsCount: 0,
     createdAt: '2023-01-20T12:00:00Z',
     isFeatured: false,
     isTrending: false,
@@ -668,15 +668,15 @@ export const FITGIRL_PRESET_GAMES: Game[] = [
         directx: 'Versão 12'
       }
     },
-    rating: 5.0,
-    totalVotes: 1890,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80'
     ],
     trailerYoutubeId: 'l-iHM_3v9lE',
     tags: ['Roguelike', 'Melinoe', 'Supergiant Games', 'Trilha Sonora Épica', 'PT-BR'],
-    downloadsCount: 42000,
-    viewsCount: 160000,
+    downloadsCount: 0,
+    viewsCount: 0,
     createdAt: '2024-05-10T11:00:00Z',
     isFeatured: false,
     isTrending: true,

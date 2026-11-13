@@ -109,8 +109,8 @@ export const ZUKO_TAPOCHEK_PRESETS: Game[] = [
       "PKG",
       "Naughty Dog"
     ],
-    "downloadsCount": 165000,
-    "viewsCount": 520000,
+    "downloadsCount": 0,
+    "viewsCount": 0,
     "createdAt": "2024-02-15T12:00:00Z",
     "isFeatured": true,
     "isTrending": true,
@@ -243,8 +243,8 @@ export const ZUKO_TAPOCHEK_PRESETS: Game[] = [
       "PKG",
       "Samurai"
     ],
-    "downloadsCount": 92300,
-    "viewsCount": 295000,
+    "downloadsCount": 0,
+    "viewsCount": 0,
     "createdAt": "2024-05-18T14:00:00Z",
     "isFeatured": true,
     "isTrending": true,
@@ -375,8 +375,8 @@ export const ZUKO_TAPOCHEK_PRESETS: Game[] = [
       "PKG",
       "Naughty Dog"
     ],
-    "downloadsCount": 71200,
-    "viewsCount": 220000,
+    "downloadsCount": 0,
+    "viewsCount": 0,
     "createdAt": "2023-11-10T10:00:00Z",
     "isFeatured": false,
     "isTrending": true,
@@ -508,8 +508,8 @@ export const ZUKO_TAPOCHEK_PRESETS: Game[] = [
       "PKG",
       "Guerrilla"
     ],
-    "downloadsCount": 58900,
-    "viewsCount": 185000,
+    "downloadsCount": 0,
+    "viewsCount": 0,
     "createdAt": "2024-03-25T11:00:00Z",
     "isFeatured": false,
     "isTrending": true,

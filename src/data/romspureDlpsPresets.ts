@@ -73,8 +73,8 @@ const RAW_ROMSPURE_DLPS_PRESETS: RawConsolePreset[] = [
         hostName: "DLPSGame.com"
       }
     ],
-    rating: 4.9,
-    totalVotes: 8940,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Snaps/Castlevania%20-%20Symphony%20of%20the%20Night%20(USA).png",
       "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Boxarts/Castlevania%20-%20Symphony%20of%20the%20Night%20(Europe).png",
@@ -140,8 +140,8 @@ const RAW_ROMSPURE_DLPS_PRESETS: RawConsolePreset[] = [
         hostName: "RomsPure.cc"
       }
     ],
-    rating: 4.9,
-    totalVotes: 12400,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation_2/master/Named_Snaps/God%20of%20War%20II%20(USA).png",
       "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation_2/master/Named_Boxarts/God%20of%20War%20II%20(Europe).png",
@@ -207,8 +207,8 @@ const RAW_ROMSPURE_DLPS_PRESETS: RawConsolePreset[] = [
         hostName: "DLPSGame.com"
       }
     ],
-    rating: 4.9,
-    totalVotes: 7820,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Snaps/Silent%20Hill%20(USA).png",
       "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Boxarts/Silent%20Hill%20(Europe).png",
@@ -274,8 +274,8 @@ const RAW_ROMSPURE_DLPS_PRESETS: RawConsolePreset[] = [
         hostName: "RomsPure.cc"
       }
     ],
-    rating: 4.9,
-    totalVotes: 15300,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation_2/master/Named_Snaps/Resident%20Evil%204%20(USA).png",
       "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation_2/master/Named_Boxarts/Resident%20Evil%204%20(Europe).png",
@@ -327,8 +327,8 @@ const RAW_ROMSPURE_DLPS_PRESETS: RawConsolePreset[] = [
         hostName: "DLPSGame.com"
       }
     ],
-    rating: 4.9,
-    totalVotes: 18900,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation_3/master/Named_Snaps/The%20Last%20of%20Us%20(USA).png",
       "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation_3/master/Named_Boxarts/The%20Last%20of%20Us%20(Europe).png",
@@ -380,8 +380,8 @@ const RAW_ROMSPURE_DLPS_PRESETS: RawConsolePreset[] = [
         hostName: "DLPSGame.com"
       }
     ],
-    rating: 4.9,
-    totalVotes: 14200,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       "https://image.api.playstation.com/vulcan/img/rnd/202010/2614/gdaeAUzkfv6efQWfg1bM8U07.png",
       "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation_3/master/Named_Snaps/The%20Last%20of%20Us%20(USA).png",
@@ -433,8 +433,8 @@ const RAW_ROMSPURE_DLPS_PRESETS: RawConsolePreset[] = [
         hostName: "RomsPure.cc"
       }
     ],
-    rating: 4.8,
-    totalVotes: 6150,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation_Portable/master/Named_Snaps/God%20of%20War%20-%20Ghost%20of%20Sparta%20(USA).png",
       "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation_Portable/master/Named_Boxarts/God%20of%20War%20-%20Ghost%20of%20Sparta%20(Europe).png",
@@ -486,8 +486,8 @@ const RAW_ROMSPURE_DLPS_PRESETS: RawConsolePreset[] = [
         hostName: "RomsPure.cc"
       }
     ],
-    rating: 4.9,
-    totalVotes: 21500,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       "https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Nintendo_Switch/master/Named_Snaps/The%20Legend%20of%20Zelda%20-%20Breath%20of%20the%20Wild%20(USA).png",
       "https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Nintendo_Switch/master/Named_Boxarts/The%20Legend%20of%20Zelda%20-%20Breath%20of%20the%20Wild%20(USA).png",
@@ -553,8 +553,8 @@ const RAW_ROMSPURE_DLPS_PRESETS: RawConsolePreset[] = [
         hostName: "RomsPure.cc"
       }
     ],
-    rating: 5.0,
-    totalVotes: 28400,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation_2/master/Named_Snaps/Grand%20Theft%20Auto%20-%20San%20Andreas%20(USA).png",
       "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation_2/master/Named_Boxarts/Grand%20Theft%20Auto%20-%20San%20Andreas%20(USA).png",
@@ -606,8 +606,8 @@ const RAW_ROMSPURE_DLPS_PRESETS: RawConsolePreset[] = [
         hostName: "DLPSGame.com"
       }
     ],
-    rating: 4.9,
-    totalVotes: 11900,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation_2/master/Named_Snaps/Shadow%20of%20the%20Colossus%20(USA).png",
       "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation_2/master/Named_Boxarts/Shadow%20of%20the%20Colossus%20(USA).png",
@@ -659,8 +659,8 @@ const RAW_ROMSPURE_DLPS_PRESETS: RawConsolePreset[] = [
         hostName: "RomsPure.cc"
       }
     ],
-    rating: 4.9,
-    totalVotes: 16800,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Snaps/Tekken%203%20(USA).png",
       "https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Boxarts/Tekken%203%20(USA).png",
@@ -712,8 +712,8 @@ const RAW_ROMSPURE_DLPS_PRESETS: RawConsolePreset[] = [
         hostName: "RomsPure.cc"
       }
     ],
-    rating: 4.9,
-    totalVotes: 19400,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       "https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Nintendo_Switch/master/Named_Snaps/Super%20Mario%20Odyssey%20(USA).png",
       "https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Nintendo_Switch/master/Named_Boxarts/Super%20Mario%20Odyssey%20(USA).png",
@@ -764,8 +764,8 @@ const RAW_ROMSPURE_DLPS_PRESETS: RawConsolePreset[] = [
         hostName: "RomsPure.cc"
       }
     ],
-    rating: 5.0,
-    totalVotes: 32000,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       "https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Nintendo_64/master/Named_Snaps/Legend%20of%20Zelda%2C%20The%20-%20Ocarina%20of%20Time%20(USA).png",
       "https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Nintendo_64/master/Named_Boxarts/Legend%20of%20Zelda%2C%20The%20-%20Ocarina%20of%20Time%20(USA).png",
@@ -816,8 +816,8 @@ const RAW_ROMSPURE_DLPS_PRESETS: RawConsolePreset[] = [
         hostName: "RomsPure.cc"
       }
     ],
-    rating: 4.9,
-    totalVotes: 24500,
+    rating: 0,
+    totalVotes: 0,
     screenshots: [
       "https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Game_Boy_Advance/master/Named_Snaps/Pokemon%20-%20Emerald%20Version%20(USA%2C%20Europe).png",
       "https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Game_Boy_Advance/master/Named_Boxarts/Pokemon%20-%20Emerald%20Version%20(USA%2C%20Europe).png",
@@ -834,8 +834,8 @@ export const ROMSPURE_DLPS_PRESETS: ConsolePresetItem[] = RAW_ROMSPURE_DLPS_PRES
     recommended: { os: `${item.consolePlatform} ou Emulador`, processor: 'Quad Core 3.5GHz', memory: '8 GB RAM', graphics: 'DirectX 12 / Vulkan', storage: '8 GB', directx: '12' }
   },
   tags: item.tags || [item.consolePlatform, item.romFormat, item.sourceWebsite, 'Console', 'RetroArch', 'VortexGames'],
-  downloadsCount: item.downloadsCount || (14500 + (idx * 3120)),
-  viewsCount: item.viewsCount || (48000 + (idx * 9400)),
+  downloadsCount: item.downloadsCount || 0,
+  viewsCount: item.viewsCount || 0,
   createdAt: item.createdAt || '2024-03-01T12:00:00Z',
   hasPtBrSubs: true,
   hasPkgFormat: item.romFormat === 'PKG' || item.downloadLinks.some(d => d.format === 'pkg'),

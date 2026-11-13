@@ -276,14 +276,14 @@ export function convertIgdbResultToGame(
         directx: 'Versão 12'
       }
     },
-    rating: result.rating || 4.8,
+    rating: 0,
     imdbRating: getImdbRating({ title: result.name }),
-    totalVotes: 120,
+    totalVotes: 0,
     screenshots: result.screenshots,
     trailerYoutubeId: 'dQw4w9WgXcQ',
     tags: ['Lançamento', 'Dublado PT-BR', 'Torrent Rápido', 'Testado sem Erros'],
-    downloadsCount: 1540,
-    viewsCount: 4200,
+    downloadsCount: 0,
+    viewsCount: 0,
     createdAt: new Date().toISOString(),
     isFeatured: false,
     isTrending: true,

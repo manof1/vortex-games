@@ -286,10 +286,10 @@ export async function syncFitGirl() {
         crack_status: 'Crackeado',
         crack_group: 'RUNE / TENOKE',
         has_pc_torrent: true,
-        rating: 4.9,
-        total_votes: 120,
-        downloads_count: 2400,
-        views_count: 5100,
+        rating: 0,
+        total_votes: 0,
+        downloads_count: 0,
+        views_count: 0,
         is_trending: true,
         download_links: downloadLinks.filter(l => {
           const u = (l.url || '').toLowerCase();
