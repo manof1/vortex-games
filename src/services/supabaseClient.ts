@@ -39,19 +39,34 @@ export async function testSupabaseConnection(): Promise<{ success: boolean; mess
  */
 export async function fetchGamesFromSupabase(): Promise<Game[] | null> {
   try {
-    const { data, error } = await supabase
-      .from('games')
-      .select('*')
-      .order('rating', { ascending: false });
+    const pageSize = 1000;
+    let allRows: any[] = [];
+    let from = 0;
 
-    if (error) {
-      console.warn('Erro ao buscar jogos do Supabase:', error.message);
+    while (true) {
+      const { data, error } = await supabase
+        .from('games')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .range(from, from + pageSize - 1);
+
+      if (error) {
+        console.warn('Erro ao buscar jogos do Supabase:', error.message);
+        if (allRows.length === 0) return null;
+        break;
+      }
+
+      if (!data || data.length === 0) break;
+      allRows = allRows.concat(data);
+      if (data.length < pageSize) break;
+      from += pageSize;
+    }
+
+    if (allRows.length === 0) {
       return null;
     }
 
-    if (!data || data.length === 0) {
-      return null;
-    }
+    const data = allRows;
 
     // Mapear campos caso venham em snake_case do PostgreSQL
     return data.map((item: any): Game => ({

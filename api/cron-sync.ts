@@ -42,8 +42,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const supabase = createClient(supabaseUrl, apiKey);
 
+  // Proxy opcional para buscar o catálogo ao vivo do 4FNet pelo Painel Admin
+  if (req.query?.action === 'fetch-4fnet') {
+    try {
+      const page = Math.max(1, Number(req.query?.page || 1));
+      const perPage = Math.min(50, Math.max(1, Number(req.query?.per_page || 20)));
+      const search = typeof req.query?.search === 'string' ? req.query.search.trim() : '';
+      const qs = new URLSearchParams({
+        page: String(page),
+        per_page: String(perPage),
+        _embed: '1'
+      });
+      if (search) qs.set('search', search);
+
+      const fRes = await fetch(`https://www.4fnet.org/wp-json/wp/v2/posts?${qs.toString()}`, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) VortexGamesBot/1.0' }
+      });
+      if (!fRes.ok) {
+        return res.status(502).json({ error: `Erro ao consultar 4FNet API: HTTP ${fRes.status}` });
+      }
+      const posts = await fRes.json();
+      return res.status(200).json({
+        posts: Array.isArray(posts) ? posts : [],
+        total: Number(fRes.headers.get('x-wp-total') || 0),
+        totalPages: Number(fRes.headers.get('x-wp-totalpages') || 1)
+      });
+    } catch (err: any) {
+      return res.status(500).json({ error: err?.message || 'Falha ao consultar 4FNet' });
+    }
+  }
+
   try {
-    console.log('⏰ [CRON VERCEL] Executando sincronização horária com o Feed FitGirl...');
+    console.log('⏰ [CRON VERCEL] Executando sincronização horária multicanal...');
 
     const feedRes = await fetch('https://fitgirl-repacks.site/feed/', {
       headers: {
@@ -234,10 +264,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         crack_status: 'Crackeado',
         crack_group: 'RUNE / TENOKE',
         has_pc_torrent: true,
-        rating: 4.9,
-        total_votes: 120,
-        downloads_count: 2400,
-        views_count: 5100,
+        rating: 0,
+        total_votes: 0,
+        downloads_count: 0,
+        views_count: 0,
         is_trending: true,
         download_links: downloadLinks,
         system_requirements: systemRequirements,
@@ -389,11 +419,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             download_links: dodiLinks,
             system_requirements: dodiSpecs,
             screenshots: screenshots,
-            rating: 4.9,
-            total_votes: 380,
+            rating: 0,
+            total_votes: 0,
             tags: ['DODI Repack', 'Torrent PC', 'Dual Source', 'PC Game'],
-            downloads_count: 14500,
-            views_count: 38000,
+            downloads_count: 0,
+            views_count: 0,
             has_pt_br_audio: true,
             has_pt_br_subs: true,
             has_pc_torrent: true,
@@ -587,11 +617,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               }
             },
             screenshots: [coverUrl],
-            rating: 4.9,
-            total_votes: 340,
+            rating: 0,
+            total_votes: 0,
             tags: ['Brother Game', 'Port Nativo PC', 'Tradução PT-BR', 'Download'],
-            downloads_count: 12000,
-            views_count: 32000,
+            downloads_count: 0,
+            views_count: 0,
             has_pt_br_audio: isDublado,
             has_pt_br_subs: isDublado,
             has_pc_torrent: false,
@@ -653,7 +683,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             genres: ['Ação', 'Clássico de Console', 'Preservação'],
             categories: [cp.platform, 'Preservação de Consoles', 'Retro', 'PT-BR'],
             release_year: cp.platform === 'PS1' ? 1999 : 2005,
-            rating: 4.9,
+            rating: 0,
             repack_info: {
               repacker: `Vortex Console Lab`,
               version: `${cp.platform} HD Patch + 60 FPS`,
@@ -693,9 +723,137 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
+    // --- PARTE 4: SINCRONIZAÇÃO 4FNET (https://www.4fnet.org/wp-json/wp/v2/posts) ---
+    try {
+      console.log('⏰ [CRON VERCEL] Consultando API REST do acervo 4FNet...');
+      const fourFRes = await fetch('https://www.4fnet.org/wp-json/wp/v2/posts?per_page=20&_embed=1', {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) VortexGamesBot/1.0' }
+      });
+
+      if (fourFRes.ok) {
+        const posts = await fourFRes.json();
+        if (Array.isArray(posts)) {
+          for (const post of posts) {
+            const rawTitle = decodeHtml(post.title?.rendered || '').replace(/&#(\d+);/g, (_, d) => String.fromCharCode(Number(d)));
+            if (!rawTitle) continue;
+
+            const content = post.content?.rendered || '';
+            const pubDate = post.date ? new Date(post.date) : new Date();
+            const cleanTitle = rawTitle
+              .replace(/\[[^\]]*\]/g, '')
+              .replace(/\bPC\s+Download\b/gi, '')
+              .replace(/\bFree\s+Download\b/gi, '')
+              .replace(/\s+/g, ' ')
+              .trim() || rawTitle;
+
+            const baseSlug = (post.slug || cleanTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')).slice(0, 75);
+            const vcBtns = [...content.matchAll(/\[vc_btn\s+([^\]]+)\]/gi)];
+            let steamAppId: string | null = null;
+            let detectedSize = '';
+            const downloadLinks: any[] = [];
+            const seenUrls = new Set<string>();
+
+            vcBtns.forEach((btn, idx) => {
+              const attrs = btn[1];
+              const linkMatch = attrs.match(/link=(?:&#8221;|&#8243;|&quot;|")url:([^|"&]+)/i);
+              if (!linkMatch) return;
+              let u = linkMatch[1].trim();
+              try { u = decodeURIComponent(u).trim(); } catch {}
+              if (!u.startsWith('http')) return;
+              const steamM = u.match(/store\.steampowered\.com\/app\/(\d+)/i);
+              if (steamM) { steamAppId = steamM[1]; return; }
+
+              const titleAttrM = attrs.match(/title=(?:&#8221;|&#8243;|&quot;|")([\s\S]*?)(?:&#8221;|&#8243;|&quot;|")/i);
+              const sizeM = titleAttrM?.[1]?.match(/([\d.,]+\s*(?:GB|MB))/i);
+              const btnSize = sizeM ? sizeM[1].toUpperCase() : detectedSize || 'Download Direto';
+              if (sizeM && !detectedSize) detectedSize = sizeM[1].toUpperCase();
+              if (seenUrls.has(u)) return;
+              seenUrls.add(u);
+
+              const low = u.toLowerCase();
+              const hostName = low.includes('megaup') ? 'MegaUp' : low.includes('pixeldrain') ? 'PixelDrain' : low.includes('akirabox') ? 'Akirabox' : low.includes('filekeeper') ? 'FileKeeper' : '4FNet Mirror';
+              downloadLinks.push({
+                id: `dl-4fnet-${baseSlug}-${idx + 1}`,
+                type: 'direct',
+                format: 'direct',
+                platform: 'PC',
+                label: `Mirror Direto: ${hostName} (${btnSize})`,
+                url: u,
+                size: btnSize,
+                hostName
+              });
+            });
+
+            if (downloadLinks.length === 0 && post.link) {
+              downloadLinks.push({
+                id: `dl-4fnet-post-${baseSlug}`,
+                type: 'direct',
+                format: 'direct',
+                platform: 'PC',
+                label: 'Página Oficial 4FNet (Links Diretos)',
+                url: post.link,
+                size: detectedSize || 'PC',
+                hostName: '4FNet.org'
+              });
+            }
+
+            const repackSize = detectedSize || '5.0 GB';
+            const wpCover = post._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
+            const steamHeader = steamAppId ? `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${steamAppId}/header.jpg` : '';
+            const coverUrl = wpCover || steamHeader || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=600&q=80';
+
+            const colMatch = content.match(/\[vc_column_text\]([\s\S]*?)\[\/vc_column_text\]/i);
+            const desc = colMatch
+              ? decodeHtml(colMatch[1].replace(/<div class="td-post-box-wrapper">[\s\S]*?<\/div>\s*<\/div>/gi, '').replace(/<[^>]+>/g, ' ').replace(/\[[^\]]+\]/g, ' ')).trim()
+              : `Versão completa de ${cleanTitle} da coleção 4FNet com download direto.`;
+
+            const payload = {
+              id: `4fnet-${baseSlug.slice(0, 40)}`,
+              title: cleanTitle.slice(0, 100),
+              slug: `${baseSlug}-4fnet`.slice(0, 100),
+              cover_url: coverUrl,
+              banner_url: steamHeader || coverUrl,
+              short_description: desc.slice(0, 182) + (desc.length > 182 ? '...' : ''),
+              description: desc,
+              genres: ['Ação', 'Aventura'],
+              categories: ['4FNet', 'Lançamentos'],
+              release_year: pubDate.getFullYear() || 2026,
+              release_date: pubDate.toLocaleDateString('pt-BR'),
+              developer: 'PC Release',
+              publisher: '4FNet Archive',
+              repacker: '4FNet',
+              version: 'Completa [PC]',
+              repack_size: repackSize,
+              original_size: repackSize,
+              crack_status: rawTitle.toLowerCase().includes('gog') ? 'DRM Free' : 'Crackeado',
+              crack_group: rawTitle.toLowerCase().includes('gog') ? 'GOG' : 'Pre-Cracked / Scene',
+              download_links: downloadLinks,
+              screenshots: [steamHeader || coverUrl, coverUrl].filter(Boolean),
+              tags: ['4FNet', 'Download Direto'],
+              rating: 0,
+              total_votes: 0,
+              downloads_count: 0,
+              views_count: 0,
+              has_pt_br_audio: false,
+              has_pt_br_subs: false,
+              has_pc_torrent: false,
+              source_origin: '4FNet',
+              platform: 'PC',
+              created_at: pubDate.toISOString()
+            };
+
+            const { error: ffErr } = await supabase.from('games').upsert(payload, { onConflict: 'id' });
+            if (!ffErr) processedCount++;
+          }
+        }
+      }
+    } catch (ffError) {
+      console.error('Aviso ao sincronizar acervo 4FNet:', ffError);
+    }
+
     return res.status(200).json({
       success: true,
-      message: 'Sincronização horária multicanal (FitGirl + DODI + Consoles 5 Camadas) executada com sucesso.',
+      message: 'Sincronização horária multicanal (FitGirl + DODI + Brother Game + 4FNet + Consoles) executada com sucesso.',
       processed: processedCount,
       timestamp: new Date().toISOString()
     });

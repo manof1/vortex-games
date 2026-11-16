@@ -27,6 +27,7 @@ export const FilterBar: React.FC = () => {
     { id: 'FitGirl', label: `🌸 ${t('filter.fitgirl', 'FitGirl Repacks')}` },
     { id: 'DODI', label: `⚡ ${t('filter.dodi', 'DODI Repacks')}` },
     { id: 'BrotherGame', label: '🎮 Brother Game (Ports & PT-BR)' },
+    { id: '4FNet', label: '🌐 4FNet (Links Diretos)' },
     { id: 'Lançamentos', label: `🔥 ${t('filter.launches', 'Lançamentos')}` },
     { id: 'Mais Populares', label: `⭐ ${t('filter.popular', 'Mais Populares')}` },
     { id: 'AAA', label: `💎 ${t('filter.aaa', 'Superproduções (AAA)')}` },
@@ -231,6 +232,8 @@ export const FilterBar: React.FC = () => {
               <option value="TheZukoStore" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">TheZukoStore (PKG/PS)</option>
               <option value="Tapochek" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Tapochek.net Tracker</option>
               <option value="DODI Repack" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">DODI Repack</option>
+              <option value="Brother Game" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Brother Game</option>
+              <option value="4FNet" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">4FNet (Links Diretos)</option>
               <option value="ElAmigos" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">ElAmigos</option>
             </select>
           </div>

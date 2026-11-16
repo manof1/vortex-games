@@ -42,6 +42,7 @@ import { useGame } from '../context/GameContext';
 import { searchIgdbGames, convertIgdbResultToGame } from '../services/igdbService';
 import { getFitGirlPresetCatalog, parseFitGirlRssXml, FITGIRL_SUPABASE_SYNC_SCRIPT } from '../services/fitgirlService';
 import { getBrotherGamePresetCatalog, parseBrotherGameRssXml, fetchBrotherGameLiveFeed, BROTHERGAME_RSS_URL } from '../services/brotherGameService';
+import { getFourFNetPresetCatalog, fetchFourFNetLivePosts } from '../services/fourFNetService';
 import { GITHUB_ACTIONS_WORKFLOW_YAML, VERCEL_CRON_JSON } from '../services/autoSyncService';
 import { ZUKO_TAPOCHEK_PRESETS } from '../data/zukoTapochekPresets';
 import { createZukoTapochekGame, ZUKO_TAPOCHEK_SUPABASE_SCRIPT } from '../services/zukoTapochekService';
@@ -75,7 +76,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
     triggerManualSync
   } = useGame();
 
-  const [activeTab, setActiveTab] = useState<'igdb' | 'fitgirl' | 'brothergame' | 'zukotapochek' | 'romspuredlps' | 'autoconsole' | 'manage' | 'comments' | 'backup'>('igdb');
+  const [activeTab, setActiveTab] = useState<'igdb' | 'fitgirl' | 'brothergame' | '4fnet' | 'zukotapochek' | 'romspuredlps' | 'autoconsole' | 'manage' | 'comments' | 'backup'>('igdb');
 
   // Brother Game Tab states
   const [brotherGameRssText, setBrotherGameRssText] = useState('');
@@ -83,6 +84,16 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
   const [isFetchingBrotherGameLive, setIsFetchingBrotherGameLive] = useState(false);
   const [brotherGameLiveResult, setBrotherGameLiveResult] = useState<Game[] | null>(null);
   const [brotherGameLiveError, setBrotherGameLiveError] = useState<string | null>(null);
+
+  // 4FNet Tab states
+  const [fourFNetSearch, setFourFNetSearch] = useState('');
+  const [fourFNetPage, setFourFNetPage] = useState(1);
+  const [fourFNetTotalPosts, setFourFNetTotalPosts] = useState<number>(2743);
+  const [fourFNetTotalPages, setFourFNetTotalPages] = useState<number>(1);
+  const [isFetchingFourFNet, setIsFetchingFourFNet] = useState(false);
+  const [fourFNetLiveResult, setFourFNetLiveResult] = useState<Game[] | null>(null);
+  const [fourFNetError, setFourFNetError] = useState<string | null>(null);
+  const [fourFNetImportedCount, setFourFNetImportedCount] = useState<number | null>(null);
 
   // RomsPure & DLPSGame Tab states
   const [romspurePlatformFilter, setRomspurePlatformFilter] = useState<'ALL' | 'PS1' | 'PS2' | 'PS3' | 'PS4' | 'PSP' | 'Switch' | 'N64' | 'GBA'>('ALL');
@@ -133,7 +144,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
   const [pkgUrl, setPkgUrl] = useState('');
   const [titleId, setTitleId] = useState('');
   const [isPtBr, setIsPtBr] = useState(true);
-  const [sourceOrigin, setSourceOrigin] = useState<'TheZukoStore' | 'Tapochek.net' | 'FitGirl' | 'Scene'>('TheZukoStore');
+  const [sourceOrigin, setSourceOrigin] = useState<'TheZukoStore' | 'Tapochek.net' | 'FitGirl' | 'Scene' | '4FNet' | 'BrotherGame'>('TheZukoStore');
   const [publishedSuccess, setPublishedSuccess] = useState(false);
   const [copiedSql, setCopiedSql] = useState(false);
   const [copiedEnv, setCopiedEnv] = useState(false);
@@ -614,6 +625,64 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
     setBrotherGameImportedCount(count);
   };
 
+  // 4FNet Actions
+  const handleImportFourFNetPresets = () => {
+    const presets = getFourFNetPresetCatalog();
+    let count = 0;
+    presets.forEach(presetGame => {
+      if (!games.some(g => g.id === presetGame.id || g.slug === presetGame.slug)) {
+        addGame(presetGame);
+        count++;
+      }
+    });
+    setFourFNetImportedCount(count);
+  };
+
+  const handleFetchFourFNetLive = async (targetPage = fourFNetPage) => {
+    setIsFetchingFourFNet(true);
+    setFourFNetError(null);
+    setFourFNetImportedCount(null);
+    try {
+      const result = await fetchFourFNetLivePosts({
+        page: targetPage,
+        perPage: 24,
+        search: fourFNetSearch
+      });
+      setFourFNetPage(targetPage);
+      setFourFNetTotalPosts(result.totalPosts);
+      setFourFNetTotalPages(result.totalPages);
+      if (result.games.length > 0) {
+        setFourFNetLiveResult(result.games);
+      } else {
+        setFourFNetLiveResult([]);
+        setFourFNetError('Nenhum jogo encontrado no acervo 4FNet para esta busca.');
+      }
+    } catch (e: any) {
+      setFourFNetError(e?.message || 'Falha ao consultar a API ao vivo da 4FNet.');
+    } finally {
+      setIsFetchingFourFNet(false);
+    }
+  };
+
+  const handleImportAllFetchedFourFNet = () => {
+    if (!fourFNetLiveResult || fourFNetLiveResult.length === 0) return;
+    let count = 0;
+    fourFNetLiveResult.forEach(game => {
+      if (!games.some(g => g.id === game.id || g.slug === game.slug)) {
+        addGame(game);
+        count++;
+      }
+    });
+    setFourFNetImportedCount(count);
+  };
+
+  const handleImportSingleFourFNet = (game: Game) => {
+    if (!games.some(g => g.id === game.id || g.slug === game.slug)) {
+      addGame(game);
+      setFourFNetImportedCount(prev => (prev || 0) + 1);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-md flex justify-center items-start p-2 sm:p-4 md:p-6 animate-fadeIn">
       <div 
@@ -678,6 +747,18 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
           >
             <Gamepad2 className="w-4 h-4 text-blue-400" />
             <span>Brother Game Hub (Ports & PT-BR)</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('4fnet')}
+            className={`px-3.5 py-2 rounded-xl font-bold flex items-center gap-2 transition-all shrink-0 ${
+              activeTab === '4fnet'
+                ? 'bg-orange-500 text-slate-950 shadow-md shadow-orange-500/30'
+                : 'bg-slate-800 text-slate-300 hover:text-white'
+            }`}
+          >
+            <Globe className="w-4 h-4 text-orange-400" />
+            <span>4FNet Hub (2.700+ Jogos)</span>
           </button>
 
           <button
@@ -893,6 +974,8 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
                       >
                         <option value="FitGirl Repack">FitGirl Repack</option>
                         <option value="DODI Repack">DODI Repack</option>
+                        <option value="Brother Game">Brother Game</option>
+                        <option value="4FNet">4FNet (Links Diretos)</option>
                         <option value="ElAmigos">ElAmigos</option>
                         <option value="Razor1911">Razor1911</option>
                         <option value="RUNE Release">RUNE Release</option>
@@ -959,6 +1042,8 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
                           <option value="TheZukoStore">TheZukoStore (Console PKG)</option>
                           <option value="Tapochek.net">Tapochek.net (Scene Tracker)</option>
                           <option value="FitGirl">FitGirl Repack</option>
+                          <option value="4FNet">4FNet.org</option>
+                          <option value="BrotherGame">Brother Game</option>
                           <option value="Scene">Scene Group Release</option>
                         </select>
                       </div>
@@ -1542,6 +1627,192 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
                 </div>
               </div>
 
+            </div>
+          )}
+
+          {/* TAB: 4FNET HUB (https://www.4fnet.org/) */}
+          {activeTab === '4fnet' && (
+            <div className="space-y-6">
+              {/* Header Box */}
+              <div className="p-5 rounded-2xl bg-gradient-to-r from-orange-950/70 via-slate-900 to-amber-950/60 border-2 border-orange-500/40 space-y-3 shadow-xl">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase bg-orange-500 text-slate-950 shadow-sm">
+                        REST API AO VIVO • {fourFNetTotalPosts.toLocaleString('pt-BR')}+ JOGOS
+                      </span>
+                      <span className="text-xs text-orange-300 font-mono flex items-center gap-1">
+                        <Globe className="w-3.5 h-3.5" /> 4fnet.org
+                      </span>
+                    </div>
+
+                    <h3 className="text-lg font-black text-white font-display">
+                      4FNet Archive: Acervo Completo com Mirrors Diretos
+                    </h3>
+                    <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
+                      Integração oficial com o acervo da <strong>4FNet</strong> (<a href="https://www.4fnet.org" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">4fnet.org</a>). Extrai automaticamente jogos completos para PC com 4 servidores de download direto (MegaUp, PixelDrain, Akirabox e FileKeeper), requisitos de sistema, trailers e capas originais.
+                    </p>
+                  </div>
+
+                  <a
+                    href="https://www.4fnet.org/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3.5 py-2 rounded-xl text-xs font-bold bg-orange-600/30 hover:bg-orange-600/50 text-orange-200 border border-orange-500/40 flex items-center gap-1.5 transition-all shrink-0"
+                  >
+                    <span>Visitar 4FNet</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </div>
+              </div>
+
+              {/* Action 1: Quick Preset Import */}
+              <div className="p-5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-orange-400" />
+                      Importação Rápida da Coleção 4FNet (1-Clique)
+                    </h4>
+                    <p className="text-xs text-slate-400">
+                      Garante no catálogo os 24 lançamentos mais recentes curados da 4FNet com links MegaUp, PixelDrain, Akirabox e FileKeeper já verificados.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={handleImportFourFNetPresets}
+                    className="px-4 py-2.5 rounded-xl font-black text-xs bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-slate-950 shadow-lg shadow-orange-600/30 transition-all flex items-center gap-2 shrink-0 cursor-pointer"
+                  >
+                    <Download className="w-4 h-4 stroke-[2.5]" />
+                    <span>Importar Lançamentos 4FNet</span>
+                  </button>
+                </div>
+
+                {fourFNetImportedCount !== null && (
+                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2 animate-fadeIn">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>{fourFNetImportedCount} jogo(s) da 4FNet foram adicionados com sucesso ao seu catálogo!</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Action 2: Live Search & Browse across all 2,743+ 4FNet games */}
+              <div className="p-5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-4">
+                <div>
+                  <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                    <Search className="w-4 h-4 text-orange-400" />
+                    Pesquisar e Puxar Jogos Direto do Acervo 4FNet (2.743+ Títulos)
+                  </h4>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Busque qualquer título postado no site oficial da 4FNet (deixe em branco para listar os mais recentes) e importe para o VortexGames e Supabase em 1 clique.
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="text"
+                    value={fourFNetSearch}
+                    onChange={e => setFourFNetSearch(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') handleFetchFourFNetLive(1);
+                    }}
+                    placeholder="Ex: Magicka, Dark Souls, Need for Speed, Assassin's Creed..."
+                    className="flex-1 px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-orange-500"
+                  />
+                  <button
+                    onClick={() => handleFetchFourFNetLive(1)}
+                    disabled={isFetchingFourFNet}
+                    className="px-5 py-2.5 rounded-xl font-black text-xs bg-orange-500 hover:bg-orange-400 text-slate-950 transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer disabled:opacity-50"
+                  >
+                    {isFetchingFourFNet ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        <span>Consultando 4FNet...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Search className="w-4 h-4" />
+                        <span>Buscar na 4FNet</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {fourFNetError && (
+                  <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                    <span>{fourFNetError}</span>
+                  </div>
+                )}
+
+                {fourFNetLiveResult && fourFNetLiveResult.length > 0 && (
+                  <div className="space-y-3 pt-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-xs font-bold text-white">
+                        Página {fourFNetPage} de {fourFNetTotalPages} ({fourFNetTotalPosts.toLocaleString('pt-BR')} jogos no total)
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleFetchFourFNetLive(Math.max(1, fourFNetPage - 1))}
+                          disabled={fourFNetPage <= 1 || isFetchingFourFNet}
+                          className="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 disabled:opacity-40 cursor-pointer"
+                        >
+                          Anterior
+                        </button>
+                        <button
+                          onClick={() => handleFetchFourFNetLive(Math.min(fourFNetTotalPages, fourFNetPage + 1))}
+                          disabled={fourFNetPage >= fourFNetTotalPages || isFetchingFourFNet}
+                          className="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 disabled:opacity-40 cursor-pointer"
+                        >
+                          Próxima
+                        </button>
+                        <button
+                          onClick={handleImportAllFetchedFourFNet}
+                          className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all cursor-pointer flex items-center gap-1.5"
+                        >
+                          <Check className="w-3.5 h-3.5 stroke-[3]" />
+                          <span>Importar Página ({fourFNetLiveResult.length})</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-96 overflow-y-auto pr-1">
+                      {fourFNetLiveResult.map(game => {
+                        const alreadyAdded = games.some(g => g.id === game.id || g.slug === game.slug);
+                        return (
+                          <div key={game.id} className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-3">
+                            <img
+                              src={game.coverUrl}
+                              alt={game.title}
+                              referrerPolicy="no-referrer"
+                              className="w-12 h-14 object-cover rounded-lg shrink-0 bg-slate-950"
+                              onError={e => handleImageError(e, game)}
+                            />
+                            <div className="overflow-hidden flex-1 min-w-0">
+                              <h5 className="text-xs font-bold text-white truncate">{game.title}</h5>
+                              <p className="text-[10px] text-slate-400 truncate">
+                                {game.repackInfo.repackSize} • {game.downloadLinks.length} mirror(s) direto(s)
+                              </p>
+                              <span className="text-[9px] text-orange-400 font-semibold">{game.releaseDate} • {game.genres.slice(0, 2).join(', ')}</span>
+                            </div>
+                            <button
+                              onClick={() => handleImportSingleFourFNet(game)}
+                              disabled={alreadyAdded}
+                              className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold shrink-0 transition-all ${
+                                alreadyAdded
+                                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 cursor-default'
+                                  : 'bg-orange-500 hover:bg-orange-400 text-slate-950 cursor-pointer'
+                              }`}
+                            >
+                              {alreadyAdded ? 'No Site' : 'Importar'}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

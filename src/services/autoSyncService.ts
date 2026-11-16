@@ -213,6 +213,7 @@ jobs:
           node scripts/sync-fitgirl.js
           node scripts/sync-dodi.js
           node scripts/sync-brothergame.js
+          node scripts/sync-4fnet.js
 `;
 
 /**
