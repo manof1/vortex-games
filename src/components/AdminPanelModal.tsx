@@ -120,6 +120,9 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
   const [copiedVercelCron, setCopiedVercelCron] = useState(false);
   const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
   const [isSyncingNow, setIsSyncingNow] = useState(false);
+  const [isRunningDailyBackfill, setIsRunningDailyBackfill] = useState(false);
+  const [dailyBackfillReport, setDailyBackfillReport] = useState<any | null>(null);
+  const [dailyBackfillError, setDailyBackfillError] = useState<string | null>(null);
 
   // TheZukoStore & Tapochek Tab states
   const [zukoTitle, setZukoTitle] = useState('');
@@ -623,6 +626,23 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
       }
     });
     setBrotherGameImportedCount(count);
+  };
+
+  const handleRunDailyBackfillRule = async () => {
+    setIsRunningDailyBackfill(true);
+    setDailyBackfillError(null);
+    try {
+      const res = await fetch('/api/cron-sync?old_limit=10');
+      const data = await res.json();
+      if (!res.ok || !data?.success) {
+        throw new Error(data?.error || `Erro HTTP ${res.status}`);
+      }
+      setDailyBackfillReport(data);
+    } catch (e: any) {
+      setDailyBackfillError(e?.message || 'Falha ao executar regra diária.');
+    } finally {
+      setIsRunningDailyBackfill(false);
+    }
   };
 
   // 4FNet Actions
@@ -1271,6 +1291,60 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
                 </div>
               </div>
 
+              {/* Daily Backfill Rule Card: Novos + 10 Antigos/Dia (FitGirl + DODI + 4FNet) */}
+              <div className="p-5 rounded-2xl bg-gradient-to-r from-cyan-950/60 via-slate-900 to-emerald-950/50 border-2 border-cyan-500/40 space-y-4 shadow-xl">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase bg-cyan-500 text-slate-950">
+                      REGRA DIÁRIA AUTOMÁTICA • 3 SITES
+                    </span>
+                    <h4 className="text-base font-black text-white font-display">
+                      Todos os Lançamentos Novos + 10 Jogos Antigos/Dia (FitGirl • DODI • 4FNet)
+                    </h4>
+                    <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
+                      Todos os dias automaticamente (às 00:00 UTC via Vercel Cron), o robô puxa <strong>todos os jogos novos</strong> publicados no dia e avança mais <strong>10 jogos antigos por site</strong> (30 antigos/dia no total) usando cursor histórico no Supabase até completar 100% do acervo de FitGirl, DODI e 4FNet.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={handleRunDailyBackfillRule}
+                    disabled={isRunningDailyBackfill}
+                    className="px-4 py-2.5 rounded-xl font-black text-xs bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-slate-950 shadow-lg shadow-cyan-500/25 flex items-center gap-2 shrink-0 cursor-pointer disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${isRunningDailyBackfill ? 'animate-spin' : ''}`} />
+                    <span>{isRunningDailyBackfill ? 'Executando Lote Diário...' : 'Rodar Regra Diária Agora (+10 de Cada)'}</span>
+                  </button>
+                </div>
+
+                {dailyBackfillError && (
+                  <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                    <span>{dailyBackfillError}</span>
+                  </div>
+                )}
+
+                {dailyBackfillReport?.summary && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                    {[
+                      { label: 'FitGirl Repack', stats: dailyBackfillReport.summary.fitgirl, color: 'text-pink-300 border-pink-500/30' },
+                      { label: 'DODI Repack', stats: dailyBackfillReport.summary.dodi, color: 'text-emerald-300 border-emerald-500/30' },
+                      { label: '4FNet Archive', stats: dailyBackfillReport.summary.fourFNet, color: 'text-orange-300 border-orange-500/30' }
+                    ].map(item => (
+                      <div key={item.label} className={`p-3 rounded-xl bg-slate-950/80 border ${item.color} space-y-1`}>
+                        <div className="text-xs font-black">{item.label}</div>
+                        <div className="text-[11px] text-slate-300">
+                          Novos: <strong className="text-white">+{item.stats?.newAdded || 0}</strong> • Antigos: <strong className="text-cyan-300">+{item.stats?.oldAdded || 0}</strong>
+                        </div>
+                        <div className="text-[10px] text-slate-400 font-mono">
+                          No catálogo: {item.stats?.totalInDb || 0} / {item.stats?.totalAvailable || '?'}
+                          {item.stats?.archiveCompleted ? ' (100% Completo!)' : ''}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               {/* Automation in Production: GitHub Actions & Vercel Cron */}
               <div className="p-5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-4">
                 <div className="flex items-center gap-2">
@@ -1280,7 +1354,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
                   </h4>
                 </div>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  Para que o portal busque novos jogos <strong>24 horas por dia automaticamente</strong> mesmo com seu computador desligado, você tem duas opções simples e 100% gratuitas:
+                  Para que o portal execute a regra diária automaticamente mesmo com seu computador desligado, o Vercel Cron já vem pré-configurado no arquivo <code className="text-emerald-300">vercel.json</code> e você também pode usar o GitHub Actions:
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1304,7 +1378,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
                       </button>
                     </div>
                     <p className="text-[11px] text-slate-400">
-                      Crie o arquivo <code className="text-indigo-300 bg-slate-950 px-1 py-0.5 rounded">.github/workflows/sync.yml</code> no seu repositório. O GitHub roda a cada 60 minutos sem custos.
+                      Crie o arquivo <code className="text-indigo-300 bg-slate-950 px-1 py-0.5 rounded">.github/workflows/sync.yml</code> no seu repositório. O GitHub roda diariamente sem custos.
                     </p>
                     <pre className="p-2.5 rounded-lg bg-slate-950 text-[10px] text-indigo-300 font-mono overflow-x-auto max-h-32">
                       {GITHUB_ACTIONS_WORKFLOW_YAML}
@@ -1316,7 +1390,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-white flex items-center gap-1.5">
                         <Clock className="w-4 h-4 text-emerald-400" />
-                        Opção 2: Vercel Cron Job
+                        Opção 2: Vercel Cron Job (Ativo)
                       </span>
                       <button
                         onClick={() => {
@@ -1331,7 +1405,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
                       </button>
                     </div>
                     <p className="text-[11px] text-slate-400">
-                      Coloque <code className="text-emerald-300 bg-slate-950 px-1 py-0.5 rounded">vercel.json</code> na raiz do projeto. A Vercel executará sua Serverless Function a cada hora.
+                      Já configurado em <code className="text-emerald-300 bg-slate-950 px-1 py-0.5 rounded">vercel.json</code>. A Vercel executa a regra diária (novos + 10 antigos de cada site) automaticamente todo dia à 00:00 UTC.
                     </p>
                     <pre className="p-2.5 rounded-lg bg-slate-950 text-[10px] text-emerald-300 font-mono overflow-x-auto max-h-32">
                       {VERCEL_CRON_JSON}

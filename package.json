@@ -10,7 +10,9 @@
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
     "sync:consoles": "node scripts/sync-consoles.js",
-    "sync:fitgirl": "node scripts/sync-fitgirl.js"
+    "sync:fitgirl": "node scripts/sync-fitgirl.js",
+    "sync:4fnet": "node scripts/sync-4fnet.js",
+    "sync:daily": "node scripts/sync-daily-backfill.js"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

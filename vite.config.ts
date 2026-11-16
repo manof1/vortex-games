@@ -108,6 +108,43 @@ function devApiPlugin() {
             return;
           }
         }
+        if (url.pathname === '/api/cron-sync') {
+          try {
+            const cronHandler = (await import('./api/cron-sync.ts')).default;
+            const query = Object.fromEntries(url.searchParams.entries());
+            const vercelReq = {
+              method: req.method,
+              query,
+              body: {},
+              headers: req.headers
+            };
+            const vercelRes = {
+              status(code: number) {
+                res.statusCode = code;
+                return this;
+              },
+              setHeader(name: string, value: string) {
+                res.setHeader(name, value);
+                return this;
+              },
+              json(data: any) {
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify(data));
+              },
+              end() {
+                res.end();
+              }
+            };
+            await cronHandler(vercelReq, vercelRes);
+            return;
+          } catch (err: any) {
+            console.error('Error in dev /api/cron-sync middleware:', err);
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ error: err.message }));
+            return;
+          }
+        }
         next();
       });
     }
