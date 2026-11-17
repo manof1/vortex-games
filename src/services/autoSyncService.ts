@@ -186,7 +186,7 @@ export const GITHUB_ACTIONS_WORKFLOW_YAML = `name: VortexGames Daily Auto-Sync &
 
 on:
   schedule:
-    # Executa todos os dias à meia-noite UTC (todos os novos + 10 antigos por dia de cada um dos 4 sites)
+    # Executa todos os dias à meia-noite UTC (todos os novos + 10 antigos/dia até 31/12/2026; depois só novos)
     - cron: '0 0 * * *'
   workflow_dispatch: # Permite disparar manualmente pelo painel do GitHub
 
@@ -205,7 +205,7 @@ jobs:
       - name: Instalar Dependências de Sincronização
         run: npm install @supabase/supabase-js
 
-      - name: Executar Regra Diária (Todos Novos + 10 Antigos de FitGirl, DODI, Brother Game e 4FNet)
+      - name: Executar Regra Diária (Novos + 10 Antigos até 31/12/2026; depois só Novos)
         env:
           SUPABASE_URL: \${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: \${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

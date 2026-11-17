@@ -18,6 +18,7 @@ const DEFAULT_SUPABASE_URL = 'https://vcegxjfqmufdmyrhufan.supabase.co';
 const DEFAULT_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjZWd4amZxbXVmZG15cmh1ZmFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzMjgzOTAsImV4cCI6MjEwNjkwNDM5MH0.t-QVE78O6Clb4KKo8hhb1iXnIxXqhnxZgIoMK3D6Tdw';
 const BOT_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) VortexGamesBot/1.0';
 const OLD_GAMES_PER_SITE_PER_DAY = 10;
+const BACKFILL_DEADLINE_ISO = '2026-12-31T23:59:59.999Z';
 
 function decodeHtml(html: string): string {
   if (!html) return '';
@@ -1157,11 +1158,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const oldLimit = req.query?.mode === 'new-only'
+    const isBackfillActive = Date.now() <= Date.parse(BACKFILL_DEADLINE_ISO);
+    const oldLimit = (!isBackfillActive || req.query?.mode === 'new-only')
       ? 0
       : Math.min(50, Math.max(0, Number(req.query?.old_limit ?? OLD_GAMES_PER_SITE_PER_DAY)));
 
-    console.log(`⏰ [CRON DIÁRIO] Executando regra (Todos os novos + ${oldLimit} antigos/dia) para FitGirl, DODI, Brother Game e 4FNet...`);
+    console.log(
+      isBackfillActive
+        ? `⏰ [CRON DIÁRIO] Regra ativa até 31/12/2026: Todos os novos + ${oldLimit} antigos/dia (FitGirl, DODI, Brother Game, 4FNet)...`
+        : `⏰ [CRON DIÁRIO] Período pós-31/12/2026: Buscando APENAS jogos novos (FitGirl, DODI, Brother Game, 4FNet)...`
+    );
 
     // 1. Carregar IDs, slugs e cursor mais antigo por repacker do Supabase
     const existingIds = new Set<string>();
@@ -1255,7 +1261,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return res.status(200).json({
       success: true,
-      message: `Regra diária executada: novos + até ${oldLimit} antigos/dia por site (FitGirl, DODI, Brother Game e 4FNet).`,
+      backfillActive: isBackfillActive,
+      backfillEndsAt: BACKFILL_DEADLINE_ISO,
+      message: isBackfillActive
+        ? `Regra diária executada (até 31/12/2026): novos + até ${oldLimit} antigos/dia por site (FitGirl, DODI, Brother Game e 4FNet).`
+        : `Regra pós-31/12/2026 executada: busca de apenas jogos novos (FitGirl, DODI, Brother Game e 4FNet).`,
       processed: processedCount,
       oldLimitPerSite: oldLimit,
       summary: {

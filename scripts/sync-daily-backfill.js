@@ -19,6 +19,7 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABA
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 const BOT_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) VortexGamesBot/1.0';
+const BACKFILL_DEADLINE_ISO = '2026-12-31T23:59:59.999Z';
 
 function decodeHtml(html) {
   if (!html) return '';
@@ -1012,8 +1013,14 @@ async function syncBrotherGameSite({ existingIds, existingSlugs, oldestCursorIso
   };
 }
 
-export async function runDailyBackfill(oldLimit = 10) {
-  console.log(`⏰ [REGRA DIÁRIA] Buscando TODOS os novos + ${oldLimit} antigos por site (FitGirl, DODI, Brother Game, 4FNet)...`);
+export async function runDailyBackfill(requestedOldLimit = 10) {
+  const isBackfillActive = Date.now() <= Date.parse(BACKFILL_DEADLINE_ISO);
+  const oldLimit = isBackfillActive ? Math.max(0, requestedOldLimit) : 0;
+  console.log(
+    isBackfillActive
+      ? `⏰ [REGRA DIÁRIA] Ativa até 31/12/2026: Buscando TODOS os novos + ${oldLimit} antigos por site (FitGirl, DODI, Brother Game, 4FNet)...`
+      : `⏰ [REGRA DIÁRIA] Pós-31/12/2026: Buscando APENAS jogos novos por site (FitGirl, DODI, Brother Game, 4FNet)...`
+  );
 
   const existingIds = new Set();
   const existingSlugs = new Set();
@@ -1098,8 +1105,8 @@ export async function runDailyBackfill(oldLimit = 10) {
     dodi.newAdded + dodi.oldAdded +
     bg.newAdded + bg.oldAdded +
     fourf.newAdded + fourf.oldAdded;
-  console.log(`🎉 Regra diária concluída! Total adicionado: ${totalAdded} jogo(s).`);
-  return { fg, dodi, bg, fourf, totalAdded };
+  console.log(`🎉 Regra diária concluída! Total adicionado: ${totalAdded} jogo(s). (Backfill antigos ativo até 31/12/2026: ${isBackfillActive})`);
+  return { fg, dodi, bg, fourf, totalAdded, backfillActive: isBackfillActive, backfillEndsAt: BACKFILL_DEADLINE_ISO };
 }
 
 if (process.argv[1] && process.argv[1].endsWith('sync-daily-backfill.js')) {

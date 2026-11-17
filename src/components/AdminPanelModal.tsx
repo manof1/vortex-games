@@ -1291,18 +1291,23 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
                 </div>
               </div>
 
-              {/* Daily Backfill Rule Card: Novos + 10 Antigos/Dia (FitGirl + DODI + Brother Game + 4FNet) */}
+              {/* Daily Backfill Rule Card: Novos + 10 Antigos/Dia até 31/12/2026 (FitGirl + DODI + Brother Game + 4FNet) */}
               <div className="p-5 rounded-2xl bg-gradient-to-r from-cyan-950/60 via-slate-900 to-emerald-950/50 border-2 border-cyan-500/40 space-y-4 shadow-xl">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="space-y-1">
-                    <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase bg-cyan-500 text-slate-950">
-                      REGRA DIÁRIA AUTOMÁTICA • 4 SITES
-                    </span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase bg-cyan-500 text-slate-950">
+                        REGRA DIÁRIA AUTOMÁTICA • 4 SITES
+                      </span>
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                        Antigos até 31/12/2026 • Pós-data: só novos
+                      </span>
+                    </div>
                     <h4 className="text-base font-black text-white font-display">
                       Todos os Lançamentos Novos + 10 Jogos Antigos/Dia (FitGirl • DODI • Brother Game • 4FNet)
                     </h4>
                     <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
-                      Todos os dias automaticamente (às 00:00 UTC via Vercel Cron), o robô puxa <strong>todos os jogos novos</strong> publicados no dia e avança mais <strong>10 jogos antigos por site</strong> (40 antigos/dia no total) usando cursor histórico no Supabase até completar 100% do acervo de FitGirl, DODI, Brother Game e 4FNet.
+                      Todos os dias automaticamente (às 00:00 UTC via Vercel Cron), até <strong>31/12/2026</strong> o robô puxa <strong>todos os jogos novos</strong> e mais <strong>10 jogos antigos por site</strong> (40 antigos/dia). A partir de <strong>01/01/2027</strong>, passa a buscar <strong>apenas lançamentos novos</strong>.
                     </p>
                   </div>
 
@@ -1312,7 +1317,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
                     className="px-4 py-2.5 rounded-xl font-black text-xs bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-slate-950 shadow-lg shadow-cyan-500/25 flex items-center gap-2 shrink-0 cursor-pointer disabled:opacity-50"
                   >
                     <RefreshCw className={`w-4 h-4 ${isRunningDailyBackfill ? 'animate-spin' : ''}`} />
-                    <span>{isRunningDailyBackfill ? 'Executando Lote Diário...' : 'Rodar Regra Diária Agora (+10 de Cada)'}</span>
+                    <span>{isRunningDailyBackfill ? 'Executando Lote Diário...' : 'Rodar Regra Diária Agora'}</span>
                   </button>
                 </div>
 
