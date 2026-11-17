@@ -1291,18 +1291,18 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
                 </div>
               </div>
 
-              {/* Daily Backfill Rule Card: Novos + 10 Antigos/Dia (FitGirl + DODI + 4FNet) */}
+              {/* Daily Backfill Rule Card: Novos + 10 Antigos/Dia (FitGirl + DODI + Brother Game + 4FNet) */}
               <div className="p-5 rounded-2xl bg-gradient-to-r from-cyan-950/60 via-slate-900 to-emerald-950/50 border-2 border-cyan-500/40 space-y-4 shadow-xl">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="space-y-1">
                     <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase bg-cyan-500 text-slate-950">
-                      REGRA DIÁRIA AUTOMÁTICA • 3 SITES
+                      REGRA DIÁRIA AUTOMÁTICA • 4 SITES
                     </span>
                     <h4 className="text-base font-black text-white font-display">
-                      Todos os Lançamentos Novos + 10 Jogos Antigos/Dia (FitGirl • DODI • 4FNet)
+                      Todos os Lançamentos Novos + 10 Jogos Antigos/Dia (FitGirl • DODI • Brother Game • 4FNet)
                     </h4>
                     <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
-                      Todos os dias automaticamente (às 00:00 UTC via Vercel Cron), o robô puxa <strong>todos os jogos novos</strong> publicados no dia e avança mais <strong>10 jogos antigos por site</strong> (30 antigos/dia no total) usando cursor histórico no Supabase até completar 100% do acervo de FitGirl, DODI e 4FNet.
+                      Todos os dias automaticamente (às 00:00 UTC via Vercel Cron), o robô puxa <strong>todos os jogos novos</strong> publicados no dia e avança mais <strong>10 jogos antigos por site</strong> (40 antigos/dia no total) usando cursor histórico no Supabase até completar 100% do acervo de FitGirl, DODI, Brother Game e 4FNet.
                     </p>
                   </div>
 
@@ -1324,10 +1324,11 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ onClose }) => 
                 )}
 
                 {dailyBackfillReport?.summary && (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
                     {[
                       { label: 'FitGirl Repack', stats: dailyBackfillReport.summary.fitgirl, color: 'text-pink-300 border-pink-500/30' },
                       { label: 'DODI Repack', stats: dailyBackfillReport.summary.dodi, color: 'text-emerald-300 border-emerald-500/30' },
+                      { label: 'Brother Game', stats: dailyBackfillReport.summary.brothergame, color: 'text-blue-300 border-blue-500/30' },
                       { label: '4FNet Archive', stats: dailyBackfillReport.summary.fourFNet, color: 'text-orange-300 border-orange-500/30' }
                     ].map(item => (
                       <div key={item.label} className={`p-3 rounded-xl bg-slate-950/80 border ${item.color} space-y-1`}>

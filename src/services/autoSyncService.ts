@@ -182,11 +182,11 @@ export function checkForNewFitGirlReleases(existingGames: Game[]): Game[] {
 /**
  * Drop-in GitHub Actions Cron Workflow YAML (Runs automatically every hour)
  */
-export const GITHUB_ACTIONS_WORKFLOW_YAML = `name: VortexGames Daily Auto-Sync & Backfill (FitGirl + DODI + 4FNet)
+export const GITHUB_ACTIONS_WORKFLOW_YAML = `name: VortexGames Daily Auto-Sync & Backfill (FitGirl + DODI + Brother Game + 4FNet)
 
 on:
   schedule:
-    # Executa todos os dias à meia-noite UTC (todos os novos + 10 antigos por dia de cada site)
+    # Executa todos os dias à meia-noite UTC (todos os novos + 10 antigos por dia de cada um dos 4 sites)
     - cron: '0 0 * * *'
   workflow_dispatch: # Permite disparar manualmente pelo painel do GitHub
 
@@ -205,13 +205,11 @@ jobs:
       - name: Instalar Dependências de Sincronização
         run: npm install @supabase/supabase-js
 
-      - name: Executar Regra Diária (Todos Novos + 10 Antigos de FitGirl, DODI e 4FNet)
+      - name: Executar Regra Diária (Todos Novos + 10 Antigos de FitGirl, DODI, Brother Game e 4FNet)
         env:
           SUPABASE_URL: \${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: \${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: |
-          node scripts/sync-daily-backfill.js --old-limit=10
-          node scripts/sync-brothergame.js
+        run: node scripts/sync-daily-backfill.js --old-limit=10
 `;
 
 /**

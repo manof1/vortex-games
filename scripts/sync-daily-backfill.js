@@ -622,8 +622,398 @@ async function syncSite({ siteKey, repackerName, slugSuffix, apiBase, useEmbed, 
   };
 }
 
+function cleanBrotherGameTitle(rawTitle) {
+  return rawTitle
+    .replace(/\s*–\s*v.*$/, '')
+    .replace(/\[.*\]/, '')
+    .replace(/\s*PORT\s+PC\s+NATIVO[\s\S]*$/i, '')
+    .replace(/\s*PORT\s+NATIVO[\s\S]*$/i, '')
+    .replace(/\s*NO\s+EMULADOR[\s\S]*$/i, '')
+    .replace(/\s*JOGO\s+PARA\s+EMULADOR[\s\S]*$/i, '')
+    .replace(/\s*CRACK\s+NORMAL[\s\S]*$/i, '')
+    .replace(/\s*REPACK[\s\S]*$/i, '')
+    .trim() || rawTitle.trim();
+}
+
+function isNonGameBrotherPost(text) {
+  const low = (text || '').toLowerCase();
+  return (
+    low.includes('camrip') ||
+    low.includes('hdcam') ||
+    low.includes('telesync') ||
+    low.includes('webrip') ||
+    low.includes('dublado-camrip')
+  );
+}
+
+function extractBrotherGameLinksFromHtml(html, defaultSize, slug) {
+  const re = /href=["'](https?:\/\/[^"']+|magnet:\?[^"']+)["']/gi;
+  let match;
+  const urls = [];
+  while ((match = re.exec(html)) !== null) {
+    urls.push(match[1]);
+  }
+
+  const validLinks = [];
+  const seenUrls = new Set();
+  let idx = 0;
+
+  for (const rawUrl of urls) {
+    const u = rawUrl.trim();
+    const lower = u.toLowerCase();
+
+    if (
+      lower.includes('wix') ||
+      lower.includes('brothergame.org') ||
+      lower.includes('discord.gg') ||
+      lower.includes('chromewebstore.google.com') ||
+      lower.includes('google.com/detail') ||
+      lower.includes('google.com/search') ||
+      lower.includes('.css') ||
+      lower.includes('.js') ||
+      lower.includes('wikipedia.org') ||
+      lower.includes('fandom.com') ||
+      lower.includes('steampowered.com') ||
+      lower.includes('nintendo.com') ||
+      lower.includes('gran-turismo.com') ||
+      lower.includes('marketplace.xbox.com')
+    ) {
+      continue;
+    }
+
+    if (seenUrls.has(u)) continue;
+    seenUrls.add(u);
+
+    let hostName = 'Download Direto';
+    let label = 'Download Direto';
+    let type = 'direct';
+    let format = 'direct';
+
+    if (lower.startsWith('magnet:?')) {
+      type = 'magnet';
+      format = 'torrent';
+      hostName = 'Magnet Torrent';
+      label = 'Torrent Magnet (Brother Game)';
+    } else if (lower.includes('mediafire.com')) {
+      hostName = 'MediaFire';
+      label = 'MediaFire (Download Direto)';
+    } else if (lower.includes('drive.google.com')) {
+      hostName = 'Google Drive';
+      label = 'Google Drive (Download Nuvem)';
+    } else if (lower.includes('gofile.io')) {
+      hostName = 'Gofile';
+      label = 'Gofile (Alta Velocidade)';
+    } else if (lower.includes('buzzheavier.com')) {
+      hostName = 'Buzzheavier';
+      label = 'Buzzheavier (Download Rápido)';
+    } else if (lower.includes('fileditch')) {
+      hostName = 'Fileditch';
+      label = 'Fileditch (Download Direto)';
+    } else if (lower.includes('pixeldrain.com')) {
+      hostName = 'PixelDrain';
+      label = 'PixelDrain (Mirror Direto)';
+    } else if (lower.includes('vikingfile') || lower.includes('vik1ngfile')) {
+      hostName = 'VikingFile';
+      label = 'VikingFile (Download Rápido)';
+    } else if (lower.includes('blazeupload.com')) {
+      hostName = 'BlazeUpload';
+      label = 'BlazeUpload (Mirror Direto)';
+    } else if (lower.includes('mega.nz') || lower.includes('1fichier.com') || lower.includes('akirabox') || lower.includes('megaup')) {
+      hostName = 'Mirror Nuvem';
+      label = 'Mirror Direto Nuvem';
+    } else if (lower.includes('link-vault.org') || lower.includes('clica.so')) {
+      hostName = 'Servidor Brother Game';
+      label = 'Mirror Alternativo Brother Game';
+    } else if (lower.includes('github.com') || lower.includes('gitlab.com') || lower.includes('itch.io')) {
+      hostName = 'GitHub / Releases';
+      label = 'Repositório Oficial do Port';
+    } else {
+      continue;
+    }
+
+    idx++;
+    validLinks.push({
+      id: `dl-bg-${slug}-${idx}`,
+      type,
+      format,
+      platform: 'PC',
+      label,
+      url: u,
+      size: defaultSize,
+      hostName
+    });
+  }
+
+  return validLinks;
+}
+
+function buildBrotherGameRow({ id, title, slug, rawTitle, description, coverUrl, postUrl, extractedLinks, createdAt }) {
+  const pubDate = new Date(createdAt);
+  const lowRaw = rawTitle.toLowerCase();
+  const lowDesc = description.toLowerCase();
+  const isDublado = lowRaw.includes('pt.br') || lowRaw.includes('pt-br') || lowDesc.includes('português');
+  const isPortNativo = lowRaw.includes('port') || lowDesc.includes('port nativo');
+  const repackSize = isPortNativo ? '3.5 GB' : '18.0 GB';
+
+  const downloadLinks = [
+    ...extractedLinks,
+    {
+      id: `dl-bg-page-${slug}`,
+      type: 'direct',
+      format: 'direct',
+      platform: 'PC',
+      label: 'Página Oficial Brother Game',
+      url: postUrl,
+      size: repackSize,
+      hostName: 'BrotherGame.org'
+    }
+  ];
+
+  return {
+    id,
+    title: title.slice(0, 100),
+    slug,
+    cover_url: coverUrl,
+    banner_url: coverUrl,
+    short_description: (description || `Port nativo de PC para ${title} com suporte e otimizações.`).slice(0, 180) + (description.length > 180 ? '...' : ''),
+    description: description || `Lançamento oficial Brother Game para ${title}.`,
+    genres: mapGenres(`${rawTitle} ${description}`),
+    categories: ['BrotherGame', 'Lançamentos', 'Repacks'],
+    release_year: pubDate.getFullYear() || 2026,
+    release_date: pubDate.toLocaleDateString('pt-BR'),
+    developer: 'Brother Game Community',
+    publisher: 'Brother Game',
+    repacker: 'Brother Game',
+    version: rawTitle.slice(0, 80),
+    repack_size: repackSize,
+    original_size: '30.0 GB',
+    crack_status: 'DRM Free',
+    crack_group: 'Brother Game Team',
+    download_links: downloadLinks,
+    system_requirements: {
+      minimum: {
+        os: 'Windows 10/11 64-bit',
+        processor: 'Intel Core i3 / AMD Ryzen 3',
+        memory: '8 GB RAM',
+        graphics: 'NVIDIA GTX 960 / AMD RX 560',
+        storage: '10 GB de espaço livre',
+        directx: 'Versão 11'
+      },
+      recommended: {
+        os: 'Windows 10/11 64-bit',
+        processor: 'Intel Core i5 / AMD Ryzen 5',
+        memory: '16 GB RAM',
+        graphics: 'NVIDIA GTX 1060 / AMD RX 580',
+        storage: '20 GB em SSD',
+        directx: 'Versão 12'
+      }
+    },
+    screenshots: [coverUrl],
+    rating: 0,
+    total_votes: 0,
+    tags: ['Brother Game', 'Port Nativo PC', 'Tradução PT-BR'],
+    downloads_count: 0,
+    views_count: 0,
+    has_pt_br_audio: isDublado,
+    has_pt_br_subs: isDublado,
+    has_pc_torrent: extractedLinks.some(l => l.type === 'magnet'),
+    source_origin: 'BrotherGame',
+    platform: 'PC',
+    created_at: createdAt
+  };
+}
+
+async function syncBrotherGameSite({ existingIds, existingSlugs, oldestCursorIso, initialCountInDb, oldLimit }) {
+  const rowsToInsert = [];
+  let newAdded = 0;
+  let oldAdded = 0;
+  let totalAvailable = 0;
+  let archiveCompleted = false;
+
+  // 1. TODOS OS JOGOS NOVOS via RSS (blog-feed.xml)
+  try {
+    const bgRes = await fetch('https://www.brothergame.org/blog-feed.xml', { headers: { 'User-Agent': BOT_UA } });
+    if (bgRes.ok) {
+      const bgXml = await bgRes.text();
+      const bgItems = bgXml.match(/<item>([\s\S]*?)<\/item>/g) || [];
+      for (const itemXml of bgItems) {
+        const rawTitle = decodeHtml(itemXml.match(/<title>([\s\S]*?)<\/title>/)?.[1] || '');
+        if (!rawTitle || isNonGameBrotherPost(rawTitle)) continue;
+
+        const link = decodeHtml(itemXml.match(/<link>([\s\S]*?)<\/link>/)?.[1] || 'https://www.brothergame.org');
+        if (isNonGameBrotherPost(link)) continue;
+
+        const cleanTitle = cleanBrotherGameTitle(rawTitle);
+        const slugBase = makeSlug(cleanTitle);
+        const id = `bg-${slugBase.slice(0, 45)}`;
+        if (existingIds.has(id)) continue;
+
+        const pubDate = new Date(itemXml.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1] || Date.now());
+        const description = decodeHtml(itemXml.match(/<description>([\s\S]*?)<\/description>/)?.[1] || '').replace(/<[^>]+>/g, ' ').trim();
+        const coverUrl = itemXml.match(/<enclosure\s+[^>]*url="([^"]+)"/i)?.[1] || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80';
+        const isPortNativo = rawTitle.toLowerCase().includes('port') || description.toLowerCase().includes('port nativo');
+        const repackSize = isPortNativo ? '3.5 GB' : '18.0 GB';
+
+        let extractedLinks = [];
+        try {
+          const postRes = await fetch(link, { headers: { 'User-Agent': BOT_UA } });
+          if (postRes.ok) {
+            const html = await postRes.text();
+            extractedLinks = extractBrotherGameLinksFromHtml(html, repackSize, slugBase);
+          }
+        } catch {}
+
+        const uniqueSlug = ensureUniqueSlug(`${slugBase}-brothergame`, 'bg', existingSlugs);
+        existingIds.add(id);
+        rowsToInsert.push(
+          buildBrotherGameRow({
+            id,
+            title: cleanTitle,
+            slug: uniqueSlug,
+            rawTitle,
+            description,
+            coverUrl,
+            postUrl: link,
+            extractedLinks,
+            createdAt: Number.isNaN(pubDate.getTime()) ? new Date().toISOString() : pubDate.toISOString()
+          })
+        );
+        newAdded++;
+      }
+    }
+  } catch (err) {
+    console.error('[brothergame] Aviso novos:', err.message);
+  }
+
+  // 2. BACKFILL GRADUAL DOS ANTIGOS via Sitemap Oficial (blog-posts-sitemap.xml -> 10 antigos/dia)
+  if (oldLimit > 0) {
+    try {
+      const smRes = await fetch('https://www.brothergame.org/blog-posts-sitemap.xml', { headers: { 'User-Agent': BOT_UA } });
+      if (smRes.ok) {
+        const smXml = await smRes.text();
+        const entries = [...smXml.matchAll(/<url>([\s\S]*?)<\/url>/g)]
+          .map(m => ({
+            loc: m[1].match(/<loc>(.*?)<\/loc>/)?.[1] || '',
+            lastmod: m[1].match(/<lastmod>(.*?)<\/lastmod>/)?.[1] || '',
+            img: m[1].match(/<image:loc>(.*?)<\/image:loc>/)?.[1] || ''
+          }))
+          .filter(e => e.loc && e.lastmod && !isNonGameBrotherPost(e.loc));
+
+        totalAvailable = entries.length;
+        entries.sort((a, b) => b.lastmod.localeCompare(a.lastmod) || a.loc.localeCompare(b.loc));
+
+        const cursorDate = oldestCursorIso ? oldestCursorIso.slice(0, 10) : '9999-12-31';
+        const candidates = entries.filter(e => e.lastmod <= cursorDate);
+
+        if (candidates.length === 0) {
+          archiveCompleted = true;
+        } else {
+          const batchSize = Math.min(12, oldLimit + 2);
+          for (let offset = 0; offset < candidates.length && offset < 36 && oldAdded < oldLimit; offset += batchSize) {
+            const batch = candidates.slice(offset, offset + batchSize);
+            const parsedBatch = await Promise.all(
+              batch.map(async entry => {
+                try {
+                  const pRes = await fetch(entry.loc, { headers: { 'User-Agent': BOT_UA } });
+                  if (!pRes.ok) return null;
+                  const html = await pRes.text();
+                  const ogTitle = decodeHtml(
+                    html.match(/property="og:title"\s+content="([^"]*)"/i)?.[1] ||
+                    html.match(/<title>([\s\S]*?)<\/title>/i)?.[1] ||
+                    ''
+                  );
+                  if (!ogTitle || isNonGameBrotherPost(ogTitle)) return null;
+
+                  const cleanTitle = cleanBrotherGameTitle(ogTitle);
+                  const slugBase = makeSlug(cleanTitle);
+                  const id = `bg-${slugBase.slice(0, 45)}`;
+                  if (existingIds.has(id)) return null;
+
+                  const isPortNativo = ogTitle.toLowerCase().includes('port');
+                  const repackSize = isPortNativo ? '3.5 GB' : '18.0 GB';
+                  const extractedLinks = extractBrotherGameLinksFromHtml(html, repackSize, slugBase);
+                  if (extractedLinks.length === 0) return null;
+
+                  const ogDesc = decodeHtml(html.match(/property="og:description"\s+content="([^"]*)"/i)?.[1] || '');
+                  const ogImg =
+                    html.match(/property="og:image"\s+content="([^"]*)"/i)?.[1] ||
+                    entry.img ||
+                    'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80';
+                  const pubMeta = html.match(/article:published_time"\s+content="([^"]*)"/i)?.[1] || '';
+
+                  let createdAt = `${entry.lastmod}T12:00:00.000Z`;
+                  if (pubMeta && pubMeta.slice(0, 10) === entry.lastmod) {
+                    const parsedPub = new Date(pubMeta);
+                    if (!Number.isNaN(parsedPub.getTime())) createdAt = parsedPub.toISOString();
+                  }
+
+                  return {
+                    id,
+                    title: cleanTitle,
+                    slugBase,
+                    rawTitle: ogTitle,
+                    description: ogDesc,
+                    coverUrl: ogImg,
+                    postUrl: entry.loc,
+                    extractedLinks,
+                    createdAt
+                  };
+                } catch {
+                  return null;
+                }
+              })
+            );
+
+            for (const item of parsedBatch) {
+              if (!item || oldAdded >= oldLimit) continue;
+              if (existingIds.has(item.id)) continue;
+              const uniqueSlug = ensureUniqueSlug(`${item.slugBase}-brothergame`, 'bg', existingSlugs);
+              existingIds.add(item.id);
+              rowsToInsert.push(
+                buildBrotherGameRow({
+                  id: item.id,
+                  title: item.title,
+                  slug: uniqueSlug,
+                  rawTitle: item.rawTitle,
+                  description: item.description,
+                  coverUrl: item.coverUrl,
+                  postUrl: item.postUrl,
+                  extractedLinks: item.extractedLinks,
+                  createdAt: item.createdAt
+                })
+              );
+              oldAdded++;
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error('[brothergame] Aviso backfill:', err.message);
+    }
+  }
+
+  if (rowsToInsert.length > 0) {
+    const { error } = await supabase.from('games').upsert(rowsToInsert, { onConflict: 'id' });
+    if (error) {
+      for (const row of rowsToInsert) {
+        await supabase.from('games').upsert(row, { onConflict: 'id' });
+      }
+    }
+  }
+
+  return {
+    site: 'brothergame',
+    repacker: 'Brother Game',
+    newAdded,
+    oldAdded,
+    totalInDb: initialCountInDb + newAdded + oldAdded,
+    totalAvailable,
+    archiveCompleted
+  };
+}
+
 export async function runDailyBackfill(oldLimit = 10) {
-  console.log(`⏰ [REGRA DIÁRIA] Buscando TODOS os novos + ${oldLimit} antigos por site (FitGirl, DODI, 4FNet)...`);
+  console.log(`⏰ [REGRA DIÁRIA] Buscando TODOS os novos + ${oldLimit} antigos por site (FitGirl, DODI, Brother Game, 4FNet)...`);
 
   const existingIds = new Set();
   const existingSlugs = new Set();
@@ -653,7 +1043,7 @@ export async function runDailyBackfill(oldLimit = 10) {
     from += 1000;
   }
 
-  const [fg, dodi, fourf] = await Promise.all([
+  const [fg, dodi, bg, fourf] = await Promise.all([
     syncSite({
       siteKey: 'fitgirl',
       repackerName: 'FitGirl Repack',
@@ -680,6 +1070,13 @@ export async function runDailyBackfill(oldLimit = 10) {
       initialCountInDb: countByRepacker['DODI Repack'] || 0,
       oldLimit
     }),
+    syncBrotherGameSite({
+      existingIds,
+      existingSlugs,
+      oldestCursorIso: oldestByRepacker['Brother Game'] || null,
+      initialCountInDb: countByRepacker['Brother Game'] || 0,
+      oldLimit
+    }),
     syncSite({
       siteKey: '4fnet',
       repackerName: '4FNet',
@@ -695,10 +1092,14 @@ export async function runDailyBackfill(oldLimit = 10) {
     })
   ]);
 
-  console.table({ FitGirl: fg, DODI: dodi, '4FNet': fourf });
-  const totalAdded = fg.newAdded + fg.oldAdded + dodi.newAdded + dodi.oldAdded + fourf.newAdded + fourf.oldAdded;
+  console.table({ FitGirl: fg, DODI: dodi, 'Brother Game': bg, '4FNet': fourf });
+  const totalAdded =
+    fg.newAdded + fg.oldAdded +
+    dodi.newAdded + dodi.oldAdded +
+    bg.newAdded + bg.oldAdded +
+    fourf.newAdded + fourf.oldAdded;
   console.log(`🎉 Regra diária concluída! Total adicionado: ${totalAdded} jogo(s).`);
-  return { fg, dodi, fourf, totalAdded };
+  return { fg, dodi, bg, fourf, totalAdded };
 }
 
 if (process.argv[1] && process.argv[1].endsWith('sync-daily-backfill.js')) {
