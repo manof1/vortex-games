@@ -21,6 +21,7 @@ import {
   checkAndRunScheduledSundaySync 
 } from '../services/weeklyCheatsModsScheduler';
 import { filterOutRiotPixels, isRiotPixelsLink } from '../utils/linkFilters';
+import { updateBrowserUrlForHome } from '../services/urlRoutingService';
 
 interface GameContextType {
   games: Game[];
@@ -567,12 +568,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Navigation & Modals
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
-  const [activeGame, setActiveGame] = useState<Game | null>(null);
-  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
+  const [activeGame, setActiveGameState] = useState<Game | null>(null);
+  const [isLibraryOpen, setIsLibraryOpenState] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isSupabaseGuideOpen, setIsSupabaseGuideOpen] = useState(false);
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpenState] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
   const [authModalNotice, setAuthModalNotice] = useState<string>('');
@@ -582,9 +583,96 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [activeGameInitialTab, setActiveGameInitialTab] = useState<'downloads' | 'specs' | 'screenshots' | 'instructions' | 'cheats' | 'mods' | 'localizations'>('downloads');
   const [sundaySyncInfo, setSundaySyncInfo] = useState<SundaySyncInfo>(() => loadSundaySyncInfo(games));
 
+  // Game Request, Can I Run It, Utilities (Page Views inside <main>)
+  const [isGameRequestOpen, setIsGameRequestOpenState] = useState(false);
+  const [isCanIRunItOpen, setIsCanIRunItOpenState] = useState(false);
+  const [canIRunItGame, setCanIRunItGame] = useState<Game | null>(null);
+  const [isUtilitiesOpen, setIsUtilitiesOpenState] = useState(false);
+
+  const resetOtherMainViews = () => {
+    setIsLibraryOpenState(false);
+    setIsUserMenuOpenState(false);
+    setIsGameRequestOpenState(false);
+    setIsCanIRunItOpenState(false);
+    setIsUtilitiesOpenState(false);
+  };
+
+  const setActiveGame = (game: Game | null) => {
+    if (game) {
+      resetOtherMainViews();
+    }
+    setActiveGameState(game);
+  };
+
+  const setIsLibraryOpen = (open: boolean) => {
+    if (open) {
+      if (activeGame) updateBrowserUrlForHome();
+      setActiveGameState(null);
+      setIsUserMenuOpenState(false);
+      setIsGameRequestOpenState(false);
+      setIsCanIRunItOpenState(false);
+      setIsUtilitiesOpenState(false);
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }
+    setIsLibraryOpenState(open);
+  };
+
+  const setIsUserMenuOpen = (open: boolean) => {
+    if (open) {
+      if (activeGame) updateBrowserUrlForHome();
+      setActiveGameState(null);
+      setIsLibraryOpenState(false);
+      setIsGameRequestOpenState(false);
+      setIsCanIRunItOpenState(false);
+      setIsUtilitiesOpenState(false);
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }
+    setIsUserMenuOpenState(open);
+  };
+
+  const setIsGameRequestOpen = (open: boolean) => {
+    if (open) {
+      if (activeGame) updateBrowserUrlForHome();
+      setActiveGameState(null);
+      setIsLibraryOpenState(false);
+      setIsUserMenuOpenState(false);
+      setIsCanIRunItOpenState(false);
+      setIsUtilitiesOpenState(false);
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }
+    setIsGameRequestOpenState(open);
+  };
+
+  const setIsCanIRunItOpen = (open: boolean) => {
+    if (open) {
+      if (activeGame) updateBrowserUrlForHome();
+      setActiveGameState(null);
+      setIsLibraryOpenState(false);
+      setIsUserMenuOpenState(false);
+      setIsGameRequestOpenState(false);
+      setIsUtilitiesOpenState(false);
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }
+    setIsCanIRunItOpenState(open);
+  };
+
+  const setIsUtilitiesOpen = (open: boolean) => {
+    if (open) {
+      if (activeGame) updateBrowserUrlForHome();
+      setActiveGameState(null);
+      setIsLibraryOpenState(false);
+      setIsUserMenuOpenState(false);
+      setIsGameRequestOpenState(false);
+      setIsCanIRunItOpenState(false);
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }
+    setIsUtilitiesOpenState(open);
+  };
+
   const openGameWithTab = (game: Game, tab: 'downloads' | 'specs' | 'screenshots' | 'instructions' | 'cheats' | 'mods' | 'localizations' = 'downloads') => {
+    resetOtherMainViews();
     setActiveGameInitialTab(tab);
-    setActiveGame(game);
+    setActiveGameState(game);
   };
 
 
@@ -805,13 +893,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return true;
   };
 
-  // Game Request Modal State
-  const [isGameRequestOpen, setIsGameRequestOpen] = useState(false);
-
-  // Can You Run It (Meu PC Roda?)
-  const [isCanIRunItOpen, setIsCanIRunItOpen] = useState(false);
-  const [canIRunItGame, setCanIRunItGame] = useState<Game | null>(null);
-
   const openCanIRunIt = (game?: Game | null) => {
     if (game) {
       setCanIRunItGame(game);
@@ -823,8 +904,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsCanIRunItOpen(true);
   };
 
-  // Gamer Utilities Modal (Utilitários Essenciais)
-  const [isUtilitiesOpen, setIsUtilitiesOpen] = useState(false);
+  // Gamer Utilities (Utilitários Essenciais)
   const openUtilities = () => setIsUtilitiesOpen(true);
 
   // Thematic Lists State (Listas Temáticas)
@@ -963,7 +1043,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     setGames(prev => prev.map(g => (g.id === cleaned.id ? cleaned : g)));
     if (activeGame?.id === cleaned.id) {
-      setActiveGame(cleaned);
+      setActiveGameState(cleaned);
     }
     // Persistir atualização imediatamente no banco Supabase
     upsertGameToSupabase(cleaned).catch(err => {
@@ -974,7 +1054,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const deleteGame = (gameId: string) => {
     setGames(prev => prev.filter(g => g.id !== gameId));
     if (activeGame?.id === gameId) {
-      setActiveGame(null);
+      setActiveGameState(null);
     }
     // Remover do banco de dados Supabase
     deleteGameFromSupabase(gameId).catch(err => {
@@ -1000,7 +1080,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           nextViewsToPersist = nextViews;
           saveStoredGameStat(gameId, { viewsCount: nextViews });
           const updated = { ...g, viewsCount: nextViews };
-          setActiveGame(cur => (cur?.id === gameId ? { ...cur, viewsCount: nextViews } : cur));
+          setActiveGameState(cur => (cur?.id === gameId ? { ...cur, viewsCount: nextViews } : cur));
           return updated;
         }
         return g;
@@ -1021,7 +1101,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           nextDownloadsToPersist = nextDownloads;
           saveStoredGameStat(gameId, { downloadsCount: nextDownloads });
           const updated = { ...g, downloadsCount: nextDownloads };
-          setActiveGame(cur => (cur?.id === gameId ? { ...cur, downloadsCount: nextDownloads } : cur));
+          setActiveGameState(cur => (cur?.id === gameId ? { ...cur, downloadsCount: nextDownloads } : cur));
           return updated;
         }
         return g;
@@ -1107,7 +1187,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           saveStoredGameStat(gameId, { rating: newRating, totalVotes: newVotes });
 
           const updated = { ...g, rating: newRating, totalVotes: newVotes };
-          setActiveGame(cur => (cur?.id === gameId ? { ...cur, rating: newRating, totalVotes: newVotes } : cur));
+          setActiveGameState(cur => (cur?.id === gameId ? { ...cur, rating: newRating, totalVotes: newVotes } : cur));
           return updated;
         }
         return g;

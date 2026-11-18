@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   X, 
+  ArrowLeft,
   Send, 
   CheckCircle2, 
   Gamepad2, 
@@ -185,18 +186,27 @@ export const GameRequestModal: React.FC<GameRequestModalProps> = ({ isOpen, onCl
   );
 
   return (
-    <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn"
-      onClick={onClose}
-    >
-      <div 
-        className="relative w-full max-w-2xl rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden transition-all text-slate-900 dark:text-slate-100 flex flex-col max-h-[90vh]"
-        onClick={e => e.stopPropagation()}
-      >
+    <div className="w-full max-w-[1550px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5 animate-fadeIn">
+      {/* Traditional Site Return Bar (keeps top Header visible) */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
+        <button
+          onClick={onClose}
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs sm:text-sm font-bold text-slate-200 hover:text-white transition-all shadow-sm group cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4 text-indigo-400 group-hover:-translate-x-1 transition-transform" />
+          <span>Voltar ao Catálogo de Jogos</span>
+        </button>
+
+        <span className="text-xs font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-500/30 px-3 py-1.5 rounded-xl">
+          Pedidos da Comunidade ({requests.length})
+        </span>
+      </div>
+
+      <div className="w-full rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden transition-all text-slate-900 dark:text-slate-100 flex flex-col">
         {/* Accent top gradient */}
         <div className="h-2 w-full bg-gradient-to-r from-cyan-500 via-indigo-500 to-purple-600" />
 
-        {/* Modal Header */}
+        {/* Header */}
         <div className="p-5 sm:p-6 pb-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-cyan-500/10 text-cyan-500 dark:text-cyan-400 flex items-center justify-center border border-cyan-500/30">
@@ -218,6 +228,7 @@ export const GameRequestModal: React.FC<GameRequestModalProps> = ({ isOpen, onCl
           <button
             onClick={onClose}
             className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
+            title="Voltar ao Catálogo"
           >
             <X className="w-5 h-5" />
           </button>
@@ -260,8 +271,8 @@ export const GameRequestModal: React.FC<GameRequestModalProps> = ({ isOpen, onCl
           </button>
         </div>
 
-        {/* Modal Body */}
-        <div className="p-6 overflow-y-auto space-y-4 flex-1">
+        {/* Body */}
+        <div className="p-6 space-y-4 flex-1">
           {activeTab === 'form' ? (
             <form onSubmit={handleSubmit} className="space-y-4">
               {submitted ? (

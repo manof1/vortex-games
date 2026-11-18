@@ -72,11 +72,16 @@ export const Header: React.FC = () => {
     userProfile,
     isLoggedIn,
     setIsAuthModalOpen,
+    isGameRequestOpen,
     setIsGameRequestOpen,
     openCreatorLab,
     openSundaySyncModal,
     isCreator,
+    isCanIRunItOpen,
+    setIsCanIRunItOpen,
     openCanIRunIt,
+    isUtilitiesOpen,
+    setIsUtilitiesOpen,
     openUtilities,
     activeThematicListId,
     setActiveThematicListId
@@ -95,6 +100,9 @@ export const Header: React.FC = () => {
     setActiveGame(null);
     setIsLibraryOpen(false);
     setIsUserMenuOpen(false);
+    setIsCanIRunItOpen(false);
+    setIsUtilitiesOpen(false);
+    setIsGameRequestOpen(false);
     setIsTopMenuOpen(false);
     setIsConsolesMenuOpen(false);
     setIsSearchFocused(false);
@@ -172,6 +180,9 @@ export const Header: React.FC = () => {
     setActiveGame(null);
     setIsLibraryOpen(false);
     setIsUserMenuOpen(false);
+    setIsCanIRunItOpen(false);
+    setIsUtilitiesOpen(false);
+    setIsGameRequestOpen(false);
     setIsTopMenuOpen(false);
     setActiveThematicListId(null);
     setLocalSearch('');
@@ -202,6 +213,9 @@ export const Header: React.FC = () => {
     setActiveGame(null);
     setIsLibraryOpen(false);
     setIsUserMenuOpen(false);
+    setIsCanIRunItOpen(false);
+    setIsUtilitiesOpen(false);
+    setIsGameRequestOpen(false);
     setIsSearchFocused(false);
     if (localSearch.trim()) {
       addSearchToHistory(localSearch);
@@ -215,6 +229,9 @@ export const Header: React.FC = () => {
     setActiveGame(null);
     setIsLibraryOpen(false);
     setIsUserMenuOpen(false);
+    setIsCanIRunItOpen(false);
+    setIsUtilitiesOpen(false);
+    setIsGameRequestOpen(false);
     setFilters(prev => ({ ...prev, search: val }));
   };
 
@@ -224,6 +241,9 @@ export const Header: React.FC = () => {
     setActiveGame(null);
     setIsLibraryOpen(false);
     setIsUserMenuOpen(false);
+    setIsCanIRunItOpen(false);
+    setIsUtilitiesOpen(false);
+    setIsGameRequestOpen(false);
     setIsSearchFocused(false);
     setFilters(prev => ({ ...prev, search: term }));
   };
@@ -474,6 +494,9 @@ export const Header: React.FC = () => {
                         setActiveGame(null);
                         setIsLibraryOpen(false);
                         setIsUserMenuOpen(false);
+                        setIsCanIRunItOpen(false);
+                        setIsUtilitiesOpen(false);
+                        setIsGameRequestOpen(false);
                         setIsConsolesMenuOpen(false);
                         setFilters(prev => ({ ...prev, platform: 'playstation', search: '' }));
                         document.getElementById('catalogo-section')?.scrollIntoView({ behavior: 'smooth' });
@@ -498,6 +521,9 @@ export const Header: React.FC = () => {
                         setActiveGame(null);
                         setIsLibraryOpen(false);
                         setIsUserMenuOpen(false);
+                        setIsCanIRunItOpen(false);
+                        setIsUtilitiesOpen(false);
+                        setIsGameRequestOpen(false);
                         setIsConsolesMenuOpen(false);
                         setFilters(prev => ({ ...prev, platform: 'nintendo', search: '' }));
                         document.getElementById('catalogo-section')?.scrollIntoView({ behavior: 'smooth' });
@@ -522,6 +548,9 @@ export const Header: React.FC = () => {
                         setActiveGame(null);
                         setIsLibraryOpen(false);
                         setIsUserMenuOpen(false);
+                        setIsCanIRunItOpen(false);
+                        setIsUtilitiesOpen(false);
+                        setIsGameRequestOpen(false);
                         setIsConsolesMenuOpen(false);
                         setFilters(prev => ({ ...prev, platform: 'retro', search: '' }));
                         document.getElementById('catalogo-section')?.scrollIntoView({ behavior: 'smooth' });
@@ -584,6 +613,9 @@ export const Header: React.FC = () => {
                 setActiveGame(null);
                 setIsLibraryOpen(false);
                 setIsUserMenuOpen(false);
+                setIsCanIRunItOpen(false);
+                setIsUtilitiesOpen(false);
+                setIsGameRequestOpen(false);
                 setFilters(prev => ({ 
                   ...prev, 
                   search: '', 
@@ -606,10 +638,14 @@ export const Header: React.FC = () => {
             {/* BOTÃO MEU PC RODA? (CAN YOU RUN IT) */}
             <button
               onClick={() => openCanIRunIt()}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 hover:border-cyan-500/50 transition-all cursor-pointer shadow-sm"
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm border ${
+                isCanIRunItOpen
+                  ? 'bg-cyan-500 text-slate-950 border-cyan-400 ring-2 ring-cyan-400/40'
+                  : 'text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 border-cyan-500/30 hover:border-cyan-500/50'
+              }`}
               title="Testar se o seu computador roda qualquer jogo da biblioteca em 1 clique"
             >
-              <Cpu className="w-3.5 h-3.5 text-cyan-400 stroke-[2.5]" />
+              <Cpu className={`w-3.5 h-3.5 stroke-[2.5] ${isCanIRunItOpen ? 'text-slate-950' : 'text-cyan-400'}`} />
               <span className="hidden md:inline">Meu PC Roda?</span>
               <span className="md:hidden">PC Roda?</span>
             </button>
@@ -617,20 +653,28 @@ export const Header: React.FC = () => {
             {/* BOTÃO UTILITÁRIOS ESSENCIAIS */}
             <button
               onClick={openUtilities}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 hover:border-emerald-500/50 transition-all cursor-pointer shadow-sm"
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm border ${
+                isUtilitiesOpen
+                  ? 'bg-emerald-500 text-slate-950 border-emerald-400 ring-2 ring-emerald-400/40'
+                  : 'text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/30 hover:border-emerald-500/50'
+              }`}
               title="Baixar Utilitários Essenciais: Visual C++, DirectX, qBittorrent e Drivers"
             >
-              <Wrench className="w-3.5 h-3.5 text-emerald-400 stroke-[2.5]" />
+              <Wrench className={`w-3.5 h-3.5 stroke-[2.5] ${isUtilitiesOpen ? 'text-slate-950' : 'text-emerald-400'}`} />
               <span className="hidden lg:inline">Utilitários</span>
             </button>
 
             {/* SEÇÃO PEDIR UM JOGO */}
             <button
               onClick={() => setIsGameRequestOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-white bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-800/50 transition-all cursor-pointer"
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                isGameRequestOpen
+                  ? 'bg-indigo-500 text-white border-indigo-400 ring-2 ring-indigo-400/40 shadow-sm'
+                  : 'text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-white bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 border-indigo-200 dark:border-indigo-800/50'
+              }`}
               title="Pedir um jogo que ainda não está no site"
             >
-              <MessageSquarePlus className="w-3.5 h-3.5 text-indigo-500" />
+              <MessageSquarePlus className={`w-3.5 h-3.5 ${isGameRequestOpen ? 'text-white' : 'text-indigo-500'}`} />
               <span className="hidden sm:inline">{t('header.requestGame', 'Pedir Jogo')}</span>
             </button>
 

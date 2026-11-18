@@ -1,6 +1,7 @@
 import React from 'react';
 import { 
   X, 
+  ArrowLeft,
   Wrench, 
   Download, 
   ExternalLink, 
@@ -123,11 +124,23 @@ export const GamerUtilitiesModal: React.FC<GamerUtilitiesModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto animate-fadeIn">
-      <div 
-        className="relative w-full max-w-4xl bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 border border-emerald-500/30 rounded-3xl shadow-2xl shadow-emerald-500/10 overflow-hidden flex flex-col my-auto max-h-[92vh]"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className="w-full max-w-[1550px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5 animate-fadeIn">
+      {/* Traditional Site Return Bar (keeps top Header visible) */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
+        <button
+          onClick={onClose}
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs sm:text-sm font-bold text-slate-200 hover:text-white transition-all shadow-sm group cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4 text-emerald-400 group-hover:-translate-x-1 transition-transform" />
+          <span>Voltar ao Catálogo de Jogos</span>
+        </button>
+
+        <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-xl">
+          Downloads Oficiais & Verificados
+        </span>
+      </div>
+
+      <div className="w-full bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 border border-emerald-500/30 rounded-3xl shadow-2xl shadow-emerald-500/10 overflow-hidden flex flex-col">
         {/* Header */}
         <div className="px-6 py-5 border-b border-slate-800 flex items-center justify-between bg-slate-900/60 shrink-0">
           <div className="flex items-center gap-3">
@@ -150,14 +163,14 @@ export const GamerUtilitiesModal: React.FC<GamerUtilitiesModalProps> = ({
           <button
             onClick={onClose}
             className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all cursor-pointer"
-            title="Fechar"
+            title="Voltar ao Catálogo"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Content Body */}
-        <div className="p-4 sm:p-6 overflow-y-auto space-y-6">
+        <div className="p-4 sm:p-6 space-y-6">
           
           {/* Banner de Ajuda Rápida */}
           <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-slate-900 to-slate-900 border border-emerald-500/30 flex items-start gap-3">

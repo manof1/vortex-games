@@ -4,7 +4,16 @@ import { useGame } from '../context/GameContext';
 import { updateBrowserUrlForHome } from '../services/urlRoutingService';
 
 export const Footer: React.FC = () => {
-  const { setFilters, setActiveGame, setIsLibraryOpen, setIsUserMenuOpen, setActiveThematicListId } = useGame();
+  const {
+    setFilters,
+    setActiveGame,
+    setIsLibraryOpen,
+    setIsUserMenuOpen,
+    setIsCanIRunItOpen,
+    setIsUtilitiesOpen,
+    setIsGameRequestOpen,
+    setActiveThematicListId
+  } = useGame();
 
   const handleGoHome = (e?: React.MouseEvent) => {
     if (e && (e.metaKey || e.ctrlKey || e.button === 1)) {
@@ -16,6 +25,9 @@ export const Footer: React.FC = () => {
     setActiveGame(null);
     setIsLibraryOpen(false);
     setIsUserMenuOpen(false);
+    setIsCanIRunItOpen(false);
+    setIsUtilitiesOpen(false);
+    setIsGameRequestOpen(false);
     setActiveThematicListId(null);
     setFilters({
       search: '',

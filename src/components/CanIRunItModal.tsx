@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   X, 
+  ArrowLeft,
   Cpu, 
   CheckCircle2, 
   AlertTriangle, 
@@ -77,11 +78,40 @@ export const CanIRunItModal: React.FC<CanIRunItModalProps> = ({
     .slice(0, 10);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto animate-fadeIn">
-      <div 
-        className="relative w-full max-w-4xl bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 border border-cyan-500/30 rounded-3xl shadow-2xl shadow-cyan-500/10 overflow-hidden flex flex-col my-auto max-h-[92vh]"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className="w-full max-w-[1550px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5 animate-fadeIn">
+      {/* Traditional Site Return Bar (keeps top Header visible) */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
+        <button
+          onClick={onClose}
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs sm:text-sm font-bold text-slate-200 hover:text-white transition-all shadow-sm group cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4 text-cyan-400 group-hover:-translate-x-1 transition-transform" />
+          <span>Voltar ao Catálogo de Jogos</span>
+        </button>
+
+        <div className="flex items-center p-1 bg-slate-900 border border-slate-800 rounded-xl text-xs font-bold">
+          <button
+            type="button"
+            onClick={() => setActiveTab('test')}
+            className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+              activeTab === 'test' ? 'bg-cyan-500 text-slate-950 font-black shadow' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Analisar Jogo
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('config')}
+            className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+              activeTab === 'config' ? 'bg-cyan-500 text-slate-950 font-black shadow' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Meu Hardware
+          </button>
+        </div>
+      </div>
+
+      <div className="w-full bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 border border-cyan-500/30 rounded-3xl shadow-2xl shadow-cyan-500/10 overflow-hidden flex flex-col">
         {/* Header */}
         <div className="px-6 py-5 border-b border-slate-800 flex items-center justify-between bg-slate-900/60 shrink-0">
           <div className="flex items-center gap-3">
@@ -101,41 +131,17 @@ export const CanIRunItModal: React.FC<CanIRunItModalProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            {/* Abas Rápidas */}
-            <div className="flex items-center p-1 bg-slate-800 rounded-xl text-xs font-bold">
-              <button
-                type="button"
-                onClick={() => setActiveTab('test')}
-                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                  activeTab === 'test' ? 'bg-cyan-500 text-slate-950 font-black shadow' : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                Analisar Jogo
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('config')}
-                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                  activeTab === 'config' ? 'bg-cyan-500 text-slate-950 font-black shadow' : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                Meu Hardware
-              </button>
-            </div>
-
-            <button
-              onClick={onClose}
-              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all cursor-pointer"
-              title="Fechar"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all cursor-pointer"
+            title="Voltar ao Catálogo"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Content Body */}
-        <div className="p-4 sm:p-6 overflow-y-auto space-y-6">
+        <div className="p-4 sm:p-6 space-y-6">
           
           {/* Hardware Bar Resumo */}
           <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between flex-wrap gap-3">

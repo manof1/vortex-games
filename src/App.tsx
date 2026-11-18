@@ -127,6 +127,10 @@ const MainContent: React.FC = () => {
         // Voltou para a home / catálogo
         setActiveGame(null);
         setIsLibraryOpen(false);
+        setIsUserMenuOpen(false);
+        setIsCanIRunItOpen(false);
+        setIsUtilitiesOpen(false);
+        setIsGameRequestOpen(false);
         resetDefaultSeoMetadata();
 
         const searchParams = new URLSearchParams(window.location.search);
@@ -349,6 +353,27 @@ const MainContent: React.FC = () => {
       <main className="flex-1 w-full">
         {activeGame ? (
           <GameDetailModal game={activeGame} onClose={handleCloseGameDetail} />
+        ) : isCanIRunItOpen ? (
+          <CanIRunItModal
+            isOpen={isCanIRunItOpen}
+            onClose={() => setIsCanIRunItOpen(false)}
+            games={games}
+            initialGame={canIRunItGame}
+            onSelectGame={(g) => {
+              setIsCanIRunItOpen(false);
+              openGameWithTab(g, 'downloads');
+            }}
+          />
+        ) : isUtilitiesOpen ? (
+          <GamerUtilitiesModal
+            isOpen={isUtilitiesOpen}
+            onClose={() => setIsUtilitiesOpen(false)}
+          />
+        ) : isGameRequestOpen ? (
+          <GameRequestModal
+            isOpen={isGameRequestOpen}
+            onClose={() => setIsGameRequestOpen(false)}
+          />
         ) : isLibraryOpen ? (
           <UserLibraryView onClose={() => setIsLibraryOpen(false)} />
         ) : isUserMenuOpen ? (
@@ -544,12 +569,6 @@ const MainContent: React.FC = () => {
         <AuthModal onClose={() => setIsAuthModalOpen(false)} initialMode={authModalMode} />
       )}
 
-      {/* Pedir um Jogo Modal (Comunidade) */}
-      <GameRequestModal 
-        isOpen={isGameRequestOpen} 
-        onClose={() => setIsGameRequestOpen(false)} 
-      />
-
       {/* Laboratório de Testes PKG Exclusivo para o Criador (manof1@gmail.com) */}
       <PkgTestLabModal
         isOpen={isPkgLabOpen}
@@ -570,24 +589,6 @@ const MainContent: React.FC = () => {
       <SundaySyncModal
         isOpen={isSundaySyncOpen}
         onClose={() => setIsSundaySyncOpen(false)}
-      />
-
-      {/* Modal Can You Run It (Meu PC Roda?) */}
-      <CanIRunItModal
-        isOpen={isCanIRunItOpen}
-        onClose={() => setIsCanIRunItOpen(false)}
-        games={games}
-        initialGame={canIRunItGame}
-        onSelectGame={(g) => {
-          setIsCanIRunItOpen(false);
-          openGameWithTab(g, 'downloads');
-        }}
-      />
-
-      {/* Modal de Utilitários Essenciais do Gamer */}
-      <GamerUtilitiesModal
-        isOpen={isUtilitiesOpen}
-        onClose={() => setIsUtilitiesOpen(false)}
       />
     </div>
   );
