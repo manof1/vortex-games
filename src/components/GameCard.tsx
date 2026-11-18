@@ -200,7 +200,7 @@ export const GameCard: React.FC<GameCardProps> = ({ game, rank }) => {
             </div>
 
             {/* Real User Rating if available */}
-            {game.rating > 0 && (
+            {game.totalVotes > 0 && game.rating > 0 && (
               <div 
                 className="flex items-center gap-1 bg-slate-950/85 px-1.5 py-0.5 rounded-lg border border-amber-500/30 backdrop-blur-md text-amber-400 font-bold text-[10px]"
                 title={`Avaliação dos Usuários Vortex: ${game.rating.toFixed(1)}/5.0 (${game.totalVotes} votos)`}

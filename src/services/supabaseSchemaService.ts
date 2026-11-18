@@ -155,6 +155,20 @@ CREATE POLICY "Visitantes podem enviar comentários"
   TO public
   WITH CHECK (true);
 
+-- Comments: Permitir atualização de curtidas e exclusão
+DROP POLICY IF EXISTS "Atualização pública de curtidas em comentários" ON public.comments;
+CREATE POLICY "Atualização pública de curtidas em comentários"
+  ON public.comments FOR UPDATE
+  TO public
+  USING (true)
+  WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Exclusão de comentários permitida" ON public.comments;
+CREATE POLICY "Exclusão de comentários permitida"
+  ON public.comments FOR DELETE
+  TO public
+  USING (true);
+
 -- User Library: Usuário só pode ver e alterar sua própria biblioteca
 DROP POLICY IF EXISTS "Usuários acessam apenas sua biblioteca" ON public.user_library;
 CREATE POLICY "Usuários acessam apenas sua biblioteca"
@@ -205,9 +219,9 @@ INSERT INTO public.games (
   true,
   true,
   true,
-  5.0,
-  6120,
-  165000,
+  0,
+  0,
+  0,
   '[
     {
       "id": "dl-tlou-torrent",

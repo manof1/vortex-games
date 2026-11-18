@@ -254,6 +254,148 @@ export async function deleteGameFromSupabase(gameId: string): Promise<{ success:
   }
 }
 
+function formatSupabaseCommentDate(iso?: string): string {
+  if (!iso) return 'Agora mesmo';
+  try {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return iso;
+    return d.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }) + ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  } catch {
+    return 'Recentemente';
+  }
+}
+
+function mapSupabaseComment(item: any, likedIds?: Set<string>): Comment {
+  return {
+    id: String(item.id),
+    gameId: item.game_id || item.gameId,
+    authorName: item.author_name || item.authorName || 'Jogador Anônimo',
+    authorAvatar: item.author_avatar || item.authorAvatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(item.author_name || 'Gamer')}`,
+    authorRole: (item.author_role || item.authorRole || 'user') as 'admin' | 'vip' | 'user',
+    content: item.content || '',
+    rating: typeof item.rating === 'number' ? item.rating : undefined,
+    createdAt: formatSupabaseCommentDate(item.created_at || item.createdAt),
+    likes: Number(item.likes || 0),
+    userLiked: likedIds ? likedIds.has(String(item.id)) : false,
+    verifiedDownload: Boolean(item.verified_download ?? item.verifiedDownload ?? false),
+    replies: Array.isArray(item.replies) ? item.replies : []
+  };
+}
+
+/**
+ * Busca todos os comentários reais salvos no Supabase
+ */
+export async function fetchCommentsFromSupabase(likedIds?: Set<string>): Promise<Comment[] | null> {
+  try {
+    const { data, error } = await supabase
+      .from('comments')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(1000);
+
+    if (error) {
+      console.warn('Erro ao buscar comentários do Supabase:', error.message);
+      return null;
+    }
+
+    const ignoredTestIds = new Set([
+      '3017080b-d902-4709-8c07-afca7edc2622',
+      '0e2ff912-e218-4f73-a622-58de789cae62'
+    ]);
+
+    return (data || [])
+      .filter((row: any) => !ignoredTestIds.has(String(row.id)) && row.author_name !== '__test_verify__' && row.author_name !== 'Teste_Verificacao')
+      .map((row: any) => mapSupabaseComment(row, likedIds));
+  } catch (err) {
+    console.warn('Exceção ao buscar comentários do Supabase:', err);
+    return null;
+  }
+}
+
+/**
+ * Insere um novo comentário/avaliação real no Supabase
+ */
+export async function insertCommentToSupabase(payload: {
+  gameId: string;
+  authorName: string;
+  authorAvatar?: string;
+  authorRole?: 'admin' | 'vip' | 'user';
+  content: string;
+  rating?: number;
+  verifiedDownload?: boolean;
+}): Promise<{ success: boolean; comment?: Comment; error?: string }> {
+  try {
+    const rowToInsert: Record<string, any> = {
+      game_id: payload.gameId,
+      author_name: payload.authorName,
+      author_avatar: payload.authorAvatar || null,
+      author_role: payload.authorRole || 'user',
+      content: payload.content,
+      rating: typeof payload.rating === 'number' ? Math.max(1, Math.min(5, Math.round(payload.rating))) : null,
+      likes: 0,
+      verified_download: Boolean(payload.verifiedDownload),
+      replies: []
+    };
+
+    const { data, error } = await supabase
+      .from('comments')
+      .insert(rowToInsert)
+      .select('*')
+      .single();
+
+    if (error) {
+      console.warn('Erro ao salvar comentário no Supabase:', error.message);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, comment: mapSupabaseComment(data) };
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Erro ao salvar comentário' };
+  }
+}
+
+/**
+ * Atualiza curtidas de um comentário no Supabase
+ */
+export async function updateCommentLikesInSupabase(commentId: string, likes: number): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase
+      .from('comments')
+      .update({ likes: Math.max(0, likes) })
+      .eq('id', commentId);
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Erro ao atualizar curtidas' };
+  }
+}
+
+/**
+ * Remove um comentário do Supabase
+ */
+export async function deleteCommentFromSupabase(commentId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase
+      .from('comments')
+      .delete()
+      .eq('id', commentId);
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Erro ao excluir comentário' };
+  }
+}
+
 /**
  * Cadastro via Supabase Auth
  */

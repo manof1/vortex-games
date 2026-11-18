@@ -244,10 +244,14 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
 
   useEffect(() => {
     const existing = getUserVote(game.id);
-    if (existing) {
-      setUserScore(existing);
-    }
+    setUserScore(existing || 5);
   }, [game.id]);
+
+  useEffect(() => {
+    if (userProfile?.name) {
+      setAuthorName(userProfile.name);
+    }
+  }, [userProfile?.name]);
 
   // Filter comments for this game
   const gameComments = comments.filter(c => c.gameId === game.id);
@@ -308,8 +312,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
     e.preventDefault();
     if (!reviewContent.trim()) return;
 
-    rateGame(game.id, userScore);
-    addComment(game.id, authorName || 'Jogador Gamer', reviewContent.trim(), userScore);
+    addComment(game.id, authorName || userProfile.name || 'Jogador Gamer', reviewContent.trim(), userScore);
     setReviewContent('');
     setSubmittedComment(true);
     setTimeout(() => setSubmittedComment(false), 3000);
@@ -650,12 +653,21 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                 </div>
 
                 {getUserVote(game.id) ? (
-                  <div className="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-500/10 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const element = document.getElementById('avaliar-secao');
+                      element?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1 transition-all cursor-pointer"
+                    title="Clique para alterar sua nota ou escrever um comentário"
+                  >
                     <Star className="w-3 h-3 fill-amber-400" />
                     <span>Sua nota: {getUserVote(game.id)}.0</span>
-                  </div>
+                  </button>
                 ) : (
                   <button
+                    type="button"
                     onClick={() => {
                       const element = document.getElementById('avaliar-secao');
                       element?.scrollIntoView({ behavior: 'smooth' });

@@ -9,7 +9,18 @@ import {
   DEFAULT_SYNC_CONFIG, 
   checkForNewFitGirlReleases 
 } from '../services/autoSyncService';
-import { fetchGamesFromSupabase, upsertGameToSupabase, updateGameStatsInSupabase, deleteGameFromSupabase, saveCloudSyncData, getCloudSyncData } from '../services/supabaseClient';
+import {
+  fetchGamesFromSupabase,
+  upsertGameToSupabase,
+  updateGameStatsInSupabase,
+  deleteGameFromSupabase,
+  fetchCommentsFromSupabase,
+  insertCommentToSupabase,
+  updateCommentLikesInSupabase,
+  deleteCommentFromSupabase,
+  saveCloudSyncData,
+  getCloudSyncData
+} from '../services/supabaseClient';
 import { sanitizeMagnetLink } from '../utils/magnetUtils';
 import { getGameCover, getGameBanner, DEFAULT_GAME_COVER, DEFAULT_GAME_BANNER } from '../utils/imageUtils';
 import { enrichGameWithCheatsAndMods, enrichAllGames } from '../utils/cheatsModsGenerator';
@@ -183,11 +194,69 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [games, setGames] = useState<Game[]>(() => {
     let needsStatsReset = false;
     try {
-      if (localStorage.getItem('vortex_stats_reset_v1') !== '1') {
+      if (localStorage.getItem('vortex_stats_reset_v2') !== '1') {
         needsStatsReset = true;
         localStorage.removeItem(GAME_STATS_STORAGE_KEY);
         localStorage.removeItem('vortex_user_votes');
+        localStorage.removeItem('vortex_liked_comments');
+
+        // Remove comentários falsos de demonstração legados (c-1..c-5), mantendo comentários reais
+        const rawComments = localStorage.getItem('vortex_comments');
+        if (rawComments) {
+          try {
+            const parsedComments = JSON.parse(rawComments);
+            if (Array.isArray(parsedComments)) {
+              const fakeIds = new Set(['c-1', 'c-2', 'c-3', 'c-4', 'c-5']);
+              const realOnly = parsedComments.filter((c: any) => !fakeIds.has(c?.id));
+              localStorage.setItem('vortex_comments', JSON.stringify(realOnly));
+            }
+          } catch {
+            localStorage.removeItem('vortex_comments');
+          }
+        }
+
+        // Remove notas falsas de demonstração da biblioteca padrão
+        const rawLibrary = localStorage.getItem('vortex_library');
+        if (rawLibrary) {
+          try {
+            const parsedLib = JSON.parse(rawLibrary);
+            if (Array.isArray(parsedLib)) {
+              const cleanedLib = parsedLib.filter((entry: any) => {
+                const isDefaultDemo =
+                  (entry?.gameId === 'cyberpunk-2077' && entry?.status === 'playing' && entry?.userRating === 5 && !entry?.downloadCount) ||
+                  (entry?.gameId === 'elden-ring' && entry?.status === 'completed' && entry?.userRating === 5 && !entry?.downloadCount);
+                return !isDefaultDemo;
+              }).map((entry: any) => {
+                const { userRating: _drop, ...rest } = entry || {};
+                return rest;
+              });
+              localStorage.setItem('vortex_library', JSON.stringify(cleanedLib));
+            }
+          } catch {
+            localStorage.removeItem('vortex_library');
+          }
+        }
+
+        // Zera contadores de avaliação de demonstração no perfil local
+        const rawProfile = localStorage.getItem('vortex_user_profile');
+        if (rawProfile) {
+          try {
+            const parsedProfile = JSON.parse(rawProfile);
+            if (parsedProfile && typeof parsedProfile === 'object') {
+              parsedProfile.reviewsCount = 0;
+              const dlIds = JSON.parse(localStorage.getItem('vortex_downloaded_ids') || '[]');
+              if (parsedProfile.totalDownloads === 14 && (!Array.isArray(dlIds) || dlIds.length === 0)) {
+                parsedProfile.totalDownloads = 0;
+              }
+              localStorage.setItem('vortex_user_profile', JSON.stringify(parsedProfile));
+            }
+          } catch {
+            // ignore
+          }
+        }
+
         localStorage.setItem('vortex_stats_reset_v1', '1');
+        localStorage.setItem('vortex_stats_reset_v2', '1');
       }
     } catch {
       // ignore
@@ -309,7 +378,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const saved = localStorage.getItem('vortex_comments');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const fakeIds = new Set(['c-1', 'c-2', 'c-3', 'c-4', 'c-5']);
+          return parsed.filter((c: any) => c && !fakeIds.has(c.id));
+        }
       } catch (e) {
         console.error('Failed to parse saved comments', e);
       }
@@ -322,16 +395,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const saved = localStorage.getItem('vortex_library');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
       } catch (e) {
         console.error('Failed to parse saved library', e);
       }
     }
-    // Default initial game in library for demo experience
-    return [
-      { gameId: 'cyberpunk-2077', status: 'playing', userRating: 5, addedAt: new Date().toISOString() },
-      { gameId: 'elden-ring', status: 'completed', userRating: 5, addedAt: new Date().toISOString() }
-    ];
+    return [];
   });
 
   // Notifications state
@@ -393,11 +463,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('vortex_sync_logs', JSON.stringify(syncLogs));
   }, [syncLogs]);
 
-  // Carregar jogos do Supabase ao iniciar caso o banco contenha registros
+  // Carregar jogos e comentários reais do Supabase ao iniciar
   useEffect(() => {
     let isMounted = true;
     fetchGamesFromSupabase().then(remoteGames => {
       if (isMounted && remoteGames && remoteGames.length > 0) {
+        let latestMerged: Game[] = [];
         setGames(prev => {
           let userVotesMap: Record<string, number> = {};
           try {
@@ -417,15 +488,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const mergedViews = Math.max(g.viewsCount || 0, prevGame?.viewsCount || 0, stat?.viewsCount || 0);
             const mergedDownloads = Math.max(g.downloadsCount || 0, prevGame?.downloadsCount || 0, stat?.downloadsCount || 0);
 
-            let resolvedRating = 0;
-            let resolvedVotes = 0;
-            if (stat?.totalVotes && stat.totalVotes > 0 && stat.totalVotes >= (g.totalVotes || 0)) {
+            let resolvedRating = g.rating || 0;
+            let resolvedVotes = g.totalVotes || 0;
+            if (stat?.totalVotes && stat.totalVotes > resolvedVotes) {
               resolvedRating = stat.rating || realVote || 0;
               resolvedVotes = stat.totalVotes;
-            } else if ((g.totalVotes || 0) > 0 && (g.rating || 0) > 0) {
-              resolvedRating = g.rating;
-              resolvedVotes = g.totalVotes;
-            } else if (realVote) {
+            } else if (resolvedVotes === 0 && realVote) {
               resolvedRating = realVote;
               resolvedVotes = 1;
             }
@@ -441,8 +509,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
 
           const remoteIds = new Set(sanitizedRemote.map(g => g.id));
-          const merged = [...sanitizedRemote, ...prev.filter(g => !remoteIds.has(g.id))];
-          return merged;
+          latestMerged = [...sanitizedRemote, ...prev.filter(g => !remoteIds.has(g.id))];
+          gamesRef.current = latestMerged;
+          return latestMerged;
+        });
+
+        setActiveGameState(cur => {
+          if (!cur || latestMerged.length === 0) return cur;
+          return latestMerged.find(m => m.id === cur.id) || cur;
         });
 
         // Add notifications for newly detected FitGirl & DODI games
@@ -471,6 +545,26 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
     });
+
+    let likedSet = new Set<string>();
+    try {
+      const savedLikes = JSON.parse(localStorage.getItem('vortex_liked_comments') || '[]');
+      if (Array.isArray(savedLikes)) likedSet = new Set(savedLikes);
+    } catch {
+      likedSet = new Set<string>();
+    }
+
+    fetchCommentsFromSupabase(likedSet).then(remoteComments => {
+      if (isMounted && Array.isArray(remoteComments)) {
+        setComments(prev => {
+          const fakeIds = new Set(['c-1', 'c-2', 'c-3', 'c-4', 'c-5']);
+          const remoteIds = new Set(remoteComments.map(c => c.id));
+          const localPending = prev.filter(c => c.id.startsWith('local-') && !remoteIds.has(c.id) && !fakeIds.has(c.id));
+          return [...localPending, ...remoteComments];
+        });
+      }
+    });
+
     return () => {
       isMounted = false;
     };
@@ -749,7 +843,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       joinedDate: 'Outubro de 2024',
       preferredPlatform: 'PC',
       favoriteGenre: 'Ação / RPG',
-      totalDownloads: 14
+      totalDownloads: 0,
+      reviewsCount: 0
     };
   });
 
@@ -1062,6 +1157,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
+  const gamesRef = useRef<Game[]>(games);
+  useEffect(() => {
+    gamesRef.current = games;
+  }, [games]);
+
   const lastViewedTimestampRef = useRef<Record<string, number>>({});
 
   const incrementView = (gameId: string) => {
@@ -1072,44 +1172,36 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (now - lastTs < 1500) return;
     lastViewedTimestampRef.current[gameId] = now;
 
-    let nextViewsToPersist: number | null = null;
-    setGames(prev =>
-      prev.map(g => {
-        if (g.id === gameId) {
-          const nextViews = (g.viewsCount || 0) + 1;
-          nextViewsToPersist = nextViews;
-          saveStoredGameStat(gameId, { viewsCount: nextViews });
-          const updated = { ...g, viewsCount: nextViews };
-          setActiveGameState(cur => (cur?.id === gameId ? { ...cur, viewsCount: nextViews } : cur));
-          return updated;
-        }
-        return g;
-      })
-    );
+    const target = gamesRef.current.find(g => g.id === gameId);
+    if (!target) return;
 
-    if (nextViewsToPersist !== null) {
-      updateGameStatsInSupabase(gameId, { views_count: nextViewsToPersist }).catch(() => {});
-    }
+    const nextViews = (target.viewsCount || 0) + 1;
+    saveStoredGameStat(gameId, { viewsCount: nextViews });
+
+    const updatedGames = gamesRef.current.map(g =>
+      g.id === gameId ? { ...g, viewsCount: nextViews } : g
+    );
+    gamesRef.current = updatedGames;
+    setGames(updatedGames);
+    setActiveGameState(cur => (cur?.id === gameId ? { ...cur, viewsCount: nextViews } : cur));
+
+    updateGameStatsInSupabase(gameId, { views_count: nextViews }).catch(() => {});
   };
 
   const incrementDownload = (gameId: string) => {
-    let nextDownloadsToPersist: number | null = null;
-    setGames(prev =>
-      prev.map(g => {
-        if (g.id === gameId) {
-          const nextDownloads = (g.downloadsCount || 0) + 1;
-          nextDownloadsToPersist = nextDownloads;
-          saveStoredGameStat(gameId, { downloadsCount: nextDownloads });
-          const updated = { ...g, downloadsCount: nextDownloads };
-          setActiveGameState(cur => (cur?.id === gameId ? { ...cur, downloadsCount: nextDownloads } : cur));
-          return updated;
-        }
-        return g;
-      })
-    );
+    const target = gamesRef.current.find(g => g.id === gameId);
+    if (target) {
+      const nextDownloads = (target.downloadsCount || 0) + 1;
+      saveStoredGameStat(gameId, { downloadsCount: nextDownloads });
 
-    if (nextDownloadsToPersist !== null) {
-      updateGameStatsInSupabase(gameId, { downloads_count: nextDownloadsToPersist }).catch(() => {});
+      const updatedGames = gamesRef.current.map(g =>
+        g.id === gameId ? { ...g, downloadsCount: nextDownloads } : g
+      );
+      gamesRef.current = updatedGames;
+      setGames(updatedGames);
+      setActiveGameState(cur => (cur?.id === gameId ? { ...cur, downloadsCount: nextDownloads } : cur));
+
+      updateGameStatsInSupabase(gameId, { downloads_count: nextDownloads }).catch(() => {});
     }
 
     // Registra o download no perfil do usuário
@@ -1150,6 +1242,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const rateGame = (gameId: string, score: number) => {
+    const cleanScore = Math.max(1, Math.min(5, Math.round(score)));
     let currentVotesMap: Record<string, number> = {};
     try {
       currentVotesMap = JSON.parse(localStorage.getItem('vortex_user_votes') || '{}');
@@ -1157,47 +1250,37 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       currentVotesMap = {};
     }
     const previousScore = currentVotesMap[gameId];
-    currentVotesMap[gameId] = score;
+    currentVotesMap[gameId] = cleanScore;
     localStorage.setItem('vortex_user_votes', JSON.stringify(currentVotesMap));
 
-    let nextRatingToPersist: number | null = null;
-    let nextVotesToPersist: number | null = null;
+    const target = gamesRef.current.find(g => g.id === gameId);
+    if (target) {
+      const currentVotes = target.totalVotes || 0;
+      const currentRating = target.rating || 0;
+      let newVotes = currentVotes;
+      let newRating = currentRating;
 
-    setGames(prev =>
-      prev.map(g => {
-        if (g.id === gameId) {
-          const currentVotes = g.totalVotes || 0;
-          const currentRating = g.rating || 0;
-          let newVotes = currentVotes;
-          let newRating = currentRating;
+      if (previousScore && currentVotes > 0) {
+        const totalSum = currentRating * currentVotes - previousScore + cleanScore;
+        newRating = Number(Math.max(1, Math.min(5, totalSum / currentVotes)).toFixed(1));
+      } else {
+        newVotes = currentVotes + 1;
+        const totalSum = currentRating * currentVotes + cleanScore;
+        newRating = Number(Math.max(1, Math.min(5, totalSum / newVotes)).toFixed(1));
+      }
 
-          if (previousScore && currentVotes > 0) {
-            // User updating their vote
-            const totalSum = currentRating * currentVotes - previousScore + score;
-            newRating = Number(Math.max(1, Math.min(5, totalSum / currentVotes)).toFixed(1));
-          } else {
-            // First real vote
-            newVotes = currentVotes + 1;
-            const totalSum = currentRating * currentVotes + score;
-            newRating = Number(Math.max(1, Math.min(5, totalSum / newVotes)).toFixed(1));
-          }
+      saveStoredGameStat(gameId, { rating: newRating, totalVotes: newVotes });
 
-          nextRatingToPersist = newRating;
-          nextVotesToPersist = newVotes;
-          saveStoredGameStat(gameId, { rating: newRating, totalVotes: newVotes });
+      const updatedGames = gamesRef.current.map(g =>
+        g.id === gameId ? { ...g, rating: newRating, totalVotes: newVotes } : g
+      );
+      gamesRef.current = updatedGames;
+      setGames(updatedGames);
+      setActiveGameState(cur => (cur?.id === gameId ? { ...cur, rating: newRating, totalVotes: newVotes } : cur));
 
-          const updated = { ...g, rating: newRating, totalVotes: newVotes };
-          setActiveGameState(cur => (cur?.id === gameId ? { ...cur, rating: newRating, totalVotes: newVotes } : cur));
-          return updated;
-        }
-        return g;
-      })
-    );
-
-    if (nextRatingToPersist !== null && nextVotesToPersist !== null) {
       updateGameStatsInSupabase(gameId, {
-        rating: nextRatingToPersist,
-        total_votes: nextVotesToPersist
+        rating: newRating,
+        total_votes: newVotes
       }).catch(() => {});
     }
 
@@ -1216,52 +1299,100 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLibrary(prev => {
       const existing = prev.find(e => e.gameId === gameId);
       if (existing) {
-        return prev.map(entry => (entry.gameId === gameId ? { ...entry, userRating: score } : entry));
+        return prev.map(entry => (entry.gameId === gameId ? { ...entry, userRating: cleanScore } : entry));
       }
-      return [...prev, { gameId, status: 'wishlist', userRating: score, addedAt: new Date().toISOString() }];
+      return [...prev, { gameId, status: 'wishlist', userRating: cleanScore, addedAt: new Date().toISOString() }];
     });
   };
 
   // Comments management
   const addComment = (gameId: string, authorName: string, content: string, rating?: number) => {
+    const cleanAuthor = authorName.trim() || 'Jogador Anônimo';
+    const cleanRating = typeof rating === 'number' ? Math.max(1, Math.min(5, Math.round(rating))) : 5;
+    const tempId = `local-${Date.now()}`;
+    const avatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(cleanAuthor)}`;
+    const role: 'admin' | 'vip' | 'user' = cleanAuthor.toLowerCase().includes('admin') ? 'admin' : 'user';
+    let hasDownloaded = false;
+    try {
+      const dlIds: string[] = JSON.parse(localStorage.getItem('vortex_downloaded_ids') || '[]');
+      hasDownloaded = dlIds.includes(gameId);
+    } catch {
+      hasDownloaded = false;
+    }
+
     const newComment: Comment = {
-      id: `c-${Date.now()}`,
+      id: tempId,
       gameId,
-      authorName: authorName.trim() || 'Jogador Anônimo',
-      authorAvatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(authorName)}`,
-      authorRole: authorName.toLowerCase().includes('admin') ? 'admin' : 'user',
+      authorName: cleanAuthor,
+      authorAvatar: avatar,
+      authorRole: role,
       content,
-      rating: rating || 5,
+      rating: cleanRating,
       createdAt: 'Agora mesmo',
       likes: 0,
       userLiked: false,
-      verifiedDownload: true
+      verifiedDownload: hasDownloaded
     };
     setComments(prev => [newComment, ...prev]);
 
-    if (rating) {
-      rateGame(gameId, rating);
+    if (typeof rating === 'number') {
+      rateGame(gameId, cleanRating);
     }
+
+    insertCommentToSupabase({
+      gameId,
+      authorName: cleanAuthor,
+      authorAvatar: avatar,
+      authorRole: role,
+      content,
+      rating: cleanRating,
+      verifiedDownload: hasDownloaded
+    }).then(res => {
+      if (res.success && res.comment) {
+        const persisted = res.comment;
+        setComments(prev => prev.map(c => (c.id === tempId ? persisted : c)));
+      }
+    }).catch(() => {});
   };
 
   const likeComment = (commentId: string) => {
+    const target = comments.find(c => c.id === commentId);
+    if (!target) return;
+
+    const isLiked = !!target.userLiked;
+    const nextLikes = Math.max(0, isLiked ? target.likes - 1 : target.likes + 1);
+
+    try {
+      const savedLikes: string[] = JSON.parse(localStorage.getItem('vortex_liked_comments') || '[]');
+      const nextSet = new Set(Array.isArray(savedLikes) ? savedLikes : []);
+      if (isLiked) {
+        nextSet.delete(commentId);
+      } else {
+        nextSet.add(commentId);
+      }
+      localStorage.setItem('vortex_liked_comments', JSON.stringify(Array.from(nextSet)));
+    } catch {
+      // ignore
+    }
+
     setComments(prev =>
-      prev.map(c => {
-        if (c.id === commentId) {
-          const isLiked = !!c.userLiked;
-          return {
-            ...c,
-            likes: isLiked ? c.likes - 1 : c.likes + 1,
-            userLiked: !isLiked
-          };
-        }
-        return c;
-      })
+      prev.map(c =>
+        c.id === commentId
+          ? { ...c, likes: nextLikes, userLiked: !isLiked }
+          : c
+      )
     );
+
+    if (!commentId.startsWith('local-')) {
+      updateCommentLikesInSupabase(commentId, nextLikes).catch(() => {});
+    }
   };
 
   const deleteComment = (commentId: string) => {
     setComments(prev => prev.filter(c => c.id !== commentId));
+    if (!commentId.startsWith('local-')) {
+      deleteCommentFromSupabase(commentId).catch(() => {});
+    }
   };
 
   // Library actions
@@ -1304,11 +1435,17 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // DB Backup & Restore
   const resetDatabaseToDefault = () => {
     setGames(INITIAL_GAMES);
+    gamesRef.current = INITIAL_GAMES;
     setComments(INITIAL_COMMENTS);
+    setLibrary([]);
     setNotifications(INITIAL_NOTIFICATIONS);
     localStorage.removeItem('vortex_games');
     localStorage.removeItem('vortex_comments');
+    localStorage.removeItem('vortex_library');
     localStorage.removeItem('vortex_notifications');
+    localStorage.removeItem(GAME_STATS_STORAGE_KEY);
+    localStorage.removeItem('vortex_user_votes');
+    localStorage.removeItem('vortex_liked_comments');
   };
 
   const exportDatabaseJson = () => {
