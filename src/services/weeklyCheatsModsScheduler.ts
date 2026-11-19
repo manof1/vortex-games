@@ -146,12 +146,7 @@ export function executeSundayCheatsModsSync(
     return enriched;
   });
 
-  // Atualiza também no localStorage principal do Vortex
-  try {
-    localStorage.setItem('vortex_games', JSON.stringify(updatedGames));
-  } catch (e) {
-    console.warn('Erro ao salvar jogos sincronizados no storage', e);
-  }
+  // O catálogo completo permanece em memória e no Supabase para não exceder a cota do localStorage
 
   const prevInfo = loadSundaySyncInfo(updatedGames);
 

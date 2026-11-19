@@ -113,20 +113,6 @@ export function applyScanResultToGame(game: Game, scan: SourceScanResult): Game 
 export async function persistGameToDatabase(game: Game): Promise<{ success: boolean; message: string }> {
   try {
     const supabaseRes = await upsertGameToSupabase(game);
-    // Também atualiza no localStorage
-    try {
-      const stored = localStorage.getItem('vortex_games');
-      if (stored) {
-        const list: Game[] = JSON.parse(stored);
-        const idx = list.findIndex(g => g.id === game.id);
-        if (idx !== -1) {
-          list[idx] = game;
-        } else {
-          list.unshift(game);
-        }
-        localStorage.setItem('vortex_games', JSON.stringify(list));
-      }
-    } catch {}
 
     return {
       success: true,

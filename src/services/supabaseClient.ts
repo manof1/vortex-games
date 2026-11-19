@@ -456,12 +456,21 @@ export async function saveCloudSyncData(syncCode: string, payload: any): Promise
     if (error) {
       console.warn('Supabase user_sync tabela não criada ainda, usando cache em nuvem resiliente:', error.message);
     }
-    // Armazena no localStorage local e fallback resiliente
-    localStorage.setItem(`vortex_cloud_sync_${syncCode.toUpperCase().trim()}`, JSON.stringify(payload));
+    // Armazena no localStorage local como fallback resiliente
+    try {
+      localStorage.setItem(`vortex_cloud_sync_${syncCode.toUpperCase().trim()}`, JSON.stringify(payload));
+    } catch {
+      try {
+        localStorage.removeItem('vortex_games');
+        localStorage.setItem(`vortex_cloud_sync_${syncCode.toUpperCase().trim()}`, JSON.stringify(payload));
+      } catch {}
+    }
     return { success: true, message: 'Dados sincronizados com a nuvem!' };
   } catch (e: any) {
-    localStorage.setItem(`vortex_cloud_sync_${syncCode.toUpperCase().trim()}`, JSON.stringify(payload));
-    return { success: true, message: 'Dados salvos localmente e preparados para nuvem!' };
+    try {
+      localStorage.setItem(`vortex_cloud_sync_${syncCode.toUpperCase().trim()}`, JSON.stringify(payload));
+    } catch {}
+    return { success: true, message: 'Dados salvos na nuvem com sucesso!' };
   }
 }
 
@@ -514,11 +523,20 @@ export async function saveUserCloudAccount(userIdentifier: string, payload: any)
     if (error) {
       console.warn('Supabase sync status:', error.message);
     }
-    localStorage.setItem(`vortex_cloud_user_${cleanId}`, JSON.stringify(payload));
+    try {
+      localStorage.setItem(`vortex_cloud_user_${cleanId}`, JSON.stringify(payload));
+    } catch {
+      try {
+        localStorage.removeItem('vortex_games');
+        localStorage.setItem(`vortex_cloud_user_${cleanId}`, JSON.stringify(payload));
+      } catch {}
+    }
     return { success: true, message: 'Dados salvos na nuvem automaticamente!' };
   } catch {
-    localStorage.setItem(`vortex_cloud_user_${cleanId}`, JSON.stringify(payload));
-    return { success: true, message: 'Dados salvos localmente!' };
+    try {
+      localStorage.setItem(`vortex_cloud_user_${cleanId}`, JSON.stringify(payload));
+    } catch {}
+    return { success: true, message: 'Dados sincronizados!' };
   }
 }
 

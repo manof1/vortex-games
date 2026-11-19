@@ -163,11 +163,25 @@ function loadStoredGameStats(): Record<string, StoredGameStats> {
   }
 }
 
+function safeSetLocalStorage(key: string, value: string) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    try {
+      // Libera espaço removendo caches pesados legados e tenta novamente uma vez
+      localStorage.removeItem('vortex_games');
+      localStorage.setItem(key, value);
+    } catch {
+      // Ignora silenciosamente caso o armazenamento local esteja bloqueado ou cheio
+    }
+  }
+}
+
 function saveStoredGameStat(gameId: string, patch: StoredGameStats) {
   try {
     const current = loadStoredGameStats();
     current[gameId] = { ...(current[gameId] || {}), ...patch };
-    localStorage.setItem(GAME_STATS_STORAGE_KEY, JSON.stringify(current));
+    safeSetLocalStorage(GAME_STATS_STORAGE_KEY, JSON.stringify(current));
   } catch {
     // ignore
   }
@@ -264,7 +278,17 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     let baseList = INITIAL_GAMES;
     const initialMap = new Map<string, Game>(INITIAL_GAMES.map(g => [g.id, g]));
-    const saved = localStorage.getItem('vortex_games');
+    let saved: string | null = null;
+    try {
+      saved = localStorage.getItem('vortex_games');
+      // Remove o cache legado pesado para não estourar a cota de 5MB do navegador;
+      // o catálogo completo é carregado diretamente do Supabase ao iniciar.
+      if (saved) {
+        localStorage.removeItem('vortex_games');
+      }
+    } catch {
+      saved = null;
+    }
 
     if (saved) {
       try {
@@ -364,12 +388,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }, true);
     });
 
-    try {
-      localStorage.setItem('vortex_games', JSON.stringify(cleanedList));
-    } catch {
-      // ignore
-    }
-
     return cleanedList;
   });
 
@@ -456,11 +474,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   useEffect(() => {
-    localStorage.setItem('vortex_sync_config', JSON.stringify(autoSyncConfig));
+    safeSetLocalStorage('vortex_sync_config', JSON.stringify(autoSyncConfig));
   }, [autoSyncConfig]);
 
   useEffect(() => {
-    localStorage.setItem('vortex_sync_logs', JSON.stringify(syncLogs));
+    safeSetLocalStorage('vortex_sync_logs', JSON.stringify(syncLogs.slice(0, 50)));
   }, [syncLogs]);
 
   // Carregar jogos e comentários reais do Supabase ao iniciar
@@ -851,7 +869,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateUserProfile = (newAttrs: Partial<UserProfile>) => {
     setUserProfile(prev => {
       const updated = { ...prev, ...newAttrs };
-      localStorage.setItem('vortex_user_profile', JSON.stringify(updated));
+      safeSetLocalStorage('vortex_user_profile', JSON.stringify(updated));
       return updated;
     });
   };
@@ -919,14 +937,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     if (isManof) {
-      localStorage.setItem('vortex_creator_verified', 'true');
-      localStorage.setItem('vortex_creator_email', 'manof1@gmail.com');
+      safeSetLocalStorage('vortex_creator_verified', 'true');
+      safeSetLocalStorage('vortex_creator_email', 'manof1@gmail.com');
     }
 
     setUserProfile(updatedProfile);
-    localStorage.setItem('vortex_user_profile', JSON.stringify(updatedProfile));
+    safeSetLocalStorage('vortex_user_profile', JSON.stringify(updatedProfile));
     setIsLoggedIn(true);
-    localStorage.setItem('vortex_is_logged_in', 'true');
+    safeSetLocalStorage('vortex_is_logged_in', 'true');
     setIsAuthModalOpen(false);
     return true;
   };
@@ -952,7 +970,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try { accounts = JSON.parse(savedUsersRaw); } catch {}
     }
     accounts.push(newAccount);
-    localStorage.setItem('vortex_registered_accounts', JSON.stringify(accounts));
+    safeSetLocalStorage('vortex_registered_accounts', JSON.stringify(accounts));
 
     const updatedProfile: UserProfile = {
       ...userProfile,
@@ -962,9 +980,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     setUserProfile(updatedProfile);
-    localStorage.setItem('vortex_user_profile', JSON.stringify(updatedProfile));
+    safeSetLocalStorage('vortex_user_profile', JSON.stringify(updatedProfile));
     setIsLoggedIn(true);
-    localStorage.setItem('vortex_is_logged_in', 'true');
+    safeSetLocalStorage('vortex_is_logged_in', 'true');
     setIsAuthModalOpen(false);
     return true;
   };
@@ -1016,7 +1034,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const saved = localStorage.getItem('vortex_cloud_sync_code');
     if (saved) return saved;
     const newCode = `VX-${Math.floor(1000 + Math.random() * 9000)}-BR`;
-    localStorage.setItem('vortex_cloud_sync_code', newCode);
+    safeSetLocalStorage('vortex_cloud_sync_code', newCode);
     return newCode;
   });
 
@@ -1042,39 +1060,35 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (res.success && res.data) {
       if (res.data.profile) {
         setUserProfile(res.data.profile);
-        localStorage.setItem('vortex_user_profile', JSON.stringify(res.data.profile));
+        safeSetLocalStorage('vortex_user_profile', JSON.stringify(res.data.profile));
       }
       if (Array.isArray(res.data.library)) {
         setLibrary(res.data.library);
-        localStorage.setItem('vortex_library', JSON.stringify(res.data.library));
+        safeSetLocalStorage('vortex_library', JSON.stringify(res.data.library));
       }
       if (res.data.votes) {
-        localStorage.setItem('vortex_user_votes', JSON.stringify(res.data.votes));
+        safeSetLocalStorage('vortex_user_votes', JSON.stringify(res.data.votes));
       }
       setCloudSyncCode(clean);
-      localStorage.setItem('vortex_cloud_sync_code', clean);
+      safeSetLocalStorage('vortex_cloud_sync_code', clean);
       setIsLoggedIn(true);
-      localStorage.setItem('vortex_is_logged_in', 'true');
+      safeSetLocalStorage('vortex_is_logged_in', 'true');
       return { success: true, message: 'Dados e favoritos restaurados da nuvem!' };
     }
     return { success: false, message: res.error || 'Código de nuvem não encontrado ou inválido.' };
   };
 
-  // Sync state to LocalStorage
+  // Sync lightweight user data to LocalStorage (catalog itself stays in memory & Supabase)
   useEffect(() => {
-    localStorage.setItem('vortex_games', JSON.stringify(games));
-  }, [games]);
-
-  useEffect(() => {
-    localStorage.setItem('vortex_comments', JSON.stringify(comments));
+    safeSetLocalStorage('vortex_comments', JSON.stringify(comments));
   }, [comments]);
 
   useEffect(() => {
-    localStorage.setItem('vortex_library', JSON.stringify(library));
+    safeSetLocalStorage('vortex_library', JSON.stringify(library));
   }, [library]);
 
   useEffect(() => {
-    localStorage.setItem('vortex_notifications', JSON.stringify(notifications));
+    safeSetLocalStorage('vortex_notifications', JSON.stringify(notifications.slice(0, 50)));
   }, [notifications]);
 
   useEffect(() => {
@@ -1210,7 +1224,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         ...prev,
         totalDownloads: (prev.totalDownloads || 0) + 1
       };
-      localStorage.setItem('vortex_user_profile', JSON.stringify(updated));
+      safeSetLocalStorage('vortex_user_profile', JSON.stringify(updated));
       return updated;
     });
 
@@ -1227,7 +1241,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const downloadedIds: string[] = JSON.parse(localStorage.getItem('vortex_downloaded_ids') || '[]');
       if (!downloadedIds.includes(gameId)) {
         downloadedIds.push(gameId);
-        localStorage.setItem('vortex_downloaded_ids', JSON.stringify(downloadedIds));
+        safeSetLocalStorage('vortex_downloaded_ids', JSON.stringify(downloadedIds));
       }
     } catch {}
   };
@@ -1251,7 +1265,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     const previousScore = currentVotesMap[gameId];
     currentVotesMap[gameId] = cleanScore;
-    localStorage.setItem('vortex_user_votes', JSON.stringify(currentVotesMap));
+    safeSetLocalStorage('vortex_user_votes', JSON.stringify(currentVotesMap));
 
     const target = gamesRef.current.find(g => g.id === gameId);
     if (target) {
@@ -1291,7 +1305,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         ...prev,
         reviewsCount: totalVotesCount
       };
-      localStorage.setItem('vortex_user_profile', JSON.stringify(updated));
+      safeSetLocalStorage('vortex_user_profile', JSON.stringify(updated));
       return updated;
     });
 
