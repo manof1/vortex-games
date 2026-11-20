@@ -163,7 +163,7 @@ export interface Game {
   hasPkgFormat?: boolean; // Possui versão instalável PKG (TheZukoStore/PlayStation)
   hasPcTorrent?: boolean; // Possui versão Torrent PC (FitGirl/Tapochek)
   titleId?: string; // Ex: CUSA-34388 (ZukoStore CUSA ID)
-  sourceOrigin?: 'TheZukoStore' | 'Tapochek.net' | 'FitGirl' | 'Scene' | 'Multi-Tracker' | '4FNet' | 'BrotherGame';
+  sourceOrigin?: 'TheZukoStore' | 'Tapochek.net' | 'FitGirl' | 'Scene' | 'Multi-Tracker' | '4FNet' | 'BrotherGame' | 'Repack-Games';
   originalTrackerUrl?: string; // Link da fonte original (Tapochek / ZukoStore)
   cheats?: GameCheat[]; // Códigos e cheats puxados do GameFAQs/WeMod/API
   mods?: GameMod[]; // Mods populares do Nexus Mods (https://www.nexusmods.com/)

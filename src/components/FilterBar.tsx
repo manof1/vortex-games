@@ -28,6 +28,7 @@ export const FilterBar: React.FC = () => {
     { id: 'DODI', label: `⚡ ${t('filter.dodi', 'DODI Repacks')}` },
     { id: 'BrotherGame', label: '🎮 Brother Game (Ports & PT-BR)' },
     { id: '4FNet', label: '🌐 4FNet (Links Diretos)' },
+    { id: 'RepackGames', label: '📦 Repack-Games (Pré-Instalados)' },
     { id: 'Lançamentos', label: `🔥 ${t('filter.launches', 'Lançamentos')}` },
     { id: 'Mais Populares', label: `⭐ ${t('filter.popular', 'Mais Populares')}` },
     { id: 'AAA', label: `💎 ${t('filter.aaa', 'Superproduções (AAA)')}` },
@@ -234,6 +235,7 @@ export const FilterBar: React.FC = () => {
               <option value="DODI Repack" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">DODI Repack</option>
               <option value="Brother Game" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Brother Game</option>
               <option value="4FNet" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">4FNet (Links Diretos)</option>
+              <option value="Repack-Games" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Repack-Games (Pré-Instalados)</option>
               <option value="ElAmigos" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">ElAmigos</option>
             </select>
           </div>

@@ -182,7 +182,7 @@ export function checkForNewFitGirlReleases(existingGames: Game[]): Game[] {
 /**
  * Drop-in GitHub Actions Cron Workflow YAML (Runs automatically every hour)
  */
-export const GITHUB_ACTIONS_WORKFLOW_YAML = `name: VortexGames Daily Auto-Sync & Backfill (FitGirl + DODI + Brother Game + 4FNet)
+export const GITHUB_ACTIONS_WORKFLOW_YAML = `name: VortexGames Daily Auto-Sync & Backfill (FitGirl + DODI + Brother Game + 4FNet + Repack-Games)
 
 on:
   schedule:

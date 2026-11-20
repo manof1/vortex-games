@@ -1117,6 +1117,646 @@ async function syncBrotherGameNewPlusDailyBackfill(params: {
   };
 }
 
+const RG_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+const RG_ADULT_CATEGORY_TOKENS = [
+  'adult',
+  'nudity',
+  '3d-comics',
+  '3d comics',
+  'porn',
+  'hentai',
+  'nsfw',
+  'erotic',
+  'eroge',
+  'xxx',
+  '18+',
+  'futa',
+  'fetish',
+  'visual-novel-18'
+];
+const RG_ADULT_TEXT_REGEX = /\b(porn|hentai|nsfw|eroge|erotic|xxx|milf|bdsm|incest|ecchi|koikatsu|honey\s*select|futanari|futa|futabu|femboy|onlyfans|adult\s+games?|cuckold|brothel|strip\s*club|harem\s+hotel|waifu\s+sex|sex\s+(?:game|sim|simulator|club|doll|wife|power)|being\s+a\s+dik|treasure\s+of\s+nadia|lust\s+(?:academy|theory|epidemic|ville)|succubus\s+affection|18\+)\b/i;
+
+function isNonGameRepackGamesPost(textOrUrl: string): boolean {
+  const low = (textOrUrl || '').toLowerCase();
+  return (
+    low.includes('/how-to-') ||
+    low.includes('/faq') ||
+    low.includes('/dmca') ||
+    low.includes('/contact') ||
+    low.includes('/privacy') ||
+    low.includes('/request-games') ||
+    low.includes('/all-games') ||
+    low.includes('/discord') ||
+    low.includes('/donate') ||
+    low.includes('how to download') ||
+    low.includes('how to install') ||
+    low.includes('game request') ||
+    low.includes('changelog')
+  );
+}
+
+function isAdultRepackGames(params: {
+  rawTitle?: string;
+  url?: string;
+  categories?: string[];
+  description?: string;
+}): boolean {
+  const cats = (params.categories || []).map(c => c.toLowerCase().trim());
+  for (const cat of cats) {
+    if (RG_ADULT_CATEGORY_TOKENS.some(tok => cat === tok || cat.includes(tok))) {
+      return true;
+    }
+  }
+  const urlLow = (params.url || '').toLowerCase();
+  if (
+    urlLow.includes('/category/adult') ||
+    urlLow.includes('/category/nudity') ||
+    urlLow.includes('/category/3d-comics') ||
+    urlLow.includes('/category/porn') ||
+    urlLow.includes('/category/hentai')
+  ) {
+    return true;
+  }
+  const titleAndUrl = `${params.rawTitle || ''} ${urlLow.replace(/[-_/]/g, ' ')}`;
+  if (RG_ADULT_TEXT_REGEX.test(titleAndUrl)) return true;
+  if (params.description && RG_ADULT_TEXT_REGEX.test(params.description)) return true;
+  return false;
+}
+
+function cleanRepackGamesTitle(rawTitle: string): string {
+  const cleaned = decodeHtml(rawTitle)
+    .replace(/\s*[-–|]\s*Repack-Games(?:\.com)?\s*$/i, '')
+    .replace(/\s*Free\s+Download.*$/i, '')
+    .replace(/\s*\(v[\d.]+[^)]*\)\s*$/i, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return cleaned || decodeHtml(rawTitle);
+}
+
+function extractRepackGamesCategoriesFromHtml(html: string): string[] {
+  const cats = new Set<string>();
+  const re1 = /href="https?:\/\/repack-games\.com\/category\/([^"\/]+)\/?"[^>]*rel="category tag"/gi;
+  const re2 = /rel="category tag"[^>]*href="https?:\/\/repack-games\.com\/category\/([^"\/]+)\/?"/gi;
+  for (const m of html.matchAll(re1)) cats.add(decodeHtml(m[1]).toLowerCase());
+  for (const m of html.matchAll(re2)) cats.add(decodeHtml(m[1]).toLowerCase());
+
+  const ldMatches = [...html.matchAll(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/gi)];
+  for (const m of ldMatches) {
+    try {
+      const parsed = JSON.parse(m[1]);
+      const nodes = Array.isArray(parsed?.['@graph']) ? parsed['@graph'] : [parsed];
+      for (const node of nodes) {
+        if (Array.isArray(node?.articleSection)) {
+          for (const sec of node.articleSection) {
+            if (typeof sec === 'string' && sec.trim()) cats.add(sec.trim().toLowerCase());
+          }
+        }
+      }
+    } catch {}
+  }
+  return Array.from(cats);
+}
+
+function extractRepackGamesArticleBlock(html: string): string {
+  return html.match(/<article[^>]*>([\s\S]*?)<\/article>/i)?.[1] || '';
+}
+
+function extractRepackGamesLinksFromArticle(articleHtml: string, defaultSize: string, slug: string): any[] {
+  const rawLinks = [...articleHtml.matchAll(/href="(https?:\/\/[^"]+|magnet:\?[^"]+)"/gi)].map(m => decodeHtml(m[1]));
+  const seen = new Set<string>();
+  const validLinks: any[] = [];
+  let idx = 0;
+
+  for (const rawUrl of rawLinks) {
+    const u = (rawUrl || '').trim();
+    if (!u || seen.has(u)) continue;
+    const low = u.toLowerCase();
+    if (
+      low.includes('repack-games.com') ||
+      low.includes('discord.') ||
+      low.includes('reddit.com') ||
+      low.includes('facebook.com') ||
+      low.includes('twitter.com') ||
+      low.includes('x.com/') ||
+      low.includes('pinterest.') ||
+      low.includes('whatsapp.') ||
+      low.includes('theporndude') ||
+      low.includes('the-dark-games') ||
+      low.includes('linktr.ee')
+    ) {
+      continue;
+    }
+
+    let type: string = 'direct';
+    let format: string = 'direct';
+    let hostName = '';
+    let label = '';
+
+    if (low.startsWith('magnet:?')) {
+      type = 'magnet';
+      format = 'torrent';
+      hostName = 'Torrent Magnet';
+      label = 'Torrent Magnet (Repack-Games)';
+    } else if (low.endsWith('.torrent')) {
+      type = 'torrent';
+      format = 'torrent';
+      hostName = 'Arquivo Torrent';
+      label = 'Download .torrent';
+    } else if (low.includes('filekeeper.net')) {
+      hostName = 'FileKeeper';
+      label = 'Download Direto FileKeeper';
+    } else if (low.includes('datanodes.to')) {
+      hostName = 'DataNodes';
+      label = 'Download Direto DataNodes';
+    } else if (low.includes('gofile.io')) {
+      hostName = 'GoFile';
+      label = 'Download Direto GoFile';
+    } else if (low.includes('buzzheavier.com')) {
+      hostName = 'Buzzheavier';
+      label = 'Download Direto Buzzheavier';
+    } else if (low.includes('vikingfile.com')) {
+      hostName = 'VikingFile';
+      label = 'Download Direto VikingFile';
+    } else if (low.includes('fileditch')) {
+      hostName = 'FileDitch';
+      label = 'Download Direto FileDitch';
+    } else if (low.includes('pixeldrain.com')) {
+      hostName = 'PixelDrain';
+      label = 'Download Direto PixelDrain';
+    } else if (low.includes('mediafire.com')) {
+      hostName = 'MediaFire';
+      label = 'Download Direto MediaFire';
+    } else if (low.includes('mega.nz')) {
+      hostName = 'Mega.nz';
+      label = 'Download Direto Mega.nz';
+    } else if (low.includes('1fichier.com')) {
+      hostName = '1Fichier';
+      label = 'Download Direto 1Fichier';
+    } else if (low.includes('krakenfiles.com')) {
+      hostName = 'Krakenfiles';
+      label = 'Download Direto Krakenfiles';
+    } else if (low.includes('qiwi.gg')) {
+      hostName = 'Qiwi';
+      label = 'Download Direto Qiwi';
+    } else if (low.includes('mixdrop')) {
+      hostName = 'MixDrop';
+      label = 'Mirror MixDrop';
+    } else if (low.includes('rapidgator')) {
+      hostName = 'Rapidgator';
+      label = 'Mirror Rapidgator';
+    } else if (low.includes('multiup')) {
+      hostName = 'MultiUp';
+      label = 'Multi-Mirrors';
+    } else {
+      continue;
+    }
+
+    seen.add(u);
+    idx++;
+    validLinks.push({
+      id: `dl-rg-${slug}-${idx}`,
+      type,
+      format,
+      platform: 'PC',
+      label,
+      url: u,
+      size: defaultSize,
+      hostName
+    });
+    if (validLinks.length >= 10) break;
+  }
+
+  return validLinks;
+}
+
+function extractRepackGamesDetails(articleHtml: string, rawTitle: string, ogDesc: string, coverUrl: string) {
+  const plain = decodeHtml(
+    articleHtml
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<[^>]+>/g, '\n')
+  )
+    .replace(/\r/g, '')
+    .trim();
+
+  const sizeRaw = articleHtml
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .match(/(?:Game\s*Size|Repack\s*Size|Size)\s*:?\s*(\d+(?:[.,]\d+)?\s*(?:GB|MB))/i)?.[1];
+  const repackSize = sizeRaw ? sizeRaw.toUpperCase().replace(/\s+/g, ' ').trim() : '15.0 GB';
+
+  const versionMatch = rawTitle.match(/\((v[\d.]+[^)]*)\)/i)?.[1]
+    || plain.match(/Game:\s*(V?[\d.][^\n]{0,24})/i)?.[1]
+    || 'Pre-Installed';
+
+  const osLine = plain.match(/\bOS:\s*([^\n]{3,70})/i)?.[1]?.trim() || 'Windows 10/11 64-bit';
+  const cpuLine = plain.match(/\bProcessor:\s*([^\n]{3,80})/i)?.[1]?.trim() || 'Intel Core i5 / AMD Ryzen 5';
+  const ramLine = plain.match(/\bMemory:\s*([^\n]{2,50})/i)?.[1]?.trim() || '8 GB RAM';
+  const gpuLine = plain.match(/\bGraphics:\s*([^\n]{3,80})/i)?.[1]?.trim() || 'NVIDIA GTX 1060 / AMD RX 580';
+  const dxLine = plain.match(/\bDirectX:\s*([^\n]{2,40})/i)?.[1]?.trim() || 'Versão 11';
+  const storageLine = plain.match(/\bStorage:\s*([^\n]{2,50})/i)?.[1]?.trim() || `${repackSize} disponíveis`;
+
+  const screenshots = [...articleHtml.matchAll(/(?:data-src|src)="(https?:\/\/repack-games\.com\/wp-content\/uploads\/[^"]+\.(?:jpg|jpeg|png|webp))"/gi)]
+    .map(m => m[1])
+    .filter(u => !u.toLowerCase().includes('/logo.') && !u.toLowerCase().includes('placeholder'))
+    .filter((u, idx, arr) => arr.indexOf(u) === idx)
+    .slice(0, 5);
+  if (screenshots.length === 0 && coverUrl) screenshots.push(coverUrl);
+
+  const cleanDesc = (ogDesc || '')
+    .replace(/Free Download Repack-Games\.com\s*-\s*PC game in a pre-installed direct link.*/i, '')
+    .trim();
+
+  return {
+    repackSize,
+    version: versionMatch.trim().slice(0, 60),
+    description: cleanDesc || `${cleanRepackGamesTitle(rawTitle)} pré-instalado para PC com múltiplos links diretos.`,
+    screenshots,
+    systemRequirements: {
+      minimum: {
+        os: osLine,
+        processor: cpuLine,
+        memory: ramLine,
+        graphics: gpuLine,
+        storage: storageLine,
+        directx: dxLine
+      },
+      recommended: {
+        os: 'Windows 10/11 64-bit',
+        processor: 'Intel Core i5-10400 / AMD Ryzen 5 3600',
+        memory: '16 GB RAM',
+        graphics: 'NVIDIA RTX 2060 / AMD RX 5700',
+        storage: storageLine,
+        directx: 'Versão 12'
+      }
+    }
+  };
+}
+
+function buildRepackGamesRow(params: {
+  id: string;
+  title: string;
+  slug: string;
+  rawTitle: string;
+  description: string;
+  coverUrl: string;
+  postUrl: string;
+  repackSize: string;
+  version: string;
+  screenshots: string[];
+  systemRequirements: any;
+  extractedLinks: any[];
+  postCategories: string[];
+  createdAt: string;
+}) {
+  const {
+    id,
+    title,
+    slug,
+    rawTitle,
+    description,
+    coverUrl,
+    postUrl,
+    repackSize,
+    version,
+    screenshots,
+    systemRequirements,
+    extractedLinks,
+    postCategories,
+    createdAt
+  } = params;
+  const pubDate = new Date(createdAt);
+  const numSize = parseFloat(repackSize) || 15;
+  const isLightweight = /\bmb\b/i.test(repackSize) || numSize <= 20;
+  const isPort = postCategories.some(c => c.includes('port')) || /\bpc port\b/i.test(rawTitle);
+  const genres = mapGenres(`${rawTitle} ${postCategories.join(' ')} ${description}`);
+
+  const downloadLinks = [
+    ...extractedLinks,
+    {
+      id: `dl-rg-page-${slug}`,
+      type: 'direct',
+      format: 'direct',
+      platform: 'PC',
+      label: 'Página Oficial Repack-Games',
+      url: postUrl,
+      size: repackSize,
+      hostName: 'Repack-Games.com'
+    }
+  ];
+
+  return {
+    id,
+    title: title.slice(0, 100),
+    slug,
+    cover_url: coverUrl,
+    banner_url: coverUrl,
+    short_description: description.slice(0, 180) + (description.length > 180 ? '...' : ''),
+    description,
+    genres,
+    categories: [
+      'Repack-Games',
+      'Lançamentos',
+      ...(isLightweight ? ['Repacks Leves'] : []),
+      ...(isPort ? ['PortsNativos'] : [])
+    ],
+    release_year: pubDate.getFullYear() || 2026,
+    release_date: pubDate.toLocaleDateString('pt-BR'),
+    developer: 'PC Pre-Installed',
+    publisher: 'Repack-Games Archive',
+    repacker: 'Repack-Games',
+    version,
+    repack_size: repackSize,
+    original_size: repackSize,
+    crack_status: 'Pré-Instalado (Crack Incluso)',
+    crack_group: 'Scene / Pre-Installed',
+    download_links: downloadLinks,
+    system_requirements: systemRequirements,
+    screenshots: screenshots.length > 0 ? screenshots : [coverUrl],
+    rating: 0,
+    total_votes: 0,
+    tags: ['Repack-Games', 'Pré-Instalado PC', 'Download Direto', ...genres.slice(0, 2)],
+    downloads_count: 0,
+    views_count: 0,
+    has_pt_br_audio: false,
+    has_pt_br_subs: false,
+    has_pc_torrent: extractedLinks.some(l => l.type === 'magnet' || l.type === 'torrent'),
+    source_origin: 'Repack-Games',
+    platform: 'PC',
+    created_at: createdAt
+  };
+}
+
+async function fetchAndParseRepackGamesPost(params: {
+  postUrl: string;
+  fallbackTitle?: string;
+  fallbackCategories?: string[];
+  fallbackDateIso?: string;
+  anchorToFallbackDate?: boolean;
+  existingIds: Set<string>;
+}): Promise<{ rowData: any } | null> {
+  const { postUrl, fallbackTitle = '', fallbackCategories = [], fallbackDateIso, anchorToFallbackDate = false, existingIds } = params;
+  if (!postUrl || isNonGameRepackGamesPost(postUrl)) return null;
+  if (isAdultRepackGames({ rawTitle: fallbackTitle, url: postUrl, categories: fallbackCategories })) {
+    return null;
+  }
+
+  try {
+    const res = await fetch(postUrl, {
+      headers: { 'User-Agent': RG_UA, 'Accept-Language': 'en-US,en;q=0.9' },
+      signal: AbortSignal.timeout(8000)
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+
+    const ogTitle = decodeHtml(
+      html.match(/property="og:title"\s+content="([^"]*)"/i)?.[1] ||
+      html.match(/content="([^"]*)"\s+property="og:title"/i)?.[1] ||
+      html.match(/<title>([\s\S]*?)<\/title>/i)?.[1] ||
+      fallbackTitle
+    );
+    if (!ogTitle || isNonGameRepackGamesPost(ogTitle)) return null;
+
+    const ogDesc = decodeHtml(
+      html.match(/property="og:description"\s+content="([^"]*)"/i)?.[1] ||
+      html.match(/name="description"\s+content="([^"]*)"/i)?.[1] ||
+      ''
+    );
+
+    const htmlCategories = extractRepackGamesCategoriesFromHtml(html);
+    const allCategories = Array.from(new Set([...fallbackCategories.map(c => c.toLowerCase()), ...htmlCategories]));
+
+    if (isAdultRepackGames({
+      rawTitle: ogTitle,
+      url: postUrl,
+      categories: allCategories,
+      description: ogDesc
+    })) {
+      return null;
+    }
+
+    const cleanTitle = cleanRepackGamesTitle(ogTitle);
+    const slugBase = makeSlug(cleanTitle);
+    const id = `rg-${slugBase.slice(0, 45)}`;
+    if (existingIds.has(id)) return null;
+
+    const articleHtml = extractRepackGamesArticleBlock(html);
+    if (!articleHtml) return null;
+
+    const coverUrl =
+      html.match(/property="og:image"\s+content="([^"]*)"/i)?.[1] ||
+      html.match(/content="([^"]*)"\s+property="og:image"/i)?.[1] ||
+      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80';
+
+    const details = extractRepackGamesDetails(articleHtml, ogTitle, ogDesc, coverUrl);
+    const extractedLinks = extractRepackGamesLinksFromArticle(articleHtml, details.repackSize, slugBase);
+    if (extractedLinks.length === 0) return null;
+
+    const pubMeta = html.match(/property="article:published_time"\s+content="([^"]*)"/i)?.[1] || '';
+    let createdAt = fallbackDateIso || new Date().toISOString();
+    if (pubMeta) {
+      const parsedPub = new Date(pubMeta);
+      if (!Number.isNaN(parsedPub.getTime())) {
+        if (!anchorToFallbackDate || (fallbackDateIso && pubMeta.slice(0, 10) === fallbackDateIso.slice(0, 10))) {
+          createdAt = parsedPub.toISOString();
+        }
+      }
+    }
+
+    return {
+      rowData: {
+        id,
+        title: cleanTitle,
+        slugBase,
+        rawTitle: ogTitle,
+        description: details.description,
+        coverUrl,
+        postUrl,
+        repackSize: details.repackSize,
+        version: details.version,
+        screenshots: details.screenshots,
+        systemRequirements: details.systemRequirements,
+        extractedLinks,
+        postCategories: allCategories,
+        createdAt
+      }
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function syncRepackGamesNewPlusDailyBackfill(params: {
+  supabase: any;
+  existingIds: Set<string>;
+  existingSlugs: Set<string>;
+  oldestCursorIso: string | null;
+  initialCountInDb: number;
+  oldLimit: number;
+}): Promise<SiteSyncStats> {
+  const { supabase, existingIds, existingSlugs, oldestCursorIso, initialCountInDb, oldLimit } = params;
+  const rowsToInsert: any[] = [];
+  let newAdded = 0;
+  let oldAdded = 0;
+  let totalAvailable = 0;
+  let archiveCompleted = false;
+
+  // 1. TODOS OS JOGOS NOVOS (não-adultos) via RSS (/feed/)
+  try {
+    const rssRes = await fetch('https://repack-games.com/feed/', {
+      headers: { 'User-Agent': RG_UA, 'Accept-Language': 'en-US,en;q=0.9' },
+      signal: AbortSignal.timeout(8000)
+    });
+    if (rssRes.ok) {
+      const rssXml = await rssRes.text();
+      const items = rssXml.match(/<item>([\s\S]*?)<\/item>/g) || [];
+      for (const itemXml of items) {
+        const rawTitle = decodeHtml(itemXml.match(/<title>([\s\S]*?)<\/title>/)?.[1] || '');
+        const link = decodeHtml(itemXml.match(/<link>([\s\S]*?)<\/link>/)?.[1] || '');
+        const rssCats = [...itemXml.matchAll(/<category>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/category>/gi)].map(c => decodeHtml(c[1]));
+        if (!rawTitle || !link || isNonGameRepackGamesPost(link) || isNonGameRepackGamesPost(rawTitle)) continue;
+        if (isAdultRepackGames({ rawTitle, url: link, categories: rssCats })) continue;
+
+        const approxId = `rg-${makeSlug(cleanRepackGamesTitle(rawTitle)).slice(0, 45)}`;
+        if (existingIds.has(approxId)) continue;
+
+        const pubRaw = itemXml.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1] || '';
+        const pubParsed = new Date(pubRaw);
+        const fallbackDateIso = Number.isNaN(pubParsed.getTime()) ? new Date().toISOString() : pubParsed.toISOString();
+
+        const parsed = await fetchAndParseRepackGamesPost({
+          postUrl: link,
+          fallbackTitle: rawTitle,
+          fallbackCategories: rssCats,
+          fallbackDateIso,
+          existingIds
+        });
+        if (!parsed) continue;
+
+        const item = parsed.rowData;
+        if (existingIds.has(item.id)) continue;
+        const uniqueSlug = ensureUniqueSlug(`${item.slugBase}-repackgames`, 'rg', existingSlugs);
+        existingIds.add(item.id);
+        rowsToInsert.push(buildRepackGamesRow({ ...item, slug: uniqueSlug }));
+        newAdded++;
+      }
+    }
+  } catch (err) {
+    console.error('[repack-games] Erro ao buscar novos do RSS:', err);
+  }
+
+  // 2. BACKFILL GRADUAL DOS ANTIGOS (10 não-adultos/dia) via Sitemaps Oficiais (post-sitemap97 -> post-sitemap)
+  if (oldLimit > 0) {
+    try {
+      const idxRes = await fetch('https://repack-games.com/sitemap_index.xml', {
+        headers: { 'User-Agent': RG_UA, 'Accept-Language': 'en-US,en;q=0.9' },
+        signal: AbortSignal.timeout(8000)
+      });
+      if (idxRes.ok) {
+        const idxXml = await idxRes.text();
+        const sitemaps = [...idxXml.matchAll(/<sitemap>([\s\S]*?)<\/sitemap>/g)]
+          .map(m => {
+            const loc = m[1].match(/<loc>(.*?)<\/loc>/)?.[1] || '';
+            const lastmod = m[1].match(/<lastmod>(.*?)<\/lastmod>/)?.[1] || '';
+            const numMatch = loc.match(/post-sitemap(\d*)\.xml/i);
+            const num = numMatch ? (numMatch[1] ? Number(numMatch[1]) : 1) : 0;
+            return { loc, lastmod, num };
+          })
+          .filter(s => s.num > 0)
+          .sort((a, b) => a.num - b.num);
+
+        totalAvailable = sitemaps.length * 950;
+
+        let sitemapsChecked = 0;
+        let htmlFetchedCount = 0;
+        for (let i = sitemaps.length - 1; i >= 0 && oldAdded < oldLimit && sitemapsChecked < 8 && htmlFetchedCount < 35; i--) {
+          const sm = sitemaps[i];
+
+          sitemapsChecked++;
+          const smRes = await fetch(sm.loc, {
+            headers: { 'User-Agent': RG_UA, 'Accept-Language': 'en-US,en;q=0.9' },
+            signal: AbortSignal.timeout(8000)
+          });
+          if (!smRes.ok) continue;
+
+          const smXml = await smRes.text();
+          const entries = [...smXml.matchAll(/<url>([\s\S]*?)<\/url>/g)]
+            .map(m => ({
+              loc: m[1].match(/<loc>(.*?)<\/loc>/)?.[1] || '',
+              lastmod: m[1].match(/<lastmod>(.*?)<\/lastmod>/)?.[1] || ''
+            }))
+            .filter(e => {
+              if (!e.loc || !e.lastmod) return false;
+              if (isNonGameRepackGamesPost(e.loc) || isAdultRepackGames({ url: e.loc })) return false;
+              const urlSlug = e.loc.replace(/^https?:\/\/repack-games\.com\//i, '').replace(/\/+$/, '').replace(/-free-download$/i, '');
+              const approxId = `rg-${makeSlug(urlSlug).slice(0, 45)}`;
+              if (existingIds.has(approxId)) return false;
+              return true;
+            });
+
+          entries.sort((a, b) => b.lastmod.localeCompare(a.lastmod) || a.loc.localeCompare(b.loc));
+
+          const batchSize = 6;
+          for (let offset = 0; offset < entries.length && oldAdded < oldLimit && htmlFetchedCount < 35; offset += batchSize) {
+            const batch = entries.slice(offset, offset + batchSize);
+            htmlFetchedCount += batch.length;
+            const parsedBatch = await Promise.all(
+              batch.map(entry => {
+                const modDay = entry.lastmod.slice(0, 10);
+                const fallbackDateIso = /^\d{4}-\d{2}-\d{2}$/.test(modDay)
+                  ? `${modDay}T12:00:00.000Z`
+                  : new Date().toISOString();
+                return fetchAndParseRepackGamesPost({
+                  postUrl: entry.loc,
+                  fallbackDateIso,
+                  anchorToFallbackDate: true,
+                  existingIds
+                });
+              })
+            );
+
+            for (const parsed of parsedBatch) {
+              if (!parsed || oldAdded >= oldLimit) continue;
+              const item = parsed.rowData;
+              if (existingIds.has(item.id)) continue;
+              const uniqueSlug = ensureUniqueSlug(`${item.slugBase}-repackgames`, 'rg', existingSlugs);
+              existingIds.add(item.id);
+              rowsToInsert.push(buildRepackGamesRow({ ...item, slug: uniqueSlug }));
+              oldAdded++;
+            }
+          }
+          if (i === 0 && entries.length === 0) {
+            archiveCompleted = true;
+          }
+        }
+      }
+    } catch (err) {
+      console.error('[repack-games] Erro no backfill do sitemap:', err);
+    }
+  }
+
+  if (rowsToInsert.length > 0) {
+    const { error } = await supabase.from('games').upsert(rowsToInsert, { onConflict: 'id' });
+    if (error) {
+      for (const row of rowsToInsert) {
+        await supabase.from('games').upsert(row, { onConflict: 'id' });
+      }
+    }
+  }
+
+  return {
+    site: 'repack-games',
+    repacker: 'Repack-Games',
+    newAdded,
+    oldAdded,
+    totalInDb: initialCountInDb + newAdded + oldAdded,
+    totalAvailable,
+    archiveCompleted,
+    oldestCursorUsed: oldestCursorIso
+  };
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const cronSecret = process.env.CRON_SECRET;
   if (cronSecret && req.headers?.authorization !== `Bearer ${cronSecret}`) {
@@ -1165,8 +1805,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     console.log(
       isBackfillActive
-        ? `⏰ [CRON DIÁRIO] Regra ativa até 31/12/2026: Todos os novos + ${oldLimit} antigos/dia (FitGirl, DODI, Brother Game, 4FNet)...`
-        : `⏰ [CRON DIÁRIO] Período pós-31/12/2026: Buscando APENAS jogos novos (FitGirl, DODI, Brother Game, 4FNet)...`
+        ? `⏰ [CRON DIÁRIO] Regra ativa até 31/12/2026: Todos os novos + ${oldLimit} antigos/dia (FitGirl, DODI, Brother Game, 4FNet, Repack-Games sem +18)...`
+        : `⏰ [CRON DIÁRIO] Período pós-31/12/2026: Buscando APENAS jogos novos (FitGirl, DODI, Brother Game, 4FNet, Repack-Games sem +18)...`
     );
 
     // 1. Carregar IDs, slugs e cursor mais antigo por repacker do Supabase
@@ -1199,8 +1839,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       from += pageSize;
     }
 
-    // 2. Executar os 4 sites em paralelo (Todos novos + 10 antigos por dia de cada)
-    const [fgStats, dodiStats, bgStats, fourFStats] = await Promise.all([
+    // 2. Executar os 5 sites em paralelo (Todos novos + 10 antigos por dia de cada; Repack-Games sem jogos adultos)
+    const [fgStats, dodiStats, bgStats, fourFStats, rgStats] = await Promise.all([
       syncSiteNewPlusDailyBackfill({
         supabase,
         siteKey: 'fitgirl',
@@ -1250,6 +1890,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         oldestCursorIso: oldestByRepacker['4FNet'] || null,
         initialCountInDb: countByRepacker['4FNet'] || 0,
         oldLimit
+      }),
+      syncRepackGamesNewPlusDailyBackfill({
+        supabase,
+        existingIds,
+        existingSlugs,
+        oldestCursorIso: oldestByRepacker['Repack-Games'] || null,
+        initialCountInDb: countByRepacker['Repack-Games'] || 0,
+        oldLimit
       })
     ]);
 
@@ -1257,15 +1905,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       fgStats.newAdded + fgStats.oldAdded +
       dodiStats.newAdded + dodiStats.oldAdded +
       bgStats.newAdded + bgStats.oldAdded +
-      fourFStats.newAdded + fourFStats.oldAdded;
+      fourFStats.newAdded + fourFStats.oldAdded +
+      rgStats.newAdded + rgStats.oldAdded;
 
     return res.status(200).json({
       success: true,
       backfillActive: isBackfillActive,
       backfillEndsAt: BACKFILL_DEADLINE_ISO,
       message: isBackfillActive
-        ? `Regra diária executada (até 31/12/2026): novos + até ${oldLimit} antigos/dia por site (FitGirl, DODI, Brother Game e 4FNet).`
-        : `Regra pós-31/12/2026 executada: busca de apenas jogos novos (FitGirl, DODI, Brother Game e 4FNet).`,
+        ? `Regra diária executada (até 31/12/2026): novos + até ${oldLimit} antigos/dia por site (FitGirl, DODI, Brother Game, 4FNet e Repack-Games sem +18).`
+        : `Regra pós-31/12/2026 executada: busca de apenas jogos novos (FitGirl, DODI, Brother Game, 4FNet e Repack-Games sem +18).`,
       processed: processedCount,
       oldLimitPerSite: oldLimit,
       summary: {
@@ -1273,6 +1922,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         dodi: dodiStats,
         brothergame: bgStats,
         fourFNet: fourFStats,
+        repackGames: rgStats,
         brotherGameAdded: bgStats.newAdded + bgStats.oldAdded
       },
       timestamp: new Date().toISOString()
