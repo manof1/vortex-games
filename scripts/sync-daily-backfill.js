@@ -1,6 +1,6 @@
 /**
  * scripts/sync-daily-backfill.js
- * Regra Diária Multicanal (FitGirl + DODI + Brother Game + 4FNet + Repack-Games sem +18):
+ * Regra Diária Multicanal (FitGirl + DODI + Brother Game + 4FNet + IGG-Games sem +18):
  * - Busca TODOS os lançamentos novos de hoje de cada site
  * - Importa gradualmente +10 jogos antigos por dia de cada site (até 31/12/2026)
  * - Mantém todas as estatísticas iniciais (rating, votos, acessos, downloads) zeradas (0)
@@ -1013,26 +1013,27 @@ async function syncBrotherGameSite({ existingIds, existingSlugs, oldestCursorIso
   };
 }
 
-const RG_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
-const RG_ADULT_CATEGORY_TOKENS = [
+const IGG_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+const IGG_ADULT_CATEGORY_TOKENS = [
   'adult',
+  'eroge',
   'nudity',
-  '3d-comics',
-  '3d comics',
-  'porn',
   'hentai',
   'nsfw',
+  'porn',
+  '3d-comics',
+  '3d comics',
   'erotic',
-  'eroge',
-  'xxx',
-  '18+',
+  'ecchi',
   'futa',
   'fetish',
-  'visual-novel-18'
+  'sexual content',
+  '18+',
+  'xxx'
 ];
-const RG_ADULT_TEXT_REGEX = /\b(porn|hentai|nsfw|eroge|erotic|xxx|milf|bdsm|incest|ecchi|koikatsu|honey\s*select|futanari|futa|futabu|femboy|onlyfans|adult\s+games?|cuckold|brothel|strip\s*club|harem\s+hotel|waifu\s+sex|sex\s+(?:game|sim|simulator|club|doll|wife|power)|being\s+a\s+dik|treasure\s+of\s+nadia|lust\s+(?:academy|theory|epidemic|ville)|succubus\s+affection|18\+)\b/i;
+const IGG_ADULT_TEXT_REGEX = /\b(porn|hentai|nsfw|eroge|erotic|xxx|milf|bdsm|incest|ecchi|koikatsu|honey\s*select|futanari|futa|futabu|femboy|onlyfans|adult\s+games?|erolabs|nutaku|cuckold|brothel|strip\s*club|harem\s+hotel|waifu\s+sex|sex\s+(?:game|sim|simulator|club|doll|wife|power)|being\s+a\s+dik|treasure\s+of\s+nadia|lust\s+(?:academy|theory|epidemic|ville|flame)|succubus\s+affection|horny\s+energy|18\+)\b/i;
 
-function isNonGameRepackGamesPost(textOrUrl) {
+function isNonGameIggPost(textOrUrl) {
   const low = (textOrUrl || '').toLowerCase();
   return (
     low.includes('/how-to-') ||
@@ -1040,225 +1041,299 @@ function isNonGameRepackGamesPost(textOrUrl) {
     low.includes('/dmca') ||
     low.includes('/contact') ||
     low.includes('/privacy') ||
-    low.includes('/request-games') ||
-    low.includes('/all-games') ||
-    low.includes('/discord') ||
-    low.includes('/donate') ||
-    low.includes('how to download') ||
+    low.includes('/request') ||
+    low.includes('/changelog') ||
+    low.includes('/tag/') ||
+    low.includes('/category/') ||
     low.includes('how to install') ||
-    low.includes('game request') ||
-    low.includes('changelog')
+    low.includes('game list')
   );
 }
 
-function isAdultRepackGames({ rawTitle = '', url = '', categories = [], description = '' }) {
+function isAdultIggGames({ rawTitle = '', url = '', categories = [], description = '' }) {
   const cats = categories.map(c => c.toLowerCase().trim());
   for (const cat of cats) {
-    if (RG_ADULT_CATEGORY_TOKENS.some(tok => cat === tok || cat.includes(tok))) {
+    if (IGG_ADULT_CATEGORY_TOKENS.some(tok => cat === tok || cat.includes(tok))) {
       return true;
     }
   }
   const urlLow = url.toLowerCase();
   if (
     urlLow.includes('/category/adult') ||
+    urlLow.includes('/category/eroge') ||
     urlLow.includes('/category/nudity') ||
-    urlLow.includes('/category/3d-comics') ||
-    urlLow.includes('/category/porn') ||
     urlLow.includes('/category/hentai')
   ) {
     return true;
   }
   const titleAndUrl = `${rawTitle} ${urlLow.replace(/[-_/]/g, ' ')}`;
-  if (RG_ADULT_TEXT_REGEX.test(titleAndUrl)) return true;
-  if (description && RG_ADULT_TEXT_REGEX.test(description)) return true;
+  if (IGG_ADULT_TEXT_REGEX.test(titleAndUrl)) return true;
+  if (description && IGG_ADULT_TEXT_REGEX.test(description)) return true;
   return false;
 }
 
-function cleanRepackGamesTitle(rawTitle) {
+function cleanIggTitle(rawTitle) {
   const cleaned = decodeHtml(rawTitle)
-    .replace(/\s*[-–|]\s*Repack-Games(?:\.com)?\s*$/i, '')
+    .replace(/\s*[«\-–|]\s*IGGGAMES(?:\.com)?\s*$/i, '')
     .replace(/\s*Free\s+Download.*$/i, '')
-    .replace(/\s*\(v[\d.]+[^)]*\)\s*$/i, '')
+    .replace(/\s*REPACK\s*$/i, '')
     .replace(/\s+/g, ' ')
     .trim();
   return cleaned || decodeHtml(rawTitle);
 }
 
-function extractRepackGamesCategoriesFromHtml(html) {
+function extractIggCategoriesFromHtml(html) {
   const cats = new Set();
-  const re1 = /href="https?:\/\/repack-games\.com\/category\/([^"\/]+)\/?"[^>]*rel="category tag"/gi;
-  const re2 = /rel="category tag"[^>]*href="https?:\/\/repack-games\.com\/category\/([^"\/]+)\/?"/gi;
-  for (const m of html.matchAll(re1)) cats.add(decodeHtml(m[1]).toLowerCase());
-  for (const m of html.matchAll(re2)) cats.add(decodeHtml(m[1]).toLowerCase());
-
-  const ldMatches = [...html.matchAll(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/gi)];
-  for (const m of ldMatches) {
-    try {
-      const parsed = JSON.parse(m[1]);
-      const nodes = Array.isArray(parsed?.['@graph']) ? parsed['@graph'] : [parsed];
-      for (const node of nodes) {
-        if (Array.isArray(node?.articleSection)) {
-          for (const sec of node.articleSection) {
-            if (typeof sec === 'string' && sec.trim()) cats.add(sec.trim().toLowerCase());
-          }
-        }
-      }
-    } catch {}
+  const articleHtml = html.match(/<article[^>]*>([\s\S]*?)<\/article>/i)?.[1] || html;
+  const relTagRe = /rel="category tag"[^>]*>([^<]+)</gi;
+  for (const m of articleHtml.matchAll(relTagRe)) {
+    cats.add(decodeHtml(m[1]).toLowerCase());
+  }
+  const genreLine = articleHtml
+    .replace(/<[^>]+>/g, ' ')
+    .match(/Genre:\s*([^\n<]{3,160})/i)?.[1];
+  if (genreLine) {
+    for (const part of genreLine.split(',')) {
+      const clean = part.trim().toLowerCase();
+      if (clean && clean.length <= 40) cats.add(clean);
+    }
   }
   return Array.from(cats);
 }
 
-function extractRepackGamesLinksFromArticle(articleHtml, defaultSize, slug) {
-  const rawLinks = [...articleHtml.matchAll(/href="(https?:\/\/[^"]+|magnet:\?[^"]+)"/gi)].map(m => decodeHtml(m[1]));
-  const seen = new Set();
-  const validLinks = [];
-  let idx = 0;
-
-  for (const rawUrl of rawLinks) {
-    const u = (rawUrl || '').trim();
-    if (!u || seen.has(u)) continue;
-    const low = u.toLowerCase();
-    if (
-      low.includes('repack-games.com') ||
-      low.includes('discord.') ||
-      low.includes('reddit.com') ||
-      low.includes('facebook.com') ||
-      low.includes('twitter.com') ||
-      low.includes('x.com/') ||
-      low.includes('pinterest.') ||
-      low.includes('whatsapp.') ||
-      low.includes('theporndude') ||
-      low.includes('the-dark-games') ||
-      low.includes('linktr.ee')
-    ) {
-      continue;
-    }
-
-    let type = 'direct';
-    let format = 'direct';
-    let hostName = '';
-    let label = '';
-
-    if (low.startsWith('magnet:?')) {
-      type = 'magnet';
-      format = 'torrent';
-      hostName = 'Torrent Magnet';
-      label = 'Torrent Magnet (Repack-Games)';
-    } else if (low.endsWith('.torrent')) {
-      type = 'torrent';
-      format = 'torrent';
-      hostName = 'Arquivo Torrent';
-      label = 'Download .torrent';
-    } else if (low.includes('filekeeper.net')) {
-      hostName = 'FileKeeper';
-      label = 'Download Direto FileKeeper';
-    } else if (low.includes('datanodes.to')) {
-      hostName = 'DataNodes';
-      label = 'Download Direto DataNodes';
-    } else if (low.includes('gofile.io')) {
-      hostName = 'GoFile';
-      label = 'Download Direto GoFile';
-    } else if (low.includes('buzzheavier.com')) {
-      hostName = 'Buzzheavier';
-      label = 'Download Direto Buzzheavier';
-    } else if (low.includes('vikingfile.com')) {
-      hostName = 'VikingFile';
-      label = 'Download Direto VikingFile';
-    } else if (low.includes('fileditch')) {
-      hostName = 'FileDitch';
-      label = 'Download Direto FileDitch';
-    } else if (low.includes('pixeldrain.com')) {
-      hostName = 'PixelDrain';
-      label = 'Download Direto PixelDrain';
-    } else if (low.includes('mediafire.com')) {
-      hostName = 'MediaFire';
-      label = 'Download Direto MediaFire';
-    } else if (low.includes('mega.nz')) {
-      hostName = 'Mega.nz';
-      label = 'Download Direto Mega.nz';
-    } else if (low.includes('1fichier.com')) {
-      hostName = '1Fichier';
-      label = 'Download Direto 1Fichier';
-    } else if (low.includes('krakenfiles.com')) {
-      hostName = 'Krakenfiles';
-      label = 'Download Direto Krakenfiles';
-    } else if (low.includes('qiwi.gg')) {
-      hostName = 'Qiwi';
-      label = 'Download Direto Qiwi';
-    } else if (low.includes('mixdrop')) {
-      hostName = 'MixDrop';
-      label = 'Mirror MixDrop';
-    } else if (low.includes('rapidgator')) {
-      hostName = 'Rapidgator';
-      label = 'Mirror Rapidgator';
-    } else if (low.includes('multiup')) {
-      hostName = 'MultiUp';
-      label = 'Multi-Mirrors';
-    } else {
-      continue;
-    }
-
-    seen.add(u);
-    idx++;
-    validLinks.push({
-      id: `dl-rg-${slug}-${idx}`,
-      type,
-      format,
-      platform: 'PC',
-      label,
-      url: u,
-      size: defaultSize,
-      hostName
-    });
-    if (validLinks.length >= 10) break;
+function resolveIggHostMeta(headingText, url) {
+  const h = `${headingText} ${url}`.toLowerCase();
+  if (h.includes('megaup')) {
+    return { priority: 0, hostName: 'MegaUp.net', baseLabel: 'MegaUp.net', type: 'direct', format: 'direct' };
   }
-
-  return validLinks;
+  if (h.includes('gofile')) {
+    return { priority: 1, hostName: 'GoFile', baseLabel: 'GoFile', type: 'direct', format: 'direct' };
+  }
+  if (h.includes('pixeldrain')) {
+    return { priority: 2, hostName: 'PixelDrain', baseLabel: 'PixelDrain', type: 'direct', format: 'direct' };
+  }
+  if (h.includes('mega.nz') || (h.includes('link mega') && !h.includes('megaup'))) {
+    return { priority: 3, hostName: 'Mega.nz', baseLabel: 'Mega.nz', type: 'direct', format: 'direct' };
+  }
+  if (h.includes('1fichier')) {
+    return { priority: 4, hostName: '1Fichier', baseLabel: '1Fichier', type: 'direct', format: 'direct' };
+  }
+  if (h.includes('mixdrop')) {
+    return { priority: 5, hostName: 'MixDrop', baseLabel: 'MixDrop', type: 'direct', format: 'direct' };
+  }
+  if (h.includes('rapidgator')) {
+    return { priority: 6, hostName: 'Rapidgator', baseLabel: 'Rapidgator', type: 'direct', format: 'direct' };
+  }
+  if (
+    h.includes('bowfile') ||
+    h.includes('clicknupload') ||
+    h.includes('mediafire') ||
+    h.includes('vikingfile') ||
+    h.includes('datanodes') ||
+    h.includes('buzzheavier') ||
+    h.includes('filekeeper') ||
+    h.includes('katfile') ||
+    h.includes('qiwi') ||
+    h.includes('uploaded')
+  ) {
+    const cleanHost = headingText.replace(/^link\s+/i, '').replace(/:$/, '').trim() || 'Mirror Direto';
+    return { priority: 7, hostName: cleanHost, baseLabel: cleanHost, type: 'direct', format: 'direct' };
+  }
+  if (h.includes('torrent') || h.includes('pcgamestorrents') || h.startsWith('magnet:?') || h.endsWith('.torrent')) {
+    return {
+      priority: 8,
+      hostName: 'Torrent IGG',
+      baseLabel: 'Torrent',
+      type: url.toLowerCase().startsWith('magnet:?') ? 'magnet' : 'torrent',
+      format: 'torrent'
+    };
+  }
+  return null;
 }
 
-function extractRepackGamesDetails(articleHtml, rawTitle, ogDesc, coverUrl) {
-  const plain = decodeHtml(
-    articleHtml
-      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
-      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
-      .replace(/<[^>]+>/g, '\n')
-  )
-    .replace(/\r/g, '')
-    .trim();
+function extractIggLinksFromArticle(articleHtml, defaultSize, slug) {
+  const candidates = [];
+  const seenUrls = new Set();
 
-  const sizeRaw = articleHtml
+  const bulletBlocks = [
+    ...articleHtml.matchAll(/<b[^>]*class="[^"]*uk-heading-bullet[^"]*"[^>]*>([\s\S]*?)<\/b>([\s\S]*?)(?=<\/p>|<b[^>]*class="[^"]*uk-heading-bullet|$)/gi)
+  ];
+
+  for (const block of bulletBlocks) {
+    const heading = decodeHtml(block[1].replace(/<[^>]+>/g, ' '));
+    const linksArea = block[2];
+    const anchors = [...linksArea.matchAll(/<a[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)];
+    if (anchors.length === 0) continue;
+
+    for (const a of anchors) {
+      const url = decodeHtml(a[1]).trim();
+      const linkText = decodeHtml(a[2].replace(/<[^>]+>/g, ' ')).trim();
+      if (!url || seenUrls.has(url)) continue;
+      if (url.toLowerCase().includes('igg-games.com')) continue;
+
+      const meta = resolveIggHostMeta(heading, url);
+      if (!meta) continue;
+      seenUrls.add(url);
+
+      let label = meta.baseLabel;
+      if (meta.priority === 0) {
+        label = anchors.length > 1 && linkText && !/download here/i.test(linkText)
+          ? `MegaUp.net (${linkText})`
+          : 'MegaUp.net (Download Direto Prioritário)';
+      } else if (meta.priority === 8) {
+        label = 'Download via Torrent (PCGamesTorrents)';
+      } else {
+        label = anchors.length > 1 && linkText && !/download here/i.test(linkText)
+          ? `Download Direto ${meta.hostName} (${linkText})`
+          : `Download Direto ${meta.hostName}`;
+      }
+
+      candidates.push({
+        priority: meta.priority,
+        hostName: meta.hostName,
+        label,
+        url,
+        type: meta.type,
+        format: meta.format
+      });
+    }
+  }
+
+  if (candidates.length === 0) {
+    const allAnchors = [...articleHtml.matchAll(/<a[^>]+href="(https?:\/\/[^"]+|magnet:\?[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)];
+    for (const a of allAnchors) {
+      const url = decodeHtml(a[1]).trim();
+      const linkText = decodeHtml(a[2].replace(/<[^>]+>/g, ' ')).trim();
+      if (!url || seenUrls.has(url) || url.toLowerCase().includes('igg-games.com')) continue;
+      const meta = resolveIggHostMeta(linkText, url);
+      if (!meta) continue;
+      seenUrls.add(url);
+      candidates.push({
+        priority: meta.priority,
+        hostName: meta.hostName,
+        label: meta.priority === 0 ? 'MegaUp.net (Download Direto Prioritário)' : `Download Direto ${meta.hostName}`,
+        url,
+        type: meta.type,
+        format: meta.format
+      });
+    }
+  }
+
+  // MegaUp.net sempre em primeiro (priority === 0)
+  candidates.sort((a, b) => a.priority - b.priority);
+
+  const hostCounts = {};
+  const finalLinks = [];
+  let idx = 0;
+
+  for (const item of candidates) {
+    const count = hostCounts[item.hostName] || 0;
+    const maxForHost = item.priority === 0 ? 25 : 2;
+    if (count >= maxForHost) continue;
+    hostCounts[item.hostName] = count + 1;
+    idx++;
+    finalLinks.push({
+      id: `dl-igg-${slug}-${idx}`,
+      type: item.type,
+      format: item.format,
+      platform: 'PC',
+      label: item.label,
+      url: item.url,
+      size: defaultSize,
+      hostName: item.hostName
+    });
+  }
+
+  return finalLinks;
+}
+
+function extractIggDetails(html, articleHtml, rawTitle, ogDesc) {
+  const plainLines = articleHtml
     .replace(/<style[\s\S]*?<\/style>/gi, ' ')
     .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<(?:br|\/p|p|\/div|div|\/li|li|\/h[1-6]|h[1-6])[^>]*>/gi, '\n')
     .replace(/<[^>]+>/g, ' ')
-    .match(/(?:Game\s*Size|Repack\s*Size|Size)\s*:?\s*(\d+(?:[.,]\d+)?\s*(?:GB|MB))/i)?.[1];
-  const repackSize = sizeRaw ? sizeRaw.toUpperCase().replace(/\s+/g, ' ').trim() : '15.0 GB';
+    .split('\n')
+    .map(line => decodeHtml(line).trim())
+    .filter(Boolean);
+  const plain = plainLines.join('\n');
 
-  const versionMatch = rawTitle.match(/\((v[\d.]+[^)]*)\)/i)?.[1]
-    || plain.match(/Game:\s*(V?[\d.][^\n]{0,24})/i)?.[1]
-    || 'Pre-Installed';
+  const explicitSize = plain.match(/(?:File\s*Size|Game\s*Size|Repack\s*Size|Download\s*Size)\s*:?\s*(\d+(?:[.,]\d+)?\s*(?:GB|MB))/i)?.[1];
+  const storageSize = plain.match(/\bStorage\s*:?\s*(?:~|approx\.?\s*)?(\d+(?:[.,]\d+)?\s*(?:GB|MB))/i)?.[1];
+  const rawSize = explicitSize || storageSize;
+  const repackSize = rawSize ? rawSize.toUpperCase().replace(/\s+/g, ' ').trim() : '12.0 GB';
 
-  const osLine = plain.match(/\bOS:\s*([^\n]{3,70})/i)?.[1]?.trim() || 'Windows 10/11 64-bit';
-  const cpuLine = plain.match(/\bProcessor:\s*([^\n]{3,80})/i)?.[1]?.trim() || 'Intel Core i5 / AMD Ryzen 5';
-  const ramLine = plain.match(/\bMemory:\s*([^\n]{2,50})/i)?.[1]?.trim() || '8 GB RAM';
-  const gpuLine = plain.match(/\bGraphics:\s*([^\n]{3,80})/i)?.[1]?.trim() || 'NVIDIA GTX 1060 / AMD RX 580';
-  const dxLine = plain.match(/\bDirectX:\s*([^\n]{2,40})/i)?.[1]?.trim() || 'Versão 11';
-  const storageLine = plain.match(/\bStorage:\s*([^\n]{2,50})/i)?.[1]?.trim() || `${repackSize} disponíveis`;
+  const cleanField = (val, fallback, maxLen = 70) => {
+    if (!val) return fallback;
+    const cleaned = val
+      .replace(/\s+(?:Developer|Publisher|Release\s*Date|Genre|OS|Processor|Memory|Graphics|DirectX|Storage|Sound\s*Card|Additional\s*Notes|Recommended|Minimum)\s*:.*$/i, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    return cleaned.length >= 2 ? cleaned.slice(0, maxLen) : fallback;
+  };
 
-  const screenshots = [...articleHtml.matchAll(/(?:data-src|src)="(https?:\/\/repack-games\.com\/wp-content\/uploads\/[^"]+\.(?:jpg|jpeg|png|webp))"/gi)]
+  const developer = cleanField(
+    plain.match(/Developer:\s*([\s\S]{2,120}?)(?=\s*(?:Publisher:|Release\s*Date:|Genre:|\n|$))/i)?.[1],
+    'PC Release',
+    60
+  );
+  const publisher = cleanField(
+    plain.match(/Publisher:\s*([\s\S]{2,120}?)(?=\s*(?:Release\s*Date:|Genre:|\n|$))/i)?.[1],
+    'IGG-Games Archive',
+    60
+  );
+  const versionMatch = rawTitle.match(/\((v[\d.]+[^)]*)\)/i)?.[1] || 'Completa / Cracked';
+
+  const osLine = cleanField(
+    plain.match(/\bOS:\s*([\s\S]{2,120}?)(?=\s*(?:Processor:|Memory:|Graphics:|DirectX:|Storage:|Sound\s*Card:|Recommended:|\n|$))/i)?.[1],
+    'Windows 10/11 64-bit',
+    70
+  );
+  const cpuLine = cleanField(
+    plain.match(/\bProcessor:\s*([\s\S]{2,120}?)(?=\s*(?:Memory:|Graphics:|DirectX:|Storage:|Sound\s*Card:|Recommended:|\n|$))/i)?.[1],
+    'Intel Core i5 / AMD Ryzen 5',
+    80
+  );
+  const ramLine = cleanField(
+    plain.match(/\bMemory:\s*([\s\S]{2,80}?)(?=\s*(?:Graphics:|DirectX:|Storage:|Sound\s*Card:|Additional\s*Notes:|Recommended:|\n|$))/i)?.[1],
+    '8 GB RAM',
+    50
+  );
+  const gpuLine = cleanField(
+    plain.match(/\bGraphics:\s*([\s\S]{2,120}?)(?=\s*(?:DirectX:|Storage:|Sound\s*Card:|Network:|Additional\s*Notes:|Recommended:|\n|$))/i)?.[1],
+    'NVIDIA GTX 1060 / AMD RX 580',
+    80
+  );
+  const dxLine = cleanField(
+    plain.match(/\bDirectX:\s*([\s\S]{2,60}?)(?=\s*(?:Storage:|Network:|Sound\s*Card:|Additional\s*Notes:|Recommended:|\n|$))/i)?.[1],
+    'Versão 11',
+    40
+  );
+  const storageLine = cleanField(
+    plain.match(/\bStorage:\s*([\s\S]{2,80}?)(?=\s*(?:Sound\s*Card:|Additional\s*Notes:|VR\s*Support:|Recommended:|\n|$))/i)?.[1],
+    `${repackSize} disponíveis`,
+    50
+  );
+
+  const ldThumb = html.match(/"thumbnailUrl"\s*:\s*"([^"]+)"/i)?.[1]?.replace(/\\\//g, '/') || '';
+  const articleIggImgs = [...articleHtml.matchAll(/src="(https:\/\/igg-games\.com\/wp-content\/uploads\/[^"]+\.(?:jpg|jpeg|png|webp))"/gi)]
     .map(m => m[1])
-    .filter(u => !u.toLowerCase().includes('/logo.') && !u.toLowerCase().includes('placeholder'))
-    .filter((u, idx, arr) => arr.indexOf(u) === idx)
-    .slice(0, 5);
-  if (screenshots.length === 0 && coverUrl) screenshots.push(coverUrl);
+    .filter((u, idx, arr) => arr.indexOf(u) === idx);
+
+  const coverUrl = ldThumb || articleIggImgs[0] || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80';
+  const screenshots = articleIggImgs.length > 0 ? articleIggImgs.slice(0, 5) : [coverUrl];
 
   const cleanDesc = (ogDesc || '')
-    .replace(/Free Download Repack-Games\.com\s*-\s*PC game in a pre-installed direct link.*/i, '')
+    .replace(/^.*Free Download PC Game Cracked in Direct Link and Torrent\.\s*/i, '')
     .trim();
 
   return {
     repackSize,
+    developer,
+    publisher,
     version: versionMatch.trim().slice(0, 60),
-    description: cleanDesc || `${cleanRepackGamesTitle(rawTitle)} pré-instalado para PC com múltiplos links diretos.`,
+    description: cleanDesc || `${cleanIggTitle(rawTitle)} completo para PC via download direto (MegaUp.net) e Torrent.`,
+    coverUrl,
     screenshots,
     systemRequirements: {
       minimum: {
@@ -1281,7 +1356,7 @@ function extractRepackGamesDetails(articleHtml, rawTitle, ogDesc, coverUrl) {
   };
 }
 
-function buildRepackGamesRow({
+function buildIggGamesRow({
   id,
   title,
   slug,
@@ -1291,6 +1366,8 @@ function buildRepackGamesRow({
   postUrl,
   repackSize,
   version,
+  developer,
+  publisher,
   screenshots,
   systemRequirements,
   extractedLinks,
@@ -1298,22 +1375,22 @@ function buildRepackGamesRow({
   createdAt
 }) {
   const pubDate = new Date(createdAt);
-  const numSize = parseFloat(repackSize) || 15;
+  const numSize = parseFloat(repackSize) || 12;
   const isLightweight = /\bmb\b/i.test(repackSize) || numSize <= 20;
-  const isPort = postCategories.some(c => c.includes('port')) || /\bpc port\b/i.test(rawTitle);
   const genres = mapGenres(`${rawTitle} ${postCategories.join(' ')} ${description}`);
+  const hasMegaUp = extractedLinks.some(l => (l.hostName || '').toLowerCase().includes('megaup'));
 
   const downloadLinks = [
     ...extractedLinks,
     {
-      id: `dl-rg-page-${slug}`,
+      id: `dl-igg-page-${slug}`,
       type: 'direct',
       format: 'direct',
       platform: 'PC',
-      label: 'Página Oficial Repack-Games',
+      label: 'Página Oficial IGG-Games',
       url: postUrl,
       size: repackSize,
-      hostName: 'Repack-Games.com'
+      hostName: 'IGG-Games.com'
     }
   ];
 
@@ -1327,111 +1404,112 @@ function buildRepackGamesRow({
     description,
     genres,
     categories: [
-      'Repack-Games',
+      'IGG-Games',
       'Lançamentos',
-      ...(isLightweight ? ['Repacks Leves'] : []),
-      ...(isPort ? ['PortsNativos'] : [])
+      ...(isLightweight ? ['Repacks Leves'] : [])
     ],
     release_year: pubDate.getFullYear() || 2026,
     release_date: pubDate.toLocaleDateString('pt-BR'),
-    developer: 'PC Pre-Installed',
-    publisher: 'Repack-Games Archive',
-    repacker: 'Repack-Games',
+    developer: developer.slice(0, 60),
+    publisher: publisher.slice(0, 60),
+    repacker: 'IGG-Games',
     version,
     repack_size: repackSize,
     original_size: repackSize,
-    crack_status: 'Pré-Instalado (Crack Incluso)',
-    crack_group: 'Scene / Pre-Installed',
+    crack_status: 'Cracked / Pré-Ativado',
+    crack_group: 'Scene / IGG-Games',
     download_links: downloadLinks,
     system_requirements: systemRequirements,
-    screenshots: screenshots.length > 0 ? screenshots : [coverUrl],
+    screenshots,
     rating: 0,
     total_votes: 0,
-    tags: ['Repack-Games', 'Pré-Instalado PC', 'Download Direto', ...genres.slice(0, 2)],
+    tags: [
+      'IGG-Games',
+      ...(hasMegaUp ? ['MegaUp.net'] : []),
+      'Download Direto',
+      ...genres.slice(0, 2)
+    ],
     downloads_count: 0,
     views_count: 0,
     has_pt_br_audio: false,
     has_pt_br_subs: false,
     has_pc_torrent: extractedLinks.some(l => l.type === 'magnet' || l.type === 'torrent'),
-    source_origin: 'Repack-Games',
+    source_origin: 'IGG-Games',
     platform: 'PC',
     created_at: createdAt
   };
 }
 
-async function fetchAndParseRepackGamesPost({ postUrl, fallbackTitle = '', fallbackCategories = [], fallbackDateIso, anchorToFallbackDate = false, existingIds }) {
-  if (!postUrl || isNonGameRepackGamesPost(postUrl)) return null;
-  if (isAdultRepackGames({ rawTitle: fallbackTitle, url: postUrl, categories: fallbackCategories })) {
+async function fetchAndParseIggPost({ postUrl, fallbackTitle = '', fallbackCategories = [], fallbackDateIso, existingIds }) {
+  if (!postUrl || isNonGameIggPost(postUrl)) return null;
+  if (isAdultIggGames({ rawTitle: fallbackTitle, url: postUrl, categories: fallbackCategories })) {
     return null;
   }
 
   try {
     const res = await fetch(postUrl, {
-      headers: { 'User-Agent': RG_UA, 'Accept-Language': 'en-US,en;q=0.9' },
+      headers: { 'User-Agent': IGG_UA, 'Accept-Language': 'en-US,en;q=0.9' },
       signal: AbortSignal.timeout(8000)
     });
     if (!res.ok) return null;
     const html = await res.text();
-
-    const ogTitle = decodeHtml(
-      html.match(/property="og:title"\s+content="([^"]*)"/i)?.[1] ||
-      html.match(/content="([^"]*)"\s+property="og:title"/i)?.[1] ||
-      html.match(/<title>([\s\S]*?)<\/title>/i)?.[1] ||
-      fallbackTitle
-    );
-    if (!ogTitle || isNonGameRepackGamesPost(ogTitle)) return null;
-
-    const ogDesc = decodeHtml(
-      html.match(/property="og:description"\s+content="([^"]*)"/i)?.[1] ||
-      html.match(/name="description"\s+content="([^"]*)"/i)?.[1] ||
-      ''
-    );
-
-    const htmlCategories = extractRepackGamesCategoriesFromHtml(html);
-    const allCategories = Array.from(new Set([...fallbackCategories.map(c => c.toLowerCase()), ...htmlCategories]));
-
-    if (isAdultRepackGames({ rawTitle: ogTitle, url: postUrl, categories: allCategories, description: ogDesc })) {
-      return null;
-    }
-
-    const cleanTitle = cleanRepackGamesTitle(ogTitle);
-    const slugBase = makeSlug(cleanTitle);
-    const id = `rg-${slugBase.slice(0, 45)}`;
-    if (existingIds.has(id)) return null;
+    if (html.includes('Just a moment...')) return null;
 
     const articleHtml = html.match(/<article[^>]*>([\s\S]*?)<\/article>/i)?.[1] || '';
     if (!articleHtml) return null;
 
-    const coverUrl =
-      html.match(/property="og:image"\s+content="([^"]*)"/i)?.[1] ||
-      html.match(/content="([^"]*)"\s+property="og:image"/i)?.[1] ||
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80';
+    const h1Title = decodeHtml(
+      articleHtml.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i)?.[1]?.replace(/<[^>]+>/g, ' ') ||
+      html.match(/<title>([\s\S]*?)<\/title>/i)?.[1] ||
+      fallbackTitle
+    );
+    if (!h1Title || isNonGameIggPost(h1Title)) return null;
 
-    const details = extractRepackGamesDetails(articleHtml, ogTitle, ogDesc, coverUrl);
-    const extractedLinks = extractRepackGamesLinksFromArticle(articleHtml, details.repackSize, slugBase);
+    const metaDesc = decodeHtml(
+      html.match(/name="description"\s+content="([^"]*)"/i)?.[1] ||
+      html.match(/property="og:description"\s+content="([^"]*)"/i)?.[1] ||
+      ''
+    );
+
+    const htmlCategories = extractIggCategoriesFromHtml(html);
+    const allCategories = Array.from(new Set([...fallbackCategories.map(c => c.toLowerCase()), ...htmlCategories]));
+    const pubText = articleHtml.replace(/<[^>]+>/g, ' ').match(/Publisher:\s*([^\n<]{2,60})/i)?.[1] || '';
+
+    if (isAdultIggGames({ rawTitle: h1Title, url: postUrl, categories: allCategories, description: `${metaDesc} ${pubText}` })) {
+      return null;
+    }
+
+    const cleanTitle = cleanIggTitle(h1Title);
+    const slugBase = makeSlug(cleanTitle);
+    const id = `igg-${slugBase.slice(0, 45)}`;
+    if (existingIds.has(id)) return null;
+
+    const details = extractIggDetails(html, articleHtml, h1Title, metaDesc);
+    const extractedLinks = extractIggLinksFromArticle(articleHtml, details.repackSize, slugBase);
     if (extractedLinks.length === 0) return null;
 
-    const pubMeta = html.match(/property="article:published_time"\s+content="([^"]*)"/i)?.[1] || '';
+    const pubMeta =
+      html.match(/property="datePublished"\s+content="([^"]*)"/i)?.[1] ||
+      html.match(/property="article:published_time"\s+content="([^"]*)"/i)?.[1] ||
+      '';
     let createdAt = fallbackDateIso || new Date().toISOString();
     if (pubMeta) {
       const parsedPub = new Date(pubMeta);
-      if (!Number.isNaN(parsedPub.getTime())) {
-        if (!anchorToFallbackDate || (fallbackDateIso && pubMeta.slice(0, 10) === fallbackDateIso.slice(0, 10))) {
-          createdAt = parsedPub.toISOString();
-        }
-      }
+      if (!Number.isNaN(parsedPub.getTime())) createdAt = parsedPub.toISOString();
     }
 
     return {
       id,
       title: cleanTitle,
       slugBase,
-      rawTitle: ogTitle,
+      rawTitle: h1Title,
       description: details.description,
-      coverUrl,
+      coverUrl: details.coverUrl,
       postUrl,
       repackSize: details.repackSize,
       version: details.version,
+      developer: details.developer,
+      publisher: details.publisher,
       screenshots: details.screenshots,
       systemRequirements: details.systemRequirements,
       extractedLinks,
@@ -1443,7 +1521,7 @@ async function fetchAndParseRepackGamesPost({ postUrl, fallbackTitle = '', fallb
   }
 }
 
-async function syncRepackGamesSite({ existingIds, existingSlugs, oldestCursorIso, initialCountInDb, oldLimit }) {
+async function syncIggGamesSite({ existingIds, existingSlugs, oldestCursorIso, initialCountInDb, oldLimit }) {
   const rowsToInsert = [];
   let newAdded = 0;
   let oldAdded = 0;
@@ -1452,8 +1530,8 @@ async function syncRepackGamesSite({ existingIds, existingSlugs, oldestCursorIso
 
   // 1. TODOS OS JOGOS NOVOS (não-adultos) via RSS (/feed/)
   try {
-    const rssRes = await fetch('https://repack-games.com/feed/', {
-      headers: { 'User-Agent': RG_UA, 'Accept-Language': 'en-US,en;q=0.9' },
+    const rssRes = await fetch('https://igg-games.com/feed/', {
+      headers: { 'User-Agent': IGG_UA, 'Accept-Language': 'en-US,en;q=0.9' },
       signal: AbortSignal.timeout(8000)
     });
     if (rssRes.ok) {
@@ -1463,17 +1541,17 @@ async function syncRepackGamesSite({ existingIds, existingSlugs, oldestCursorIso
         const rawTitle = decodeHtml(itemXml.match(/<title>([\s\S]*?)<\/title>/)?.[1] || '');
         const link = decodeHtml(itemXml.match(/<link>([\s\S]*?)<\/link>/)?.[1] || '');
         const rssCats = [...itemXml.matchAll(/<category>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/category>/gi)].map(c => decodeHtml(c[1]));
-        if (!rawTitle || !link || isNonGameRepackGamesPost(link) || isNonGameRepackGamesPost(rawTitle)) continue;
-        if (isAdultRepackGames({ rawTitle, url: link, categories: rssCats })) continue;
+        if (!rawTitle || !link || isNonGameIggPost(link) || isNonGameIggPost(rawTitle)) continue;
+        if (isAdultIggGames({ rawTitle, url: link, categories: rssCats })) continue;
 
-        const approxId = `rg-${makeSlug(cleanRepackGamesTitle(rawTitle)).slice(0, 45)}`;
+        const approxId = `igg-${makeSlug(cleanIggTitle(rawTitle)).slice(0, 45)}`;
         if (existingIds.has(approxId)) continue;
 
         const pubRaw = itemXml.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1] || '';
         const pubParsed = new Date(pubRaw);
         const fallbackDateIso = Number.isNaN(pubParsed.getTime()) ? new Date().toISOString() : pubParsed.toISOString();
 
-        const item = await fetchAndParseRepackGamesPost({
+        const item = await fetchAndParseIggPost({
           postUrl: link,
           fallbackTitle: rawTitle,
           fallbackCategories: rssCats,
@@ -1482,102 +1560,122 @@ async function syncRepackGamesSite({ existingIds, existingSlugs, oldestCursorIso
         });
         if (!item || existingIds.has(item.id)) continue;
 
-        const uniqueSlug = ensureUniqueSlug(`${item.slugBase}-repackgames`, 'rg', existingSlugs);
+        const uniqueSlug = ensureUniqueSlug(`${item.slugBase}-igggames`, 'igg', existingSlugs);
         existingIds.add(item.id);
-        rowsToInsert.push(buildRepackGamesRow({ ...item, slug: uniqueSlug }));
+        rowsToInsert.push(buildIggGamesRow({ ...item, slug: uniqueSlug }));
         newAdded++;
       }
     }
   } catch (err) {
-    console.error('[repack-games] Aviso novos:', err.message);
+    console.error('[igg-games] Aviso novos:', err.message);
   }
 
-  // 2. BACKFILL GRADUAL DOS ANTIGOS (10 não-adultos/dia) via Sitemaps Oficiais
+  // 2. BACKFILL GRADUAL DOS ANTIGOS (10 não-adultos/dia) via Arquivos Mensais (/YYYY/MM/page/N/)
   if (oldLimit > 0) {
     try {
-      const idxRes = await fetch('https://repack-games.com/sitemap_index.xml', {
-        headers: { 'User-Agent': RG_UA, 'Accept-Language': 'en-US,en;q=0.9' },
-        signal: AbortSignal.timeout(8000)
-      });
-      if (idxRes.ok) {
-        const idxXml = await idxRes.text();
-        const sitemaps = [...idxXml.matchAll(/<sitemap>([\s\S]*?)<\/sitemap>/g)]
-          .map(m => {
-            const loc = m[1].match(/<loc>(.*?)<\/loc>/)?.[1] || '';
-            const lastmod = m[1].match(/<lastmod>(.*?)<\/lastmod>/)?.[1] || '';
-            const numMatch = loc.match(/post-sitemap(\d*)\.xml/i);
-            const num = numMatch ? (numMatch[1] ? Number(numMatch[1]) : 1) : 0;
-            return { loc, lastmod, num };
-          })
-          .filter(s => s.num > 0)
-          .sort((a, b) => a.num - b.num);
+      const now = new Date();
+      let curYear = now.getUTCFullYear();
+      let curMonth = now.getUTCMonth() + 1;
+      if (oldestCursorIso) {
+        const curDate = new Date(oldestCursorIso);
+        if (!Number.isNaN(curDate.getTime()) && curDate.getTime() <= now.getTime()) {
+          curYear = curDate.getUTCFullYear();
+          curMonth = curDate.getUTCMonth() + 1;
+        }
+      }
 
-        totalAvailable = sitemaps.length * 950;
+      totalAvailable = 15000;
+      let archivePagesChecked = 0;
+      let htmlFetchedCount = 0;
 
-        let sitemapsChecked = 0;
-        let htmlFetchedCount = 0;
-        for (let i = sitemaps.length - 1; i >= 0 && oldAdded < oldLimit && sitemapsChecked < 8 && htmlFetchedCount < 35; i--) {
-          const sm = sitemaps[i];
+      while (
+        oldAdded < oldLimit &&
+        archivePagesChecked < 10 &&
+        htmlFetchedCount < 35 &&
+        (curYear > 2015 || (curYear === 2015 && curMonth >= 6))
+      ) {
+        const mm = String(curMonth).padStart(2, '0');
+        let page = 1;
+        while (oldAdded < oldLimit && archivePagesChecked < 10 && htmlFetchedCount < 35 && page <= 15) {
+          const pageUrl = page === 1
+            ? `https://igg-games.com/${curYear}/${mm}/`
+            : `https://igg-games.com/${curYear}/${mm}/page/${page}/`;
 
-          sitemapsChecked++;
-          const smRes = await fetch(sm.loc, {
-            headers: { 'User-Agent': RG_UA, 'Accept-Language': 'en-US,en;q=0.9' },
+          archivePagesChecked++;
+          const archRes = await fetch(pageUrl, {
+            headers: { 'User-Agent': IGG_UA, 'Accept-Language': 'en-US,en;q=0.9' },
             signal: AbortSignal.timeout(8000)
           });
-          if (!smRes.ok) continue;
+          if (!archRes.ok) break;
+          const archHtml = await archRes.text();
+          if (archHtml.includes('Just a moment...')) break;
 
-          const smXml = await smRes.text();
-          const entries = [...smXml.matchAll(/<url>([\s\S]*?)<\/url>/g)]
-            .map(m => ({
-              loc: m[1].match(/<loc>(.*?)<\/loc>/)?.[1] || '',
-              lastmod: m[1].match(/<lastmod>(.*?)<\/lastmod>/)?.[1] || ''
-            }))
-            .filter(e => {
-              if (!e.loc || !e.lastmod) return false;
-              if (isNonGameRepackGamesPost(e.loc) || isAdultRepackGames({ url: e.loc })) return false;
-              const urlSlug = e.loc.replace(/^https?:\/\/repack-games\.com\//i, '').replace(/\/+$/, '').replace(/-free-download$/i, '');
-              const approxId = `rg-${makeSlug(urlSlug).slice(0, 45)}`;
-              if (existingIds.has(approxId)) return false;
-              return true;
-            });
+          const articleCards = [...archHtml.matchAll(/<article[\s\S]*?<\/article>/gi)];
+          if (articleCards.length === 0) break;
 
-          entries.sort((a, b) => b.lastmod.localeCompare(a.lastmod) || a.loc.localeCompare(b.loc));
+          const candidates = [];
+          for (const cardMatch of articleCards) {
+            const card = cardMatch[0];
+            const href = card.match(/<h2[^>]*>[\s\S]*?<a[^>]+href="([^"]+)"/i)?.[1]
+              || card.match(/href="(https:\/\/igg-games\.com\/[^"]+-free-download\.html)"/i)?.[1]
+              || '';
+            const title = decodeHtml(card.match(/<h2[^>]*>[\s\S]*?<a[^>]*>([\s\S]*?)<\/a>/i)?.[1] || '');
+            const cats = [...card.matchAll(/rel="category tag"[^>]*>([^<]+)</gi)].map(c => decodeHtml(c[1]));
+            if (!href || isNonGameIggPost(href)) continue;
+            if (isAdultIggGames({ rawTitle: title, url: href, categories: cats })) continue;
+
+            const approxSlug = title
+              ? cleanIggTitle(title)
+              : href.replace(/^https?:\/\/igg-games\.com\//i, '').replace(/-free-download\.html$/i, '').replace(/\.html$/i, '');
+            const approxId = `igg-${makeSlug(approxSlug).slice(0, 45)}`;
+            if (existingIds.has(approxId)) continue;
+
+            candidates.push({ url: href, title, cats });
+          }
 
           const batchSize = 6;
-          for (let offset = 0; offset < entries.length && oldAdded < oldLimit && htmlFetchedCount < 35; offset += batchSize) {
-            const batch = entries.slice(offset, offset + batchSize);
+          for (let offset = 0; offset < candidates.length && oldAdded < oldLimit && htmlFetchedCount < 35; offset += batchSize) {
+            const batch = candidates.slice(offset, offset + batchSize);
             htmlFetchedCount += batch.length;
             const parsedBatch = await Promise.all(
-              batch.map(entry => {
-                const modDay = entry.lastmod.slice(0, 10);
-                const fallbackDateIso = /^\d{4}-\d{2}-\d{2}$/.test(modDay)
-                  ? `${modDay}T12:00:00.000Z`
-                  : new Date().toISOString();
-                return fetchAndParseRepackGamesPost({
-                  postUrl: entry.loc,
-                  fallbackDateIso,
-                  anchorToFallbackDate: true,
+              batch.map(c =>
+                fetchAndParseIggPost({
+                  postUrl: c.url,
+                  fallbackTitle: c.title,
+                  fallbackCategories: c.cats,
+                  fallbackDateIso: `${curYear}-${mm}-15T12:00:00.000Z`,
                   existingIds
-                });
-              })
+                })
+              )
             );
 
             for (const item of parsedBatch) {
               if (!item || oldAdded >= oldLimit) continue;
               if (existingIds.has(item.id)) continue;
-              const uniqueSlug = ensureUniqueSlug(`${item.slugBase}-repackgames`, 'rg', existingSlugs);
+              const uniqueSlug = ensureUniqueSlug(`${item.slugBase}-igggames`, 'igg', existingSlugs);
               existingIds.add(item.id);
-              rowsToInsert.push(buildRepackGamesRow({ ...item, slug: uniqueSlug }));
+              rowsToInsert.push(buildIggGamesRow({ ...item, slug: uniqueSlug }));
               oldAdded++;
             }
           }
-          if (i === 0 && entries.length === 0) {
-            archiveCompleted = true;
-          }
+
+          const hasNext = /class="[^"]*next page-numbers|rel="next"/i.test(archHtml);
+          if (!hasNext) break;
+          page++;
+        }
+
+        curMonth--;
+        if (curMonth < 1) {
+          curMonth = 12;
+          curYear--;
         }
       }
+
+      if (curYear < 2015 || (curYear === 2015 && curMonth < 6)) {
+        archiveCompleted = true;
+      }
     } catch (err) {
-      console.error('[repack-games] Aviso backfill:', err.message);
+      console.error('[igg-games] Aviso backfill:', err.message);
     }
   }
 
@@ -1591,8 +1689,8 @@ async function syncRepackGamesSite({ existingIds, existingSlugs, oldestCursorIso
   }
 
   return {
-    site: 'repack-games',
-    repacker: 'Repack-Games',
+    site: 'igg-games',
+    repacker: 'IGG-Games',
     newAdded,
     oldAdded,
     totalInDb: initialCountInDb + newAdded + oldAdded,
@@ -1606,8 +1704,8 @@ export async function runDailyBackfill(requestedOldLimit = 10) {
   const oldLimit = isBackfillActive ? Math.max(0, requestedOldLimit) : 0;
   console.log(
     isBackfillActive
-      ? `⏰ [REGRA DIÁRIA] Ativa até 31/12/2026: Buscando TODOS os novos + ${oldLimit} antigos por site (FitGirl, DODI, Brother Game, 4FNet, Repack-Games sem +18)...`
-      : `⏰ [REGRA DIÁRIA] Pós-31/12/2026: Buscando APENAS jogos novos por site (FitGirl, DODI, Brother Game, 4FNet, Repack-Games sem +18)...`
+      ? `⏰ [REGRA DIÁRIA] Ativa até 31/12/2026: Buscando TODOS os novos + ${oldLimit} antigos por site (FitGirl, DODI, Brother Game, 4FNet, IGG-Games sem +18)...`
+      : `⏰ [REGRA DIÁRIA] Pós-31/12/2026: Buscando APENAS jogos novos por site (FitGirl, DODI, Brother Game, 4FNet, IGG-Games sem +18)...`
   );
 
   const existingIds = new Set();
@@ -1638,7 +1736,7 @@ export async function runDailyBackfill(requestedOldLimit = 10) {
     from += 1000;
   }
 
-  const [fg, dodi, bg, fourf, rg] = await Promise.all([
+  const [fg, dodi, bg, fourf, igg] = await Promise.all([
     syncSite({
       siteKey: 'fitgirl',
       repackerName: 'FitGirl Repack',
@@ -1685,24 +1783,24 @@ export async function runDailyBackfill(requestedOldLimit = 10) {
       initialCountInDb: countByRepacker['4FNet'] || 0,
       oldLimit
     }),
-    syncRepackGamesSite({
+    syncIggGamesSite({
       existingIds,
       existingSlugs,
-      oldestCursorIso: oldestByRepacker['Repack-Games'] || null,
-      initialCountInDb: countByRepacker['Repack-Games'] || 0,
+      oldestCursorIso: oldestByRepacker['IGG-Games'] || null,
+      initialCountInDb: countByRepacker['IGG-Games'] || 0,
       oldLimit
     })
   ]);
 
-  console.table({ FitGirl: fg, DODI: dodi, 'Brother Game': bg, '4FNet': fourf, 'Repack-Games': rg });
+  console.table({ FitGirl: fg, DODI: dodi, 'Brother Game': bg, '4FNet': fourf, 'IGG-Games': igg });
   const totalAdded =
     fg.newAdded + fg.oldAdded +
     dodi.newAdded + dodi.oldAdded +
     bg.newAdded + bg.oldAdded +
     fourf.newAdded + fourf.oldAdded +
-    rg.newAdded + rg.oldAdded;
+    igg.newAdded + igg.oldAdded;
   console.log(`🎉 Regra diária concluída! Total adicionado: ${totalAdded} jogo(s). (Backfill antigos ativo até 31/12/2026: ${isBackfillActive})`);
-  return { fg, dodi, bg, fourf, rg, totalAdded, backfillActive: isBackfillActive, backfillEndsAt: BACKFILL_DEADLINE_ISO };
+  return { fg, dodi, bg, fourf, igg, totalAdded, backfillActive: isBackfillActive, backfillEndsAt: BACKFILL_DEADLINE_ISO };
 }
 
 if (process.argv[1] && process.argv[1].endsWith('sync-daily-backfill.js')) {
