@@ -1247,6 +1247,34 @@ function extractIggLinksFromArticle(articleHtml, defaultSize, slug) {
   return finalLinks;
 }
 
+async function resolvePcGamesTorrentsLink(pcgUrl) {
+  if (!pcgUrl || !pcgUrl.toLowerCase().includes('pcgamestorrents.com')) return pcgUrl;
+  try {
+    const res = await fetch(pcgUrl, {
+      headers: { 'User-Agent': IGG_UA, 'Accept-Language': 'en-US,en;q=0.9' },
+      signal: AbortSignal.timeout(7000)
+    });
+    if (!res.ok) return pcgUrl;
+    const html = await res.text();
+    if (html.includes('Just a moment...')) return pcgUrl;
+
+    const blueMatch = html.match(
+      /href="(https?:\/\/(?:magnet\.)?(?:urlbluemedia|bluemediafiles)[^"]+)"/i
+    )?.[1];
+    if (blueMatch) return decodeHtml(blueMatch).trim();
+
+    const magnetMatch = html.match(/href="(magnet:\?[^"]+)"/i)?.[1];
+    if (magnetMatch) return decodeHtml(magnetMatch).trim();
+
+    const torrentMatch = html.match(/href="(https?:\/\/[^"]+\.torrent(?:\?[^"]*)?)"/i)?.[1];
+    if (torrentMatch) return decodeHtml(torrentMatch).trim();
+
+    return pcgUrl;
+  } catch {
+    return pcgUrl;
+  }
+}
+
 function extractIggDetails(html, articleHtml, rawTitle, ogDesc) {
   const plainLines = articleHtml
     .replace(/<style[\s\S]*?<\/style>/gi, ' ')
@@ -1487,6 +1515,19 @@ async function fetchAndParseIggPost({ postUrl, fallbackTitle = '', fallbackCateg
     const details = extractIggDetails(html, articleHtml, h1Title, metaDesc);
     const extractedLinks = extractIggLinksFromArticle(articleHtml, details.repackSize, slugBase);
     if (extractedLinks.length === 0) return null;
+
+    for (const link of extractedLinks) {
+      if (link?.url && link.url.toLowerCase().includes('pcgamestorrents.com')) {
+        const resolved = await resolvePcGamesTorrentsLink(link.url);
+        if (resolved && resolved !== link.url) {
+          link.url = resolved;
+          if (resolved.startsWith('magnet:?')) {
+            link.type = 'magnet';
+          }
+          link.label = 'Download via Torrent (Magnet / .Torrent)';
+        }
+      }
+    }
 
     const pubMeta =
       html.match(/property="datePublished"\s+content="([^"]*)"/i)?.[1] ||

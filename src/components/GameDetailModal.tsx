@@ -1079,16 +1079,20 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                             type="button"
                             onClick={() => handleDownloadClick(link.url)}
                             className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-xs bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-md shadow-cyan-500/30 transition-all transform hover:scale-[1.02] cursor-pointer"
-                            title="Enviar link Magnet limpo direto para seu aplicativo de torrent (qBittorrent / uTorrent)"
+                            title={link.url.startsWith('magnet:') ? 'Enviar link Magnet limpo direto para seu aplicativo de torrent (qBittorrent / uTorrent)' : 'Abrir link direto para baixar o arquivo .torrent / magnet'}
                           >
                             <Download className="w-4 h-4 stroke-[2.5]" />
-                            <span>Baixar Torrent PC (Abrir no qBittorrent / uTorrent)</span>
+                            <span>
+                              {link.url.startsWith('magnet:')
+                                ? 'Baixar Torrent PC (Abrir no qBittorrent / uTorrent)'
+                                : 'Baixar Arquivo .Torrent / Magnet'}
+                            </span>
                           </button>
 
                           <button
                             onClick={() => handleCopyMagnet(link.url)}
                             className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all shrink-0 cursor-pointer flex items-center gap-1.5"
-                            title="Copiar Link Magnet Limpo (Sem erros de sintaxe no Windows/qBittorrent)"
+                            title={link.url.startsWith('magnet:') ? 'Copiar Link Magnet Limpo (Sem erros de sintaxe no Windows/qBittorrent)' : 'Copiar link do torrent'}
                           >
                             {copiedMagnet ? (
                               <>
@@ -1098,7 +1102,9 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                             ) : (
                               <>
                                 <Copy className="w-4 h-4" />
-                                <span className="text-[11px] font-bold hidden sm:inline">Copiar Magnet</span>
+                                <span className="text-[11px] font-bold hidden sm:inline">
+                                  {link.url.startsWith('magnet:') ? 'Copiar Magnet' : 'Copiar Link'}
+                                </span>
                               </>
                             )}
                           </button>
