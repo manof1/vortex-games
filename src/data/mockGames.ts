@@ -413,7 +413,7 @@ export const INITIAL_GAMES: Game[] = [
     slug: 'grim-dawn-definitive-edition',
     coverUrl: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80',
     bannerUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80',
-    shortDescription: 'O aclamado ARPG sombrio da Crate Entertainment em sua edição definitiva com todas as expansões (Ashes of Malmouth e Forgotten Gods), tradução PT-BR, Cheats GameFAQs e Mods Nexus ativos.',
+    shortDescription: 'O aclamado ARPG sombrio da Crate Entertainment em sua edição definitiva com todas as expansões (Ashes of Malmouth e Forgotten Gods), tradução PT-BR e guia de instalação completo.',
     description: 'Entre em um mundo de fantasia sombrio e apocalíptico onde a humanidade está à beira da extinção. Grim Dawn é o aclamado ARPG espiritual do clássico Titan Quest, combinando árvores de habilidades duplas, centenas de itens épicos e um universo devastado pelo Éter. A Definitive Edition inclui as expansões Ashes of Malmouth e Forgotten Gods, além de suporte nativo a controle e legendas em português.',
     genres: ['RPG', 'ARPG', 'Hack and Slash', 'Fantasia Sombria'],
     categories: ['AAA', 'Mais Populares', 'Destaques'],

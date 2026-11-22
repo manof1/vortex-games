@@ -29,28 +29,22 @@ import {
   Globe,
   Lock,
   Zap,
-  Package,
   Monitor,
   Tv,
   Info,
-  Plus,
   GitBranch,
   Search,
-  Trash2,
-  RotateCcw,
-  Key,
-  UserPlus
+  UserPlus,
+  BookOpen,
+  Wrench,
+  Shield,
+  FolderArchive
 } from 'lucide-react';
-import { Game, GameCheat, LibraryStatus, GameLocalization } from '../types';
+import { Game, LibraryStatus, GameLocalization } from '../types';
 import { useGame } from '../context/GameContext';
-import { enrichGameWithCheatsAndMods, generateCheatsForGame, cleanGameTitle } from '../utils/cheatsModsGenerator';
-import { getNexusModsGameInfo } from '../utils/nexusModsService';
-import { getStoredNexusApiKey, saveNexusApiKey } from '../services/nexusApiService';
-import { fetchCheatsFromApi } from '../services/cheatsApiService';
 import { generatePcGamingWikiLocalizations, getPcGamingWikiUrl } from '../utils/localizationGenerator';
 import { SourceScannerModal } from './SourceScannerModal';
 import { generateGithubGamePayload } from '../services/sourceScannerService';
-import { downloadLibRetroChtFile, getLibRetroGitHubRepoUrl } from '../services/libretroService';
 import { TorrentHealthBadge } from './TorrentHealthBadge';
 import { sanitizeMagnetLink } from '../utils/magnetUtils';
 import { getCriticScores, getMetacriticBadgeColor, getOpenCriticTierColor } from '../utils/ratingUtils';
@@ -97,6 +91,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
     activeGameInitialTab,
     isCreator,
     openCanIRunIt,
+    openUtilities,
     updateGame
   } = useGame();
 
@@ -107,7 +102,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
     }
   }, [game?.id]);
 
-  const [activeTab, setActiveTab] = useState<'downloads' | 'specs' | 'screenshots' | 'instructions' | 'cheats' | 'mods' | 'localizations'>(activeGameInitialTab || 'downloads');
+  const [activeTab, setActiveTab] = useState<'downloads' | 'instructions' | 'specs' | 'screenshots' | 'localizations'>(activeGameInitialTab || 'downloads');
 
   useEffect(() => {
     if (activeGameInitialTab) {
@@ -116,23 +111,9 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
   }, [activeGameInitialTab, game?.id]);
   const [selectedPlatformTab, setSelectedPlatformTab] = useState<'ALL' | 'PC' | 'PLAYSTATION' | 'NINTENDO' | 'EMULATORS'>('ALL');
   const [copiedMagnet, setCopiedMagnet] = useState(false);
-  const [copiedCheatId, setCopiedCheatId] = useState<string | null>(null);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
-
-  // Estado para adicionar nova dica / cheat e varredura de fontes
-  const [isAddingCheat, setIsAddingCheat] = useState(false);
-  const [newCheatTitle, setNewCheatTitle] = useState('');
-  const [newCheatCode, setNewCheatCode] = useState('');
-  const [newCheatCategory, setNewCheatCategory] = useState('Geral');
-  const [newCheatDesc, setNewCheatDesc] = useState('');
-  const [cheatActionFeedback, setCheatActionFeedback] = useState<string | null>(null);
-  const [isLoadingCheatsApi, setIsLoadingCheatsApi] = useState(false);
-  const [cheatSearchCategory, setCheatSearchCategory] = useState<'todos' | 'segredos' | 'desbloqueaveis' | 'comandos' | 'diversao'>('todos');
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [copiedGithubPayload, setCopiedGithubPayload] = useState(false);
-  const [nexusApiKey, setNexusApiKey] = useState(() => getStoredNexusApiKey());
-  const [isConfiguringNexusKey, setIsConfiguringNexusKey] = useState(false);
-  const [nexusKeyStatus, setNexusKeyStatus] = useState<string | null>(null);
 
   // Controle de link permanente e compartilhamento direto (/game/:slug/:tab)
   const [copiedShareLink, setCopiedShareLink] = useState(false);
@@ -201,13 +182,22 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
     return result;
   }, [cleanDownloadLinks, game.hasPcTorrent, game.hasPkgFormat, game.categories]);
 
-  const nexusInfo = getNexusModsGameInfo(game.title, game.platform);
-  const validMods = (game.mods && game.mods.length > 0 && !game.mods.some(m => m.nexusUrl?.includes('/mods/1') || m.nexusUrl?.includes('/mods/2') || m.nexusUrl?.includes('/mods/3') || m.nexusUrl?.includes('/mods/4')))
-    ? game.mods
-    : nexusInfo.verifiedMods;
-  const hasCheats = Array.isArray(game.cheats) && game.cheats.length > 0;
-  const hasMods = validMods.length > 0 || !nexusInfo.isConsoleOnly;
-  
+  const repackerName = game.repackInfo?.repacker || '';
+  const hasMegaUpLink = cleanDownloadLinks.some(l => (l.hostName || '').toLowerCase().includes('megaup'));
+  const megaUpPartsCount = cleanDownloadLinks.filter(l => (l.hostName || '').toLowerCase().includes('megaup')).length;
+  const isDirectRelease =
+    repackerName.includes('IGG-Games') ||
+    repackerName.includes('4FNet') ||
+    cleanDownloadLinks.some(l => l.type === 'direct' || l.type === 'mirror');
+  const isPortRelease = repackerName.includes('Brother') || game.id.startsWith('bg-');
+  const isConsoleRelease =
+    Boolean(game.hasPkgFormat) ||
+    cleanDownloadLinks.some(l => l.type === 'pkg' || ['iso', 'rom', 'nsp', 'xci', 'bin/cue'].includes((l.format || '').toLowerCase()));
+  const isTorrentRepack =
+    repackerName.includes('FitGirl') ||
+    repackerName.includes('DODI') ||
+    cleanDownloadLinks.some(l => l.type === 'magnet' || l.type === 'torrent' || l.format === 'torrent');
+
   const critic = getCriticScores(game);
   const metaBadge = getMetacriticBadgeColor(critic.metacritic);
   const openBadge = getOpenCriticTierColor(critic.opencriticTier);
@@ -478,47 +468,15 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                   {game.repackInfo.crackStatus}
                 </span>
 
-                {/* BOTÃO CHEATS: LIGADO se tiver cheats */}
-                {hasCheats ? (
-                  <button
-                    onClick={() => setActiveTab('cheats')}
-                    className="px-2.5 py-0.5 rounded-md text-xs font-black uppercase bg-amber-500/25 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-400/60 shadow-md shadow-amber-500/20 flex items-center gap-1 cursor-pointer transition-all animate-pulse"
-                    title="Este jogo possui Cheats do GameFAQs disponíveis! Clique para ver"
-                  >
-                    <Zap className="w-3.5 h-3.5 fill-amber-400" />
-                    <span>CHEATS (LIGADO) • {game.cheats?.length}</span>
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => setActiveTab('cheats')}
-                    className="px-2.5 py-0.5 rounded-md text-xs font-semibold text-slate-500 hover:text-slate-300 bg-slate-900 border border-slate-800 flex items-center gap-1 cursor-pointer transition-all"
-                    title="Ver página de Cheats do jogo no GameFAQs"
-                  >
-                    <Zap className="w-3.5 h-3.5 text-slate-600" />
-                    <span>Cheats (Desligado)</span>
-                  </button>
-                )}
-
-                {/* BOTÃO MODS: LIGADO se tiver mods */}
-                {hasMods ? (
-                  <button
-                    onClick={() => setActiveTab('mods')}
-                    className="px-2.5 py-0.5 rounded-md text-xs font-black uppercase bg-orange-500/25 hover:bg-orange-500 text-orange-300 hover:text-slate-950 border border-orange-400/60 shadow-md shadow-orange-500/20 flex items-center gap-1 cursor-pointer transition-all"
-                    title="Este jogo possui Mods do Nexus Mods disponíveis! Clique para ver"
-                  >
-                    <Package className="w-3.5 h-3.5 text-orange-400" />
-                    <span>MODS (LIGADO) • {validMods.length}</span>
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => setActiveTab('mods')}
-                    className="px-2.5 py-0.5 rounded-md text-xs font-semibold text-slate-500 hover:text-slate-300 bg-slate-900 border border-slate-800 flex items-center gap-1 cursor-pointer transition-all"
-                    title="Buscar mods para este jogo no Nexus Mods"
-                  >
-                    <Package className="w-3.5 h-3.5 text-slate-600" />
-                    <span>Mods (Desligado)</span>
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('instructions')}
+                  className="px-2.5 py-0.5 rounded-md text-xs font-bold bg-amber-500/15 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-400/40 flex items-center gap-1 cursor-pointer transition-all"
+                  title="Abrir guia passo a passo de como instalar e resolver erros"
+                >
+                  <BookOpen className="w-3.5 h-3.5" />
+                  <span>Como Instalar & Dicas</span>
+                </button>
 
                 <span className="text-xs text-slate-300 font-mono flex items-center gap-1 bg-slate-950/60 px-2.5 py-1 rounded-lg border border-slate-800">
                   <Clock className="w-3.5 h-3.5 text-cyan-400" />
@@ -751,7 +709,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
         <div className="flex border-b border-slate-800 px-6 bg-slate-900/50 overflow-x-auto">
           <button
             onClick={() => setActiveTab('downloads')}
-            className={`py-3.5 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-all whitespace-nowrap ${
+            className={`py-3.5 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'downloads'
                 ? 'border-cyan-400 text-cyan-400 bg-cyan-500/5'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -761,8 +719,19 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
             <span>Links de Download</span>
           </button>
           <button
+            onClick={() => setActiveTab('instructions')}
+            className={`py-3.5 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
+              activeTab === 'instructions'
+                ? 'border-amber-400 text-amber-300 bg-amber-500/10'
+                : 'border-transparent text-slate-300 hover:text-amber-300'
+            }`}
+          >
+            <BookOpen className="w-4 h-4 text-amber-400" />
+            <span>Como Instalar & Dicas</span>
+          </button>
+          <button
             onClick={() => setActiveTab('specs')}
-            className={`py-3.5 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-all whitespace-nowrap ${
+            className={`py-3.5 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'specs'
                 ? 'border-cyan-400 text-cyan-400 bg-cyan-500/5'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -773,7 +742,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
           </button>
           <button
             onClick={() => setActiveTab('screenshots')}
-            className={`py-3.5 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-all whitespace-nowrap ${
+            className={`py-3.5 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'screenshots'
                 ? 'border-cyan-400 text-cyan-400 bg-cyan-500/5'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -781,61 +750,6 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
           >
             <Layers className="w-4 h-4" />
             <span>Capturas & Imagens</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('instructions')}
-            className={`py-3.5 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
-              activeTab === 'instructions'
-                ? 'border-cyan-400 text-cyan-400 bg-cyan-500/5'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <AlertTriangle className="w-4 h-4 text-amber-400" />
-            <span>Como Instalar & Dicas</span>
-          </button>
-
-          {/* TAB: CHEATS */}
-          <button
-            onClick={() => setActiveTab('cheats')}
-            className={`py-3.5 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
-              activeTab === 'cheats'
-                ? 'border-amber-400 text-amber-300 bg-amber-500/10'
-                : hasCheats
-                ? 'border-amber-400/40 text-amber-400 hover:text-amber-300'
-                : 'border-transparent text-slate-500 hover:text-slate-300'
-            }`}
-          >
-            <Zap className={`w-4 h-4 ${hasCheats ? 'fill-amber-400 text-amber-400' : 'text-slate-500'}`} />
-            <span>Cheats</span>
-            {hasCheats ? (
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono font-black bg-amber-500 text-slate-950">
-                {game.cheats?.length} ON
-              </span>
-            ) : (
-              <span className="text-[10px] text-slate-600">OFF</span>
-            )}
-          </button>
-
-          {/* TAB: MODS */}
-          <button
-            onClick={() => setActiveTab('mods')}
-            className={`py-3.5 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
-              activeTab === 'mods'
-                ? 'border-orange-400 text-orange-300 bg-orange-500/10'
-                : hasMods
-                ? 'border-orange-400/40 text-orange-400 hover:text-orange-300'
-                : 'border-transparent text-slate-500 hover:text-slate-300'
-            }`}
-          >
-            <Package className={`w-4 h-4 ${hasMods ? 'text-orange-400' : 'text-slate-500'}`} />
-            <span>Mods</span>
-            {hasMods ? (
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono font-black bg-orange-500 text-slate-950">
-                {validMods.length} ON
-              </span>
-            ) : (
-              <span className="text-[10px] text-slate-600">OFF</span>
-            )}
           </button>
 
           {/* TAB: LOCALIZAÇÕES */}
@@ -1595,6 +1509,30 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
                 )}
               </div>
 
+              {/* Atalho rápido para o Guia de Instalação */}
+              <div className="p-4 rounded-2xl bg-slate-950/75 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+                    <BookOpen className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-white">
+                      Primeira vez instalando ou precisa de ajuda com DLL / Antivírus?
+                    </p>
+                    <p className="text-[11px] text-slate-400">
+                      Preparamos um passo a passo específico para esta versão ({game.repackInfo.repacker}) e dicas anti-erro.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('instructions')}
+                  className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs whitespace-nowrap shrink-0 cursor-pointer transition-colors"
+                >
+                  Ver Como Instalar & Dicas
+                </button>
+              </div>
+
             </div>
           )}
 
@@ -1736,638 +1674,217 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, onClose 
             </div>
           )}
 
-          {/* TAB: INSTRUCTIONS */}
+          {/* TAB: COMO INSTALAR & DICAS (COMPLETA E CONTEXTUAL) */}
           {activeTab === 'instructions' && (
-            <div className="p-5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-4 text-xs text-slate-300">
-              <h4 className="text-sm font-bold text-amber-400 uppercase tracking-wide flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4" />
-                Guia Rápido de Instalação Sem Erros de DLL ou Antivírus
-              </h4>
-
-              <ol className="list-decimal list-inside space-y-2.5 leading-relaxed">
-                <li><strong className="text-white">Baixe o Torrent:</strong> Utilize clientes recomendados como <em>qBittorrent</em> ou <em>Transmission</em> para máxima taxa de download.</li>
-                <li><strong className="text-white">Antivírus / Windows Defender:</strong> Pause temporariamente o antivírus ou adicione a pasta de instalação como exceção. Os arquivos do crack podem gerar falso-positivo em alguns antivírus.</li>
-                <li><strong className="text-white">Execute o Setup.exe:</strong> Caso seu PC tenha menos de 16GB de RAM, marque a opção "Limit RAM to 2GB" na tela inicial do instalador FitGirl / DODI para evitar travamentos de descompressão.</li>
-                <li><strong className="text-white">Softwares Necessários:</strong> Certifique-se de possuir o DirectX atualizado e os pacotes <em>Visual C++ Redistributable (2015-2022)</em> instalados.</li>
-                <li><strong className="text-white">Executar como Administrador:</strong> Clique com botão direito no atalho criado e selecione "Executar como Administrador" para jogar.</li>
-              </ol>
-            </div>
-          )}
-
-          {/* TAB: CHEATS (WEMOD & LIBRETRO / GAMEFAQS) */}
-          {activeTab === 'cheats' && (
             <div className="space-y-6 animate-fadeIn">
-              {/* Header com fontes oficiais e botões rápidos */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-2xl bg-gradient-to-r from-amber-950/40 via-slate-900 to-amber-950/20 border border-amber-500/40">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-400 shrink-0">
-                    <Zap className="w-5 h-5 fill-amber-400" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-black text-white uppercase tracking-wide flex items-center gap-2 flex-wrap">
-                      <span>Cheats, Trainers & Códigos Verificados</span>
-                      {hasCheats && (
-                        <span className="text-[10px] px-2 py-0.5 rounded font-black bg-amber-500 text-slate-950">
-                          {game.cheats?.length} CÓDIGOS ATIVOS
-                        </span>
-                      )}
-                      <span className="text-[10px] px-2 py-0.5 rounded font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1" title="Cheats já salvos no banco de dados e atualizados na rotina semanal">
-                        <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                        <span>Pré-Salvo & Pronto</span>
-                      </span>
-                    </h4>
-                    <p className="text-xs text-slate-400">
-                      Trainers oficiais do WeMod (PC), comandos reais de console e biblioteca autêntica LibRetro / GameShark para retrô.
-                    </p>
-                  </div>
+              {/* Cabeçalho Contextual do Guia */}
+              <div className="p-5 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="space-y-1.5">
+                  <h4 className="text-base sm:text-lg font-black text-white font-display flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 text-amber-400 shrink-0" />
+                    <span>Como Instalar {game.title} & Dicas</span>
+                  </h4>
+                  <p className="text-xs text-slate-400">
+                    {game.repackInfo.repacker} · Tamanho: {game.repackInfo.repackSize} · Plataforma: {game.platform || 'PC Windows'}
+                  </p>
                 </div>
 
-                <div className="flex flex-col gap-2 shrink-0 w-full md:w-60">
-                  {/* Seletor de Categoria de Busca de Novos Cheats */}
-                  <div className="flex items-center justify-between gap-2 bg-slate-900/90 border border-slate-700/80 rounded-xl px-3 py-1.5 shadow-inner w-full">
-                    <span className="text-[10px] uppercase font-black text-slate-400">Tipo:</span>
-                    <select
-                      value={cheatSearchCategory}
-                      onChange={e => setCheatSearchCategory(e.target.value as any)}
-                      className="bg-transparent text-xs text-amber-300 font-bold focus:outline-none cursor-pointer text-right"
-                      title="Selecione a categoria de truques para pesquisar com a IA"
-                    >
-                      <option value="todos" className="bg-slate-900 text-white">✨ Todos os Novos</option>
-                      <option value="segredos" className="bg-slate-900 text-white">🥚 Segredos & Easter Eggs</option>
-                      <option value="desbloqueaveis" className="bg-slate-900 text-white">🔓 Desbloqueáveis & Roupas</option>
-                      <option value="comandos" className="bg-slate-900 text-white">🎮 Comandos de Console</option>
-                      <option value="diversao" className="bg-slate-900 text-white">🎪 Modos Divertidos</option>
-                    </select>
-                  </div>
-
-                  {/* Botão 1: Busca de Dicas Inéditas (Anti-Repetição) */}
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
                   <button
                     type="button"
-                    disabled={isLoadingCheatsApi}
-                    onClick={async () => {
-                      setIsLoadingCheatsApi(true);
-                      setCheatActionFeedback('Consultando IA com exclusão dos códigos existentes para encontrar truques inéditos...');
-                      try {
-                        const existingTitles = (game.cheats || []).map(c => c.title);
-                        const res = await fetchCheatsFromApi(game.title, game.platform || 'PC', {
-                          excludeTitles: existingTitles,
-                          category: cheatSearchCategory,
-                          mode: 'novos'
-                        });
-
-                        if (res.cheats && res.cheats.length > 0) {
-                          const existingSet = new Set((game.cheats || []).map(c => c.title.toLowerCase().trim()));
-                          const trulyNew = res.cheats.filter(c => !existingSet.has(c.title.toLowerCase().trim()));
-
-                          if (trulyNew.length > 0) {
-                            const mergedCheats = [
-                              ...(game.cheats || []),
-                              ...trulyNew.map(c => ({ ...c, isNewlyDiscovered: true }))
-                            ];
-                            updateGame({ 
-                              ...game, 
-                              cheats: mergedCheats,
-                              lastCheatsSync: new Date().toISOString(),
-                              cheatsSyncStatus: 'synced'
-                            });
-                            setCheatActionFeedback(`✓ Encontrados ${trulyNew.length} novos truques inéditos! Adicionados à lista (Total: ${mergedCheats.length}).`);
-                          } else {
-                            setCheatActionFeedback('Você já possui os principais códigos desta categoria salvos!');
-                          }
-                        } else {
-                          setCheatActionFeedback('Nenhum truque extra encontrado para este filtro.');
-                        }
-                      } catch {
-                        setCheatActionFeedback('Falha na conexão com a API.');
-                      } finally {
-                        setIsLoadingCheatsApi(false);
-                        setTimeout(() => setCheatActionFeedback(null), 5000);
-                      }
-                    }}
-                    className="w-full px-3 py-2 rounded-xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black text-xs transition-all flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/20 cursor-pointer disabled:opacity-50"
-                    title="Pesquisar novos cheats, segredos e atalhos inéditos (diferentes dos já cadastrados)"
+                    onClick={() => openCanIRunIt(game)}
+                    className="px-4 py-2 rounded-xl bg-cyan-500/15 hover:bg-cyan-500 hover:text-slate-950 text-cyan-300 border border-cyan-500/40 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
                   >
-                    <Sparkles className={`w-3.5 h-3.5 ${isLoadingCheatsApi ? 'animate-spin' : 'fill-slate-950'}`} />
-                    <span>{isLoadingCheatsApi ? 'Descobrindo Novos...' : 'Buscar Dicas Inéditas'}</span>
+                    <Cpu className="w-3.5 h-3.5" />
+                    <span>Meu PC Roda?</span>
                   </button>
-
-                  {/* Botão 2: Trainers WeMod (PC) */}
-                  <a
-                    href={`https://www.wemod.com/cheats/${encodeURIComponent(cleanGameTitle(game.title))}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full px-3 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
-                    title={`Acessar página oficial de Trainers para ${cleanGameTitle(game.title)} no WeMod`}
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                    <span>Trainers WeMod (PC)</span>
-                  </a>
-
-                  {/* Botão 3: LibRetro DB (GitHub) */}
-                  <a
-                    href={getLibRetroGitHubRepoUrl(game.platform)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-purple-300 border border-purple-500/30 font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
-                    title="Explorar repositório oficial de cheats abertos do LibRetro Database no GitHub"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                    <span>LibRetro DB</span>
-                  </a>
-
-                  {/* Botão 4: Baixar .CHT */}
                   <button
                     type="button"
-                    onClick={() => {
-                      downloadLibRetroChtFile(game);
-                      setCheatActionFeedback('✓ Arquivo .CHT gerado e baixado para emuladores (RetroArch, PCSX2, DuckStation, PPSSPP)!');
-                      setTimeout(() => setCheatActionFeedback(null), 4000);
-                    }}
-                    className="w-full px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-md shadow-purple-600/20 cursor-pointer"
-                    title="Baixar arquivo .CHT pronto para colocar na pasta cheats do RetroArch, DuckStation, PCSX2 ou PPSSPP"
+                    onClick={openUtilities}
+                    className="px-4 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500 hover:text-slate-950 text-emerald-300 border border-emerald-500/40 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
                   >
-                    <Download className="w-3.5 h-3.5" />
-                    <span>Baixar .CHT</span>
-                  </button>
-
-                  {/* Botão 5: Restaurar Padrões */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const refreshed = generateCheatsForGame(game);
-                      updateGame({ 
-                        ...game, 
-                        cheats: refreshed,
-                        lastCheatsSync: new Date().toISOString()
-                      });
-                      setCheatActionFeedback('✓ Lista restaurada para a base oficial de cheats.');
-                      setTimeout(() => setCheatActionFeedback(null), 4000);
-                    }}
-                    className="w-full px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                    title="Restaurar cheats padrão oficiais deste jogo"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    <span>Restaurar Base Padrão</span>
-                  </button>
-
-                  {/* Botão 6: Nova Dica Manual */}
-                  {isCreator && (
-                    <button
-                      type="button"
-                      onClick={() => setIsAddingCheat(prev => !prev)}
-                      className="w-full px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
-                      title="Adicionar uma dica nova descoberta para este jogo"
-                    >
-                      <Plus className="w-3.5 h-3.5 stroke-[3]" />
-                      <span>{isAddingCheat ? 'Fechar Formulário' : '+ Nova Dica'}</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Feedback de ação */}
-              {cheatActionFeedback && (
-                <div className="p-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold flex items-center gap-2 animate-in fade-in">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>{cheatActionFeedback}</span>
-                </div>
-              )}
-
-              {/* Formulário do Criador: Adicionar Nova Dica Descoberta */}
-              {isAddingCheat && (
-                <form 
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    if (!newCheatTitle.trim() || !newCheatCode.trim()) return;
-                    const newCheat: GameCheat = {
-                      id: `custom-cheat-${Date.now()}`,
-                      title: newCheatTitle.trim(),
-                      codeOrEffect: newCheatCode.trim(),
-                      category: newCheatCategory,
-                      description: newCheatDesc.trim() || 'Dica e macete validado pela comunidade e criador.',
-                      source: 'Criador (Verificado)'
-                    };
-                    const updatedCheats = [...(game.cheats || []), newCheat];
-                    const updatedGame = { ...game, cheats: updatedCheats };
-                    updateGame(updatedGame);
-                    setIsAddingCheat(false);
-                    setNewCheatTitle('');
-                    setNewCheatCode('');
-                    setNewCheatDesc('');
-                    setCheatActionFeedback('✓ Nova dica adicionada e salva com sucesso para este jogo!');
-                    setTimeout(() => setCheatActionFeedback(null), 4000);
-                  }}
-                  className="p-4 rounded-2xl bg-slate-950 border border-emerald-500/40 space-y-3 animate-in fade-in"
-                >
-                  <div className="flex items-center justify-between">
-                    <h5 className="text-xs font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-                      Cadastrar Nova Dica ou Cheat para "{game.title}"
-                    </h5>
-                    <span className="text-[10px] text-slate-400">Salvo instantaneamente</span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="sm:col-span-2 space-y-1">
-                      <label className="text-[11px] font-bold text-slate-300">Título da Dica / Efeito</label>
-                      <input
-                        type="text"
-                        required
-                        value={newCheatTitle}
-                        onChange={e => setNewCheatTitle(e.target.value)}
-                        placeholder="Ex: Invulnerabilidade (Modo Deus) / Munição Infinita"
-                        className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-slate-300">Categoria</label>
-                      <select
-                        value={newCheatCategory}
-                        onChange={e => setNewCheatCategory(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-emerald-500 cursor-pointer"
-                      >
-                        <option value="Vidas/Energia">Vidas/Energia</option>
-                        <option value="Armas">Armas/Munição</option>
-                        <option value="Dinheiro">Dinheiro/Recursos</option>
-                        <option value="Segredos">Segredos/Desbloqueáveis</option>
-                        <option value="Geral">Geral/Gameplay</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-slate-300">Código, Atalho do Trainer ou Sequência de Botões</label>
-                    <input
-                      type="text"
-                      required
-                      value={newCheatCode}
-                      onChange={e => setNewCheatCode(e.target.value)}
-                      placeholder="Ex: WeMod: F1 / Console: tgm / Controle: R1, R2, L1, X..."
-                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-emerald-400 font-mono placeholder-slate-500 focus:outline-none focus:border-emerald-500"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-slate-300">Instruções / Explicação (opcional)</label>
-                    <input
-                      type="text"
-                      value={newCheatDesc}
-                      onChange={e => setNewCheatDesc(e.target.value)}
-                      placeholder="Ex: Abra o console com ~ e digite o código, ou ative pelo WeMod sem precisar reiniciar."
-                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-end gap-2 pt-1">
-                    <button
-                      type="button"
-                      onClick={() => setIsAddingCheat(false)}
-                      className="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-4 py-1.5 rounded-xl text-xs font-black bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all flex items-center gap-1.5 shadow-md cursor-pointer"
-                    >
-                      <Plus className="w-3.5 h-3.5 stroke-[3]" />
-                      <span>Salvar Dica Agora</span>
-                    </button>
-                  </div>
-                </form>
-              )}
-
-              {hasCheats ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {game.cheats!.map((cheat, idx) => (
-                    <div 
-                      key={cheat.id || idx}
-                      className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 hover:border-amber-500/50 transition-all space-y-3"
-                    >
-                      <div className="flex items-center justify-between gap-2 flex-wrap">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-xs font-black text-white">{cheat.title}</span>
-                          {cheat.isNewlyDiscovered && (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded font-black bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 shadow-sm animate-pulse flex items-center gap-0.5">
-                              ✨ NOVO
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                            {cheat.category || 'Geral'}
-                          </span>
-                          {(isCreator || isLoggedIn) && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const remaining = (game.cheats || []).filter((_, i) => i !== idx);
-                                updateGame({ ...game, cheats: remaining });
-                                setCheatActionFeedback(`✓ Dica "${cheat.title}" removida.`);
-                                setTimeout(() => setCheatActionFeedback(null), 3000);
-                              }}
-                              className="p-1 rounded text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
-                              title="Remover este código da lista"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between gap-2">
-                        <span className="font-mono text-xs font-bold text-emerald-400 break-all select-all">
-                          {cheat.codeOrEffect}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            navigator.clipboard.writeText(cheat.codeOrEffect);
-                            setCopiedCheatId(cheat.id || `${idx}`);
-                            setTimeout(() => setCopiedCheatId(null), 2500);
-                          }}
-                          className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-amber-500 hover:text-slate-950 text-slate-300 text-[10px] font-bold transition-all shrink-0 cursor-pointer"
-                        >
-                          {copiedCheatId === (cheat.id || `${idx}`) ? '✓ Copiado' : 'Copiar'}
-                        </button>
-                      </div>
-
-                      {cheat.description && (
-                        <p className="text-xs text-slate-400 leading-relaxed">{cheat.description}</p>
-                      )}
-
-                      <div className="text-[10px] text-slate-500 font-mono flex items-center justify-between pt-1 border-t border-slate-900">
-                        <span className="flex items-center gap-1.5">
-                          <span>Fonte:</span>
-                          <span className={`font-semibold ${
-                            (cheat.source || '').includes('WeMod') ? 'text-cyan-400' :
-                            (cheat.source || '').includes('LibRetro') ? 'text-purple-400' :
-                            (cheat.source || '').includes('Console') ? 'text-emerald-400' :
-                            'text-amber-400'
-                          }`}>
-                            {cheat.source || 'WeMod / GameFAQs'}
-                          </span>
-                        </span>
-                        <span className="text-emerald-400 font-semibold">100% Funcional</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="p-8 rounded-3xl bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 text-center space-y-4 shadow-xl">
-                  <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center mx-auto shadow-lg shadow-cyan-500/10">
-                    <ExternalLink className="w-7 h-7" />
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                      Jogos Modernos de PC & Trainers Oficiais
-                    </span>
-                    <h4 className="text-base font-black text-white pt-2">
-                      Este jogo moderno de PC não possui trapaças de botões nativas
-                    </h4>
-                    <p className="text-xs text-slate-400 max-w-lg mx-auto leading-relaxed">
-                      Diferente de consoles antigos, jogos modernos para PC não utilizam códigos de botões nativos. A comunidade mundial utiliza <strong>Trainers Oficiais no WeMod</strong> e correções de engine no <strong>PCGamingWiki</strong>:
-                    </p>
-                  </div>
-
-                  <div className="flex items-center justify-center gap-3 pt-2 flex-wrap">
-                    <a
-                      href={`https://www.wemod.com/cheats/${encodeURIComponent(cleanGameTitle(game.title))}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition-all shadow-lg shadow-cyan-500/20 cursor-pointer"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                      <span>Abrir Trainers no WeMod ({cleanGameTitle(game.title)})</span>
-                    </a>
-                    <a
-                      href={`https://www.pcgamingwiki.com/wiki/${encodeURIComponent(cleanGameTitle(game.title).replace(/\s+/g, '_'))}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 font-bold text-xs transition-all shadow-md cursor-pointer"
-                    >
-                      <Globe className="w-4 h-4" />
-                      <span>Fixes no PCGamingWiki</span>
-                    </a>
-                    <a
-                      href={`https://www.nexusmods.com/search/?gsearch=${encodeURIComponent(cleanGameTitle(game.title))}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 font-bold text-xs transition-all shadow-md cursor-pointer"
-                    >
-                      <Package className="w-4 h-4" />
-                      <span>Mods no Nexus</span>
-                    </a>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* TAB: MODS (NEXUS MODS) */}
-          {activeTab === 'mods' && (
-            <div className="space-y-6 animate-fadeIn">
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 rounded-2xl bg-gradient-to-r from-orange-950/40 via-slate-900 to-orange-950/20 border border-orange-500/40">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-orange-500/20 border border-orange-400/40 flex items-center justify-center text-orange-400 shrink-0">
-                    <Package className="w-5 h-5 text-orange-400" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-black text-white uppercase tracking-wide flex items-center gap-2 flex-wrap">
-                      <span>Mods & Correções Comunitárias (Nexus Mods)</span>
-                      {nexusInfo.isVerifiedHub ? (
-                        <span className="text-[10px] px-2 py-0.5 rounded font-black bg-emerald-500 text-slate-950 flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3" />
-                          <span>HUB VERIFICADO: {nexusInfo.slug}</span>
-                        </span>
-                      ) : nexusInfo.isConsoleOnly ? (
-                        <span className="text-[10px] px-2 py-0.5 rounded font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                          🎮 CONSOLE RETRÔ (ROMHACKING)
-                        </span>
-                      ) : (
-                        <span className="text-[10px] px-2 py-0.5 rounded font-bold bg-orange-500/20 text-orange-300 border border-orange-500/30">
-                          🔍 BUSCA LIMPA NEXUS MODS
-                        </span>
-                      )}
-                    </h4>
-                    <p className="text-xs text-slate-400">
-                      {nexusInfo.isConsoleOnly 
-                        ? 'Jogos retrô clássicos de console têm mods distribuídos via ROM Hacking / Patches .xdelta, já que o Nexus Mods é focado em PC.' 
-                        : `Links diretos e verificados para os principais mods, patches de FPS e ferramentas para ${nexusInfo.cleanTitle}.`}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 flex-wrap shrink-0 w-full sm:w-auto">
-                  <a
-                    href={nexusInfo.hubUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-3.5 py-2 rounded-xl bg-orange-500 hover:bg-orange-400 text-slate-950 font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer w-full sm:w-auto"
-                    title={`Abrir página oficial no Nexus Mods para ${nexusInfo.cleanTitle}`}
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                    <span>{nexusInfo.isVerifiedHub ? `Hub Oficial (${nexusInfo.slug})` : `Buscar no Nexus Mods`}</span>
-                  </a>
-
-                  {nexusInfo.isVerifiedHub && (
-                    <a
-                      href={nexusInfo.trendingUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-orange-300 border border-orange-500/30 font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer w-full sm:w-auto"
-                      title="Explorar os mods mais baixados de todos os tempos deste jogo no Nexus Mods"
-                    >
-                      <Sparkles className="w-3.5 h-3.5 text-orange-400" />
-                      <span>Mais Populares</span>
-                    </a>
-                  )}
-
-                  {nexusInfo.isConsoleOnly && (
-                    <a
-                      href={`https://www.romhacking.net/?page=translations&title=${encodeURIComponent(nexusInfo.cleanTitle)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer w-full sm:w-auto"
-                      title="Pesquisar traduções e hacks de ROM no Romhacking.net"
-                    >
-                      <Globe className="w-3.5 h-3.5" />
-                      <span>Romhacking.net (Traduções)</span>
-                    </a>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={() => setIsConfiguringNexusKey(prev => !prev)}
-                    className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer w-full sm:w-auto"
-                    title="Configurar sua Personal API Key do Nexus Mods para sincronização direta"
-                  >
-                    <Key className={`w-3.5 h-3.5 ${nexusApiKey ? 'text-emerald-400' : 'text-orange-400'}`} />
-                    <span>{nexusApiKey ? 'API Conectada' : 'Configurar API Key'}</span>
+                    <Wrench className="w-3.5 h-3.5" />
+                    <span>Utilitários Essenciais</span>
                   </button>
                 </div>
               </div>
 
-              {/* Painel de Configuração da Personal API Key do Nexus Mods */}
-              {isConfiguringNexusKey && (
-                <div className="p-4 rounded-2xl bg-slate-900/90 border border-orange-500/50 space-y-3 animate-fadeIn">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-white flex items-center gap-2">
-                      <Key className="w-4 h-4 text-orange-400" />
-                      Qual chave escolher no Nexus Mods? (Personal API Key)
-                    </span>
-                    <button 
-                      onClick={() => setIsConfiguringNexusKey(false)} 
-                      className="text-slate-400 hover:text-white text-xs px-2 py-1 rounded bg-slate-800"
-                    >
-                      Fechar
-                    </button>
-                  </div>
-
-                  <p className="text-xs text-slate-300 leading-relaxed">
-                    No endereço <strong className="text-orange-300 font-mono">https://www.nexusmods.com/settings/api-keys</strong>, existem várias opções. A opção correta é a <strong className="text-emerald-400">Personal API Key</strong> (geralmente no final da página). Basta clicar no botão <strong className="text-white">Generate</strong> (ou <em>Generate API Key</em>), copiar o código gerado e colar abaixo:
+              {/* Notas Específicas deste Release (se cadastradas) */}
+              {game.installNotes && game.installNotes.trim().length > 0 && (
+                <div className="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-2">
+                  <h5 className="text-xs font-bold text-amber-300 uppercase tracking-wider flex items-center gap-2">
+                    <Info className="w-4 h-4 shrink-0" />
+                    <span>Notas Importantes deste Lançamento</span>
+                  </h5>
+                  <p className="text-xs sm:text-sm text-slate-200 leading-relaxed whitespace-pre-line">
+                    {game.installNotes}
                   </p>
+                </div>
+              )}
 
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                    <input
-                      type="password"
-                      value={nexusApiKey}
-                      onChange={e => setNexusApiKey(e.target.value)}
-                      placeholder="Cole sua Personal API Key aqui..."
-                      className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500 font-mono"
-                    />
+              {/* Passo a Passo Adaptado à Fonte do Jogo */}
+              <div className="p-5 sm:p-6 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-800">
+                  <h5 className="text-sm font-bold text-white flex items-center gap-2">
+                    <FolderArchive className="w-4 h-4 text-cyan-400 shrink-0" />
+                    <span>
+                      {isConsoleRelease
+                        ? 'Passo a Passo para Consoles e Emuladores'
+                        : isPortRelease
+                        ? 'Passo a Passo para Port Nativo PC'
+                        : isDirectRelease && !isTorrentRepack
+                        ? `Passo a Passo via Download Direto${hasMegaUpLink ? ' (MegaUp.net)' : ''}`
+                        : 'Passo a Passo de Instalação via Torrent / Repack'}
+                    </span>
+                  </h5>
+                  <span className="text-xs text-slate-400">
+                    Siga a ordem abaixo para evitar erros de DLL ou arquivos corrompidos
+                  </span>
+                </div>
+
+                {isConsoleRelease ? (
+                  <ol className="space-y-3 text-xs sm:text-sm text-slate-300 leading-relaxed">
+                    <li>
+                      <strong className="text-white">01. Escolha o formato correto:</strong> Baixe o arquivo <strong className="text-purple-300">.PKG</strong> se for instalar em PlayStation desbloqueado (HEN/GoldHEN), ou baixe <strong className="text-emerald-300">.ISO / .NSP / .XCI / .ROM</strong> para jogar em emuladores no PC ou celular.
+                    </li>
+                    <li>
+                      <strong className="text-white">02. Descompacte com 7-Zip ou WinRAR:</strong> Se o arquivo vier compactado em <span className="font-mono text-slate-200">.zip</span>, <span className="font-mono text-slate-200">.rar</span> ou <span className="font-mono text-slate-200">.7z</span>, extraia antes de abrir no emulador ou passar para o pendrive.
+                    </li>
+                    <li>
+                      <strong className="text-white">03. Instalação via USB (PKG):</strong> Formate o pendrive em <strong className="text-white">exFAT</strong>, coloque o arquivo PKG na raiz, conecte no console e acesse <em>Package Installer</em>. Se houver atualização (Update) ou tradução PT-BR em PKG, instale o jogo base primeiro e o patch por último.
+                    </li>
+                    <li>
+                      <strong className="text-white">04. Configuração no Emulador:</strong> No PCSX2, DuckStation, RPCS3 ou Ryujinx, aponte a pasta de jogos nas configurações e certifique-se de ter a BIOS ou Keys atualizadas do respectivo console.
+                    </li>
+                  </ol>
+                ) : isPortRelease ? (
+                  <ol className="space-y-3 text-xs sm:text-sm text-slate-300 leading-relaxed">
+                    <li>
+                      <strong className="text-white">01. Download direto sem emulador:</strong> Este é um Port Nativo compilado diretamente para Windows. Baixe o pacote completo pelos links da aba Downloads.
+                    </li>
+                    <li>
+                      <strong className="text-white">02. Extração limpa:</strong> Extraia todo o conteúdo do arquivo <span className="font-mono text-slate-200">.zip/.rar</span> para uma pasta dedicada (ex: <span className="font-mono text-cyan-300">C:\Jogos\{game.slug}</span>), evitando rodar o jogo direto de dentro do WinRAR.
+                    </li>
+                    <li>
+                      <strong className="text-white">03. Mantenha todas as DLLs juntas:</strong> Nunca mova apenas o executável <span className="font-mono text-slate-200">.exe</span> para a Área de Trabalho; crie um atalho enviando para a Área de Trabalho com o botão direito.
+                    </li>
+                    <li>
+                      <strong className="text-white">04. Controles e Resolução:</strong> Conecte seu controle Xbox/PlayStation antes de abrir o jogo para reconhecimento automático em 60 FPS ou configure no menu inicial.
+                    </li>
+                  </ol>
+                ) : isDirectRelease && !isTorrentRepack ? (
+                  <ol className="space-y-3 text-xs sm:text-sm text-slate-300 leading-relaxed">
+                    <li>
+                      <strong className="text-white">01. Download pelo servidor prioritário ({hasMegaUpLink ? 'MegaUp.net' : 'Link Direto'}):</strong> Clique no link desejado, aguarde a contagem regressiva de poucos segundos no redirecionador e feche eventuais abas de anúncio até iniciar o arquivo real do jogo.
+                    </li>
+                    <li>
+                      <strong className="text-white">02. {megaUpPartsCount > 1 ? `Baixe todas as partes (${megaUpPartsCount} arquivos) na mesma pasta:` : 'Extraia o arquivo baixado:'}</strong>{' '}
+                      {megaUpPartsCount > 1
+                        ? 'Coloque todas as partes na mesma pasta, clique com o botão direito somente na Parte 1 e selecione "Extrair aqui" usando WinRAR ou 7-Zip atualizado (as demais partes serão unidas automaticamente).'
+                        : 'Use WinRAR ou 7-Zip atualizado para extrair o pacote em uma pasta curta sem acentos (ex: C:\\Jogos).'}
+                    </li>
+                    <li>
+                      <strong className="text-white">03. Proteção do Windows Defender:</strong> Antes de extrair ou rodar o <span className="font-mono text-slate-200">Setup.exe</span>, adicione a pasta de destino às exclusões do Windows Defender para evitar falso-positivo nos arquivos do crack.
+                    </li>
+                    <li>
+                      <strong className="text-white">04. Montar ISO / Instalar / Crack:</strong> Se vier um arquivo <span className="font-mono text-slate-200">.iso</span>, dê duplo clique no Windows 10/11 para montar o disco virtual e rode o <span className="font-mono text-slate-200">Setup.exe</span>. Caso exista uma pasta chamada <span className="font-mono text-amber-300">Crack</span>, <span className="font-mono text-amber-300">RUNE</span> ou <span className="font-mono text-amber-300">CODEX</span> dentro da ISO, copie seu conteúdo para a pasta onde o jogo foi instalado substituindo os arquivos.
+                    </li>
+                    <li>
+                      <strong className="text-white">05. Primeira execução:</strong> Abra o atalho na Área de Trabalho com o botão direito e escolha <strong className="text-white">Executar como Administrador</strong> para garantir permissão de salvamento.
+                    </li>
+                  </ol>
+                ) : (
+                  <ol className="space-y-3 text-xs sm:text-sm text-slate-300 leading-relaxed">
+                    <li>
+                      <strong className="text-white">01. Baixe com qBittorrent:</strong> Clique em <em>Baixar Torrent PC</em> na aba de downloads e abra no <strong className="text-white">qBittorrent</strong> (leve, código aberto e livre de anúncios). Você pode desmarcar pacotes de idiomas opcionais (ex: japonês/francês) se quiser economizar espaço.
+                    </li>
+                    <li>
+                      <strong className="text-white">02. Adicione exceção no Antivírus antes de instalar:</strong> Pause a proteção em tempo real ou adicione a pasta do torrent e a pasta de instalação às exclusões do Windows Defender para que nenhum arquivo <span className="font-mono text-slate-200">.dll</span> do jogo seja apagado.
+                    </li>
+                    <li>
+                      <strong className="text-white">03. Atenção à memória RAM no Setup.exe:</strong> Se o seu computador tiver <strong className="text-amber-300">16 GB de RAM ou menos</strong>, marque obrigatoriamente a caixa <strong className="text-white">"Limit installer to 2GB of RAM"</strong> na tela inicial do instalador (FitGirl / DODI). Isso evita travamentos em 80%–95%.
+                    </li>
+                    <li>
+                      <strong className="text-white">04. Aguarde sem fechar:</strong> Repacks altamente compactados usam bastante processador durante a descompressão. Não interrompa o processo se a barra parecer parada por alguns minutos e deixe a verificação de integridade final (<span className="font-mono text-slate-200">Verify BIN files</span>) concluir até o fim.
+                    </li>
+                    <li>
+                      <strong className="text-white">05. Iniciar como Administrador:</strong> Ao finalizar, instale as opções de DirectX / Visual C++ oferecidas pelo instalador (ou pela aba Utilitários) e execute o jogo como Administrador.
+                    </li>
+                  </ol>
+                )}
+              </div>
+
+              {/* Dicas & Solução Rápida de Problemas Comuns */}
+              <div className="space-y-4">
+                <h5 className="text-sm font-bold text-white flex items-center gap-2">
+                  <Wrench className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>Dicas Práticas & Solução de Erros Comuns</span>
+                </h5>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <h6 className="text-xs font-bold text-cyan-300 uppercase tracking-wide">
+                        Erro de DLL (vcruntime140, d3dx9, ISDone.dll)
+                      </h6>
+                    </div>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      90% dos erros ao abrir um jogo acontecem por falta do <strong>Visual C++ Redistributable (2015–2022)</strong> ou <strong>DirectX</strong>. Se o erro for <span className="font-mono text-amber-300">ISDone.dll / Unarc.dll</span> durante a instalação, instale em uma pasta curta sem acentos (ex: <span className="font-mono text-slate-200">C:\Games\Jogo</span>) e marque o limite de 2GB de RAM.
+                    </p>
                     <button
                       type="button"
-                      onClick={() => {
-                        saveNexusApiKey(nexusApiKey);
-                        setNexusKeyStatus('✓ Personal API Key salva com sucesso no navegador!');
-                        setTimeout(() => setNexusKeyStatus(null), 4000);
-                      }}
-                      className="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-400 text-slate-950 font-bold text-xs cursor-pointer shadow-md shrink-0"
+                      onClick={openUtilities}
+                      className="text-xs font-bold text-emerald-400 hover:text-emerald-300 hover:underline cursor-pointer"
                     >
-                      Salvar Chave
+                      Baixar pacotes C++ e DirectX em Utilitários →
                     </button>
-                    {nexusApiKey && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setNexusApiKey('');
-                          saveNexusApiKey('');
-                          setNexusKeyStatus('Chave removida. O sistema agora usa a base canônica verificada.');
-                          setTimeout(() => setNexusKeyStatus(null), 3500);
-                        }}
-                        className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-red-950 hover:text-red-300 text-slate-400 text-xs font-bold cursor-pointer border border-slate-700 shrink-0"
-                      >
-                        Limpar
-                      </button>
-                    )}
                   </div>
 
-                  {nexusKeyStatus && (
-                    <div className="text-xs font-bold text-emerald-400 flex items-center gap-1.5 pt-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>{nexusKeyStatus}</span>
+                  <div className="p-5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <h6 className="text-xs font-bold text-amber-300 uppercase tracking-wide flex items-center gap-1.5">
+                        <Shield className="w-3.5 h-3.5" />
+                        <span>Jogo não abre ou sumiu o Crack / Steam_api64.dll</span>
+                      </h6>
                     </div>
-                  )}
-                </div>
-              )}
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      Quando você clica duas vezes e nada acontece, o <strong>Windows Defender</strong> geralmente moveu o arquivo para a Quarentena. Abra <em>Segurança do Windows &gt; Proteção contra vírus e ameaças &gt; Histórico de proteção</em>, clique em <strong>Restaurar</strong> e permita na pasta do jogo.
+                    </p>
+                  </div>
 
-              {validMods && validMods.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {validMods.map((mod, idx) => (
-                    <div 
-                      key={mod.id || idx}
-                      className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 hover:border-orange-500/50 transition-all space-y-3 flex flex-col justify-between"
+                  <div className="p-5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-2.5">
+                    <h6 className="text-xs font-bold text-purple-300 uppercase tracking-wide">
+                      Queda de FPS, Tela Preta ou Travamentos
+                    </h6>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      Atualize o driver da sua placa de vídeo (NVIDIA/AMD/Intel), feche navegadores com muitas abas abertas e teste alternar de Tela Cheia para <strong>Janela Sem Bordas</strong>. Em notebooks, jogue sempre conectado à tomada no plano de energia <em>Alto Desempenho</em>.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => openCanIRunIt(game)}
+                      className="text-xs font-bold text-cyan-400 hover:text-cyan-300 hover:underline cursor-pointer"
                     >
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between gap-2 flex-wrap">
-                          <span className="text-xs font-black text-white">{mod.title}</span>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-orange-500/20 text-orange-300 border border-orange-500/30 shrink-0">
-                            {mod.category || 'Gameplay'}
-                          </span>
-                        </div>
-                        <p className="text-xs text-slate-300 leading-relaxed">{mod.description}</p>
-                      </div>
+                      Conferir se seu hardware atende os requisitos →
+                    </button>
+                  </div>
 
-                      <div className="pt-3 border-t border-slate-900 flex items-center justify-between gap-2 flex-wrap">
-                        <div className="text-[11px] text-slate-400">
-                          {mod.author && <span>Por: <strong className="text-slate-200">{mod.author}</strong></span>}
-                          {mod.downloadsCount && <span className="ml-2 font-mono text-cyan-400">• {mod.downloadsCount} downloads</span>}
-                        </div>
-
-                        <a
-                          href={mod.nexusUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-orange-500 hover:text-slate-950 text-orange-300 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shrink-0"
-                          title="Abrir página oficial deste mod no Nexus Mods"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                          <span>Abrir no Nexus</span>
-                        </a>
-                      </div>
-                    </div>
-                  ))}
+                  <div className="p-5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-2.5">
+                    <h6 className="text-xs font-bold text-emerald-300 uppercase tracking-wide">
+                      Progresso (Saves) & Idioma em Português (PT-BR)
+                    </h6>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      Se o jogo não estiver salvando o progresso, execute-o sempre como <strong>Administrador</strong> (saves costumam ficar em <span className="font-mono text-slate-200">Documentos</span> ou <span className="font-mono text-slate-200">%AppData%</span>). Caso abra em inglês, confira as opções de idioma no menu interno ou altere <span className="font-mono text-slate-200">Language=brazilian</span> no arquivo <span className="font-mono text-slate-200">.ini</span> da pasta do jogo.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('localizations')}
+                      className="text-xs font-bold text-indigo-400 hover:text-indigo-300 hover:underline cursor-pointer"
+                    >
+                      Ver idiomas disponíveis neste título →
+                    </button>
+                  </div>
                 </div>
-              ) : (
-                <div className="p-8 rounded-2xl bg-slate-950/50 border border-slate-800 text-center space-y-3">
-                  <Package className="w-10 h-10 text-slate-600 mx-auto" />
-                  <h4 className="text-sm font-bold text-white">Explore os Mods Criados pela Comunidade no Nexus Mods</h4>
-                  <p className="text-xs text-slate-400 max-w-md mx-auto">
-                    Confira mods de melhoria gráfica, dublagens em português e correções de desempenho disponíveis para <strong>{nexusInfo.cleanTitle}</strong>:
-                  </p>
-                  <a
-                    href={nexusInfo.hubUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-slate-950 font-bold text-xs transition-all shadow-md"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    <span>Ver Mods deste Jogo no NexusMods.com</span>
-                  </a>
-                </div>
-              )}
+              </div>
             </div>
           )}
 

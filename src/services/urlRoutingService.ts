@@ -1,6 +1,6 @@
 import { Game } from '../types';
 
-export type GameModalTab = 'downloads' | 'specs' | 'screenshots' | 'instructions' | 'cheats' | 'mods' | 'localizations';
+export type GameModalTab = 'downloads' | 'instructions' | 'specs' | 'screenshots' | 'localizations';
 
 export interface ParsedRoute {
   type: 'home' | 'game' | 'library' | 'category';
@@ -20,11 +20,11 @@ const VALID_TABS: Record<string, GameModalTab> = {
   instructions: 'instructions',
   instalacao: 'instructions',
   como_instalar: 'instructions',
-  cheats: 'cheats',
-  dicas: 'cheats',
-  codigos: 'cheats',
-  mods: 'mods',
-  modificacoes: 'mods',
+  dicas: 'instructions',
+  cheats: 'instructions',
+  codigos: 'instructions',
+  mods: 'instructions',
+  modificacoes: 'instructions',
   localizations: 'localizations',
   idiomas: 'localizations',
   dublagens: 'localizations',
@@ -211,12 +211,10 @@ export function updateGameSeoMetadata(game: Game, tab: GameModalTab = 'downloads
   if (typeof document === 'undefined') return;
 
   let tabSuffix = '';
-  if (tab === 'cheats') tabSuffix = ' – Dicas, Cheats e Comandos';
-  else if (tab === 'mods') tabSuffix = ' – Mods, 60 FPS & Gráficos';
+  if (tab === 'instructions') tabSuffix = ' – Como Instalar & Dicas';
   else if (tab === 'specs') tabSuffix = ' – Requisitos de Sistema PC';
   else if (tab === 'screenshots') tabSuffix = ' – Screenshots & Mídia';
   else if (tab === 'localizations') tabSuffix = ' – Dublagem e Tradução PT-BR';
-  else if (tab === 'instructions') tabSuffix = ' – Como Instalar';
 
   const repacker = game.repackInfo?.repacker ? ` [${game.repackInfo.repacker}]` : '';
   const pageTitle = `${game.title}${tabSuffix}${repacker} – Vortex Games`;
@@ -304,7 +302,7 @@ export function resetDefaultSeoMetadata(): void {
 export async function shareGame(game: Game, tab?: GameModalTab): Promise<{ success: boolean; sharedNatively: boolean; url: string }> {
   const url = getFullShareUrl(game, tab);
   const title = `${game.title} no Vortex Games`;
-  const text = `Confira ${game.title} no Vortex Games (Torrents PC, Dicas e PT-BR):`;
+  const text = `Confira ${game.title} no Vortex Games (Download, Como Instalar e PT-BR):`;
 
   let sharedNatively = false;
 

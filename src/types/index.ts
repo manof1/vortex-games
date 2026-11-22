@@ -172,6 +172,7 @@ export interface Game {
   pcgamingwikiUrl?: string; // Link oficial do PCGamingWiki
   localizations?: GameLocalization[]; // Quadro de Localizações (Padrão PCGamingWiki: UI, Audio, Sub, Notes)
   platform?: string; // Plataforma principal / tag canônica (ex: PC, PS2, Switch)
+  installNotes?: string; // Notas e dicas específicas de instalação do lançamento
   lastCheatsSync?: string; // Data ISO da última verificação/sincronização de cheats
   cheatsSyncStatus?: 'synced' | 'pending' | 'custom'; // Status de sincronização
 }

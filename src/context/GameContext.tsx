@@ -23,14 +23,6 @@ import {
 } from '../services/supabaseClient';
 import { sanitizeMagnetLink } from '../utils/magnetUtils';
 import { getGameCover, getGameBanner, DEFAULT_GAME_COVER, DEFAULT_GAME_BANNER } from '../utils/imageUtils';
-import { enrichGameWithCheatsAndMods, enrichAllGames } from '../utils/cheatsModsGenerator';
-import { 
-  SundaySyncInfo, 
-  loadSundaySyncInfo, 
-  saveSundaySyncInfo, 
-  executeSundayCheatsModsSync, 
-  checkAndRunScheduledSundaySync 
-} from '../services/weeklyCheatsModsScheduler';
 import { filterOutRiotPixels, isRiotPixelsLink } from '../utils/linkFilters';
 import { updateBrowserUrlForHome } from '../services/urlRoutingService';
 
@@ -87,15 +79,8 @@ interface GameContextType {
   syncLogs: SyncLog[];
   toggleAutoSync: () => void;
   triggerManualSync: () => { addedCount: number; message: string };
-  // Sunday Cheats & Mods Scheduler (Todo Domingo)
-  isSundaySyncOpen: boolean;
-  setIsSundaySyncOpen: (open: boolean) => void;
-  openSundaySyncModal: () => void;
-  sundaySyncInfo: SundaySyncInfo;
-  triggerSundayCheatsModsUpdate: (force?: boolean) => { updatedCount: number; message: string };
-  toggleSundaySyncActive: () => void;
-  activeGameInitialTab: 'downloads' | 'specs' | 'screenshots' | 'instructions' | 'cheats' | 'mods' | 'localizations';
-  openGameWithTab: (game: Game, tab?: 'downloads' | 'specs' | 'screenshots' | 'instructions' | 'cheats' | 'mods' | 'localizations') => void;
+  activeGameInitialTab: 'downloads' | 'instructions' | 'specs' | 'screenshots' | 'localizations';
+  openGameWithTab: (game: Game, tab?: 'downloads' | 'instructions' | 'specs' | 'screenshots' | 'localizations') => void;
   // Can You Run It (Meu PC Roda?)
   isCanIRunItOpen: boolean;
   setIsCanIRunItOpen: (open: boolean) => void;
@@ -376,7 +361,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         ? stat.rating
         : (realVote ? realVote : 0);
 
-      return enrichGameWithCheatsAndMods({
+      return {
         ...g,
         coverUrl: getGameCover(g),
         bannerUrl: getGameBanner(g),
@@ -385,7 +370,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         downloadsCount: resolvedDownloads,
         rating: resolvedRating,
         totalVotes: resolvedVotes
-      }, true);
+      };
     });
 
     return cleanedList;
@@ -691,9 +676,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [authModalNotice, setAuthModalNotice] = useState<string>('');
   const [isPkgLabOpen, setIsPkgLabOpen] = useState(false);
   const [isCreatorAuthOpen, setIsCreatorAuthOpen] = useState(false);
-  const [isSundaySyncOpen, setIsSundaySyncOpen] = useState(false);
-  const [activeGameInitialTab, setActiveGameInitialTab] = useState<'downloads' | 'specs' | 'screenshots' | 'instructions' | 'cheats' | 'mods' | 'localizations'>('downloads');
-  const [sundaySyncInfo, setSundaySyncInfo] = useState<SundaySyncInfo>(() => loadSundaySyncInfo(games));
+  const [activeGameInitialTab, setActiveGameInitialTab] = useState<'downloads' | 'instructions' | 'specs' | 'screenshots' | 'localizations'>('downloads');
 
   // Game Request, Can I Run It, Utilities (Page Views inside <main>)
   const [isGameRequestOpen, setIsGameRequestOpenState] = useState(false);
@@ -781,62 +764,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsUtilitiesOpenState(open);
   };
 
-  const openGameWithTab = (game: Game, tab: 'downloads' | 'specs' | 'screenshots' | 'instructions' | 'cheats' | 'mods' | 'localizations' = 'downloads') => {
+  const openGameWithTab = (game: Game, tab: 'downloads' | 'instructions' | 'specs' | 'screenshots' | 'localizations' = 'downloads') => {
     resetOtherMainViews();
     setActiveGameInitialTab(tab);
     setActiveGameState(game);
-  };
-
-
-  // Rotina de Checagem Automática de Domingo ao Iniciar o Portal
-  useEffect(() => {
-    const res = checkAndRunScheduledSundaySync(games);
-    if (res.executed && res.updatedGames) {
-      setGames(res.updatedGames);
-      if (res.syncInfo) setSundaySyncInfo(res.syncInfo);
-      setNotifications(prev => [
-        {
-          id: `sunday-sync-${Date.now()}`,
-          title: '📅 Atualização Semanal de Domingo Concluída!',
-          message: `Todos os ${res.updatedGames?.length} jogos do portal foram sincronizados com novos Cheats e Mods!`,
-          gameId: res.updatedGames?.[0]?.id || '',
-          type: 'update',
-          timestamp: 'Agora mesmo',
-          read: false
-        },
-        ...prev
-      ]);
-    }
-  }, []);
-
-  const triggerSundayCheatsModsUpdate = (force = true) => {
-    const res = executeSundayCheatsModsSync(games, force);
-    setGames(res.updatedGames);
-    setSundaySyncInfo(res.syncInfo);
-    setNotifications(prev => [
-      {
-        id: `sunday-sync-${Date.now()}`,
-        title: '📅 Atualização de Domingo Concluída!',
-        message: `${res.updatedCount} jogos sincronizados com ${res.totalCheats} Cheats e ${res.totalMods} Mods ativos!`,
-        gameId: res.updatedGames?.[0]?.id || '',
-        type: 'update',
-        timestamp: 'Agora mesmo',
-        read: false
-      },
-      ...prev
-    ]);
-    return {
-      updatedCount: res.updatedCount,
-      message: `Atualizados ${res.updatedCount} jogos com ${res.totalCheats} Cheats e ${res.totalMods} Mods!`
-    };
-  };
-
-  const toggleSundaySyncActive = () => {
-    setSundaySyncInfo(prev => {
-      const next = { ...prev, enabled: !prev.enabled };
-      saveSundaySyncInfo(next);
-      return next;
-    });
   };
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
     return localStorage.getItem('vortex_is_logged_in') === 'true';
@@ -890,14 +821,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const openCreatorLab = () => {
     if (isCreator) {
       setIsPkgLabOpen(true);
-    } else {
-      setIsCreatorAuthOpen(true);
-    }
-  };
-
-  const openSundaySyncModal = () => {
-    if (isCreator) {
-      setIsSundaySyncOpen(true);
     } else {
       setIsCreatorAuthOpen(true);
     }
@@ -1115,13 +1038,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Game management actions
   const addGame = (newGame: Game) => {
-    // Garante que o jogo já nasce 100% enriquecido com cheats autênticos e mods salvos
-    const enriched = enrichGameWithCheatsAndMods(newGame);
     const finalizedGame: Game = {
-      ...enriched,
-      downloadLinks: filterOutRiotPixels(enriched.downloadLinks || []),
-      lastCheatsSync: new Date().toISOString(),
-      cheatsSyncStatus: 'synced'
+      ...newGame,
+      downloadLinks: filterOutRiotPixels(newGame.downloadLinks || [])
     };
 
     setGames(prev => [finalizedGame, ...prev]);
@@ -1135,7 +1054,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const notif: SiteNotification = {
       id: `notif-${Date.now()}`,
       title: 'Novo Jogo Adicionado!',
-      message: `${finalizedGame.title} já está pronto com Cheats e Mods ativos no portal!`,
+      message: `${finalizedGame.title} já está disponível para download com guia de instalação no portal!`,
       gameId: finalizedGame.id,
       type: 'new_game',
       timestamp: 'Agora mesmo',
@@ -1543,12 +1462,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         syncLogs,
         toggleAutoSync,
         triggerManualSync,
-        isSundaySyncOpen,
-        setIsSundaySyncOpen,
-        openSundaySyncModal,
-        sundaySyncInfo,
-        triggerSundayCheatsModsUpdate,
-        toggleSundaySyncActive,
         activeGameInitialTab,
         openGameWithTab,
         isCanIRunItOpen,

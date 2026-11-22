@@ -11,16 +11,13 @@ import {
   Copy, 
   Check, 
   Sparkles, 
-  Zap, 
   Languages, 
   Database, 
   GitBranch, 
-  RefreshCw,
-  Sliders
+  RefreshCw
 } from 'lucide-react';
 import { Game, SourceScanResult } from '../types';
 import { scanSourceUrl, applyScanResultToGame, persistGameToDatabase, generateGithubGamePayload } from '../services/sourceScannerService';
-import { cleanGameTitle } from '../utils/cheatsModsGenerator';
 
 interface SourceScannerModalProps {
   isOpen: boolean;
@@ -57,21 +54,6 @@ export const SourceScannerModal: React.FC<SourceScannerModalProps> = ({
       label: 'Tribo Gamer (Traduções PT-BR)',
       url: `https://tribogamer.com/traducoes/busca?q=${encodeURIComponent(game.title)}`,
       icon: '🇧🇷'
-    },
-    {
-      label: 'WeMod Trainers',
-      url: `https://www.wemod.com/cheats/${encodeURIComponent(cleanGameTitle(game.title))}`,
-      icon: '⚡'
-    },
-    {
-      label: 'Nexus Mods',
-      url: `https://www.nexusmods.com/search/?gsearch=${encodeURIComponent(cleanGameTitle(game.title))}`,
-      icon: '📦'
-    },
-    {
-      label: 'LibRetro Cheats DB (GitHub)',
-      url: `https://github.com/libretro/libretro-database/tree/master/cht`,
-      icon: '👾'
     }
   ];
 
@@ -141,7 +123,7 @@ export const SourceScannerModal: React.FC<SourceScannerModalProps> = ({
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-0.5">
-                Cole qualquer link externo para verificar veracidade, extrair localizações e cheats para <strong>{game.title}</strong>
+                Cole qualquer link externo para verificar veracidade e extrair localizações para <strong>{game.title}</strong>
               </p>
             </div>
           </div>
@@ -160,7 +142,7 @@ export const SourceScannerModal: React.FC<SourceScannerModalProps> = ({
           <div className="space-y-3">
             <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
               <span>URL da Fonte / Site para Varredura:</span>
-              <span className="text-[11px] text-cyan-400">Ex: PCGamingWiki, Tribo Gamer, Nexus Mods, Wiki</span>
+              <span className="text-[11px] text-cyan-400">Ex: PCGamingWiki, Tribo Gamer, GameVicio</span>
             </label>
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
@@ -230,7 +212,7 @@ export const SourceScannerModal: React.FC<SourceScannerModalProps> = ({
               <RefreshCw className="w-8 h-8 text-cyan-400 animate-spin mx-auto" />
               <p className="text-sm font-bold text-white">Analisando e verificando a fonte em tempo real...</p>
               <p className="text-xs text-slate-400 max-w-md mx-auto">
-                Consultando banco de dados técnico, checando veracidade e extraindo tabela de localizações e cheats.
+                Consultando banco de dados técnico, checando veracidade e extraindo tabela de localizações.
               </p>
             </div>
           )}
@@ -345,32 +327,6 @@ export const SourceScannerModal: React.FC<SourceScannerModalProps> = ({
                         ))}
                       </tbody>
                     </table>
-                  </div>
-                </div>
-              )}
-
-              {/* Cheats & Comandos Extraídos */}
-              {scanResult.extractedCheats && scanResult.extractedCheats.length > 0 && (
-                <div className="space-y-3">
-                  <h5 className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-amber-400 fill-amber-400" />
-                    <span>Cheats & Comandos de Console Extraídos ({scanResult.extractedCheats.length})</span>
-                  </h5>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {scanResult.extractedCheats.map((c, i) => (
-                      <div key={i} className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 space-y-1.5">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-white">{c.title}</span>
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">
-                            {c.category || 'Geral'}
-                          </span>
-                        </div>
-                        <p className="font-mono text-xs text-emerald-400 bg-slate-900 p-2 rounded-lg break-all select-all">
-                          {c.codeOrEffect}
-                        </p>
-                        {c.description && <p className="text-[11px] text-slate-400">{c.description}</p>}
-                      </div>
-                    ))}
                   </div>
                 </div>
               )}
